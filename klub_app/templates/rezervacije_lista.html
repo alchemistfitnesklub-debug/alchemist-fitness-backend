@@ -1,0 +1,42 @@
+<!-- /Users/dusansamardzic/fitnes_klub_app/templates/rezervacije_lista.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Lista rezervacija - Fitness Klub{% endblock %}
+
+{% block content %}
+    <div class="glass-container">
+        <h1>Lista rezervacija za {{ selected_date }}</h1>
+
+        {% if messages %}
+            {% for message in messages %}
+                <p class="error">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <input type="date" name="datum" value="{{ selected_date }}" required>
+                <button type="submit">Prikaži</button>
+            </div>
+        </form>
+
+        {% if rezervacije %}
+            <table>
+                <tr>
+                    <th>Član</th>
+                    <th>Sat</th>
+                </tr>
+                {% for rezervacija in rezervacije %}
+                <tr>
+                    <td>{{ rezervacija.clan.ime_prezime }}</td>
+                    <td>{{ rezervacija.sat }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>Nema rezervacija za izabrani datum.</p>
+        {% endif %}
+    </div>
+{% endblock %}

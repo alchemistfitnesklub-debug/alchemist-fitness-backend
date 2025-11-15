@@ -1,0 +1,157 @@
+<!-- /Users/dusansamardzic/fitnes_klub_app/templates/statistike.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Statistike - Fitness Klub{% endblock %}
+
+{% block extra_head %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .filter-form {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .filter-form input, .filter-form button {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        .filter-form button {
+            background: #00bfff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .filter-form button:hover {
+            background: #0099cc;
+            transform: scale(1.05);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <h1>Statistike klijenata</h1>
+
+    <!-- Filter i eksport -->
+    <div class="filter-form">
+        <form method="get">
+            Od: <input type="date" name="from_date" value="{{ from_date }}">
+            Do: <input type="date" name="to_date" value="{{ to_date }}">
+            <button type="submit">Filtriraj</button>
+        </form>
+        <a href="{% url 'statistike' %}?export=excel" class="action-btn">Eksportuj u Excel</a>
+    </div>
+
+    <!-- Broj rezervacija po klijentu -->
+    <h2>Broj rezervacija po klijentu</h2>
+    <canvas id="rezervacijeChart" width="400" height="200"></canvas>
+    <table>
+        <thead>
+            <tr>
+                <th>Klijent</th>
+                <th>Broj rezervacija</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in clanovi_stats %}
+            <tr>
+                <td>{{ stat.clan__ime_prezime }}</td>
+                <td>{{ stat.total }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="2">Nema podataka za ovaj period.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Prosečan broj poseta mesečno -->
+    <h2>Prosečan broj poseta mesečno</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Klijent</th>
+                <th>Prosečan broj poseta</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in avg_visits %}
+            <tr>
+                <td>{{ stat.ime_prezime }}</td>
+                <td>{{ stat.avg_visits|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="2">Nema podataka za ovaj period.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Posete po danu u nedelji -->
+    <h2>Posete po danu u nedelji</h2>
+    <canvas id="dailyVisitsChart" width="400" height="200"></canvas>
+
+    <!-- Chart.js skripte -->
+    <script>
+        const ctx = document.getElementById('rezervacijeChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ labels|safe }},
+                datasets: [{
+                    label: 'Broj rezervacija',
+                    data: {{ data|safe }},
+                    backgroundColor: '#00bfff',
+                    borderColor: '#0099cc',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Broj rezervacija' }
+                    },
+                    x: {
+                        title: { display: true, text: 'Klijent' }
+                    }
+                },
+                plugins: {
+                    legend: { display: true, position: 'top' }
+                }
+            }
+        });
+
+        const dailyCtx = document.getElementById('dailyVisitsChart').getContext('2d');
+        new Chart(dailyCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ daily_labels|safe }},
+                datasets: [{
+                    label: 'Broj poseta',
+                    data: {{ daily_data|safe }},
+                    backgroundColor: '#28a745',
+                    borderColor: '#218838',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: { 
+                        beginAtZero: true, 
+                        title: { display: true, text: 'Broj poseta' } 
+                    },
+                    x: { 
+                        title: { display: true, text: 'Dan u nedelji' } 
+                    }
+                },
+                plugins: {
+                    legend: { display: true, position: 'top' }
+                }
+            }
+        });
+    </script>
+{% endblock %}

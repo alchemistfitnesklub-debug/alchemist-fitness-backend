@@ -1,0 +1,487 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Rezervacije - Fitness Klub{% endblock %}
+{% block extra_head %}
+<!-- jQuery i toastr iz CDN-a -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<style>
+/* BOJA PO BROJU */
+.time-slot {
+background: #ffffff !important; /* BELO - niko nije zakazan */
+color: #000 !important;
+opacity: 1 !important;
+    }
+.time-slot[data-count="1"],
+.time-slot[data-count="2"],
+.time-slot[data-count="3"],
+.time-slot[data-count="4"] {
+background: #4da6ff !important; /* PLAVO - 1-4 */
+color: white !important;
+    }
+.time-slot[data-count="5"] {
+background: #ffcc00 !important; /* ŽUTO - 5 */
+color: black !important;
+    }
+.time-slot[data-count="6"] {
+background: #ff4444 !important; /* CRVENO - 6+ */
+color: white !important;
+    }
+/* BROJ PO SREDINI */
+.count-badge {
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+background: rgba(0,0,0,0.7);
+color: white;
+font-weight: bold;
+font-size: 0.9em;
+width: 28px;
+height: 28px;
+line-height: 28px;
+border-radius: 50%;
+text-align: center;
+z-index: 11;
+pointer-events: none;
+    }
+.schedule {
+display: grid;
+grid-template-columns: repeat(7, 1fr);
+gap: 10px;
+margin-top: 20px;
+    }
+.day {
+background: rgba(255, 255, 255, 0.05);
+padding: 10px;
+border-radius: 10px;
+box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+.day h3 {
+margin: 0 0 10px 0;
+color: #00bfff;
+font-size: 1.2em;
+    }
+.time-slot {
+height: 60px;
+background: #ffffff;
+margin: 2px 0;
+border-radius: 8px;
+cursor: pointer;
+transition: all 0.3s ease;
+display: flex;
+align-items: center;
+justify-content: center;
+font-weight: bold;
+position: relative;
+box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+.time-slot:hover {
+transform: translateY(-2px);
+box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+#dateFilter {
+margin-bottom: 20px;
+text-align: center;
+position: relative;
+    }
+#dateFilter input {
+margin: 5px;
+padding: 10px;
+border-radius: 8px;
+color: #000;
+background: #fff;
+border: 1px solid #ddd;
+font-size: 1em;
+    }
+#dateFilter button {
+background: #00bfff;
+color: white;
+border: none;
+padding: 10px 20px;
+border-radius: 8px;
+cursor: pointer;
+font-weight: bold;
+transition: 0.3s;
+    }
+#dateFilter button:hover {
+background: #0099cc;
+transform: translateY(-2px);
+    }
+.nav-arrows {
+position: absolute;
+right: 10px;
+top: 50%;
+transform: translateY(-50%);
+    }
+.nav-arrows button {
+background: #00bfff;
+color: white;
+border: none;
+padding: 8px 12px;
+border-radius: 50%;
+cursor: pointer;
+margin: 0 5px;
+font-weight: bold;
+transition: 0.3s;
+    }
+.nav-arrows button:hover {
+background: #0099cc;
+transform: scale(1.1);
+    }
+/* OBLACIĆ – MANJE TRANSPARENTAN */
+#popup {
+display: none;
+position: fixed;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+background: rgba(255, 255, 255, 0.95) !important;
+backdrop-filter: blur(15px) !important;
+padding: 30px;
+border-radius: 20px;
+box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+border: 1px solid rgba(255, 255, 255, 0.5);
+z-index: 1000;
+width: 90%;
+max-width: 400px;
+color: #000;
+    }
+#popup h3 {
+color: #00bfff;
+margin-top: 0;
+    }
+#popup select, #popup input, #popup button {
+margin: 10px 0;
+padding: 12px;
+border-radius: 10px;
+width: 100%;
+box-sizing: border-box;
+border: 1px solid #ddd;
+font-size: 1em;
+    }
+#popup button[type="submit"] {
+background: #00bfff;
+color: white;
+border: none;
+font-weight: bold;
+cursor: pointer;
+transition: 0.3s;
+    }
+#popup button[type="submit"]:hover {
+background: #0099cc;
+transform: translateY(-2px);
+    }
+#popup button[type="button"] {
+background: #ccc;
+color: #333;
+    }
+#popup button[type="button"]:hover {
+background: #bbb;
+    }
+#reservedList {
+margin-top: 15px;
+text-align: left;
+    }
+#reservedList h4 {
+color: #00bfff;
+margin: 10px 0;
+    }
+#reservedList ul {
+list-style: none;
+padding: 0;
+    }
+#reservedList li {
+margin: 8px 0;
+padding: 8px;
+background: rgba(0,0,0,0.1);
+border-radius: 8px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+    }
+.delete-btn {
+color: #ff4444;
+border: none;
+background: none;
+cursor: pointer;
+font-weight: bold;
+font-size: 1.2em;
+    }
+.delete-btn:hover {
+transform: scale(1.2);
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="glass-container">
+<h1>Nedeljni raspored: <span id="weekRange"></span></h1>
+<div id="dateFilter">
+<form method="get">
+            Od: <input type="date" name="from_date" id="fromDateInput" value="{{ from_date }}">
+            Do: <input type="date" name="to_date" id="toDateInput" value="{{ to_date }}">
+<button type="submit">Filtriraj nedelju</button>
+</form>
+<div class="nav-arrows">
+<button onclick="prevWeek()">←</button>
+<button onclick="nextWeek()">→</button>
+</div>
+</div>
+<!-- KALENDAR OVDE -->
+<div class="schedule" id="schedule"></div>
+<!-- POPUP -->
+<div id="popup">
+<h3>Rezervacija za <span id="popupSat"></span> na <span id="popupDatum"></span></h3>
+<p>Dodajte novu rezervaciju:</p>
+<form method="post" id="reservationForm">
+            {% csrf_token %}
+<input type="hidden" name="action" id="actionInput" value="book">
+<input type="hidden" name="datum" id="datumInput">
+<input type="text" id="clanSearch" placeholder="Pretraga clana..." onkeyup="autocompleteClan()">
+<select id="clanSelect" name="clan_id" required></select>
+<input type="text" id="satInput" name="sat" placeholder="Sat" required readonly>
+<button type="submit" id="confirmButton">Zakazi</button>
+<button type="button" onclick="closePopup()">Zatvori</button>
+</form>
+<div id="reservedList">
+<h4>Zakazani clanovi:</h4>
+<ul id="reservedListItems"></ul>
+</div>
+</div>
+    {% if message %}
+<p style="color: #ffcc00; font-weight: bold;">{{ message }}</p>
+    {% endif %}
+</div>
+<!-- SKRIPTA POSLE SVIH ELEMENATA -->
+<script>
+console.log('SKRIPTA SE UČITAVA ODMAH POSLE #schedule');
+function loadSchedule() {
+console.log('loadSchedule() pokrenut');
+var today = new Date();
+var currentDay = today.getDay() || 7;
+var monday = new Date(today);
+monday.setDate(today.getDate() - (currentDay - 1));
+var sunday = new Date(monday);
+sunday.setDate(monday.getDate() + 6);
+var from_date = new URLSearchParams(window.location.search).get('from_date') || monday.toISOString().split('T')[0];
+var to_date = new URLSearchParams(window.location.search).get('to_date') || sunday.toISOString().split('T')[0];
+var startDate = new Date(from_date);
+var days = [];
+for (var i = 0; i < 7; i++) {
+var day = new Date(startDate);
+day.setDate(startDate.getDate() + i);
+days.push(day.toISOString().split('T')[0]);
+    }
+var weekStart = new Date(days[0]);
+var weekEnd = new Date(days[6]);
+document.getElementById('weekRange').textContent = `Ponedeljak, ${weekStart.toLocaleDateString('sr-RS', {day: '2-digit', month: '2-digit', year: 'numeric'})} - Nedelja, ${weekEnd.toLocaleDateString('sr-RS', {day: '2-digit', month: '2-digit', year: 'numeric'})}`;
+document.getElementById('fromDateInput').value = from_date;
+document.getElementById('toDateInput').value = to_date;
+var schedule = document.getElementById('schedule');
+if (!schedule) { console.error('#schedule NE POSTOJI!'); return; }
+schedule.innerHTML = '';
+var dayNames = ['Ponedeljak', 'Utorak', 'Sreda', 'Četvrtak', 'Petak', 'Subota', 'Nedelja'];
+var startHour = 8;
+var endHour = 20;
+for (var i = 0; i < 7; i++) {
+var dayDiv = document.createElement('div');
+dayDiv.className = 'day';
+dayDiv.innerHTML = `<h3>${dayNames[i]} (${days[i]})</h3>`;
+for (var hour = startHour; hour < endHour; hour++) {
+var timeSlot = document.createElement('div');
+timeSlot.className = 'time-slot';
+timeSlot.dataset.date = days[i];
+timeSlot.dataset.time = `${hour.toString().padStart(2, '0')}:00`;
+timeSlot.textContent = `${hour}:00`;
+timeSlot.dataset.count = '0'; // Početno belo
+// DODAJ KLIK PRE POSTAVLJANJA BROJA
+timeSlot.addEventListener('click', function(e) {
+console.log('Klik na slot:', this.dataset.time, this.dataset.date);
+openPopup(this.dataset.time, this.dataset.date);
+            });
+dayDiv.appendChild(timeSlot);
+        }
+schedule.appendChild(dayDiv);
+    }
+loadReservations(from_date, to_date);
+}
+function loadReservations(from_date, to_date) {
+$.get(`/rezervacije/json/?start=${from_date}&end=${to_date}`, function(data) {
+var slotCounts = {};
+data.forEach(function(event) {
+var date = event.start.split('T')[0];
+var time = event.start.split('T')[1].split(':')[0] + ':00';
+var key = `${date}_${time}`;
+slotCounts[key] = (slotCounts[key] || 0) + 1;
+        });
+Object.keys(slotCounts).forEach(function(key) {
+var [date, time] = key.split('_');
+var slot = document.querySelector(`.time-slot[data-date="${date}"][data-time="${time}"]`);
+if (slot) {
+var count = slotCounts[key];
+slot.dataset.count = count;
+const oldBadge = slot.querySelector('.count-badge');
+if (oldBadge) oldBadge.remove();
+const badge = document.createElement('div');
+badge.className = 'count-badge';
+badge.innerText = count;
+slot.appendChild(badge);
+            }
+        });
+    }).fail(function(xhr, status, error) {
+console.error('Error loading reservations:', error);
+    });
+}
+function openPopup(time, date) {
+console.log('openPopup() pozvan za:', time, date);
+document.getElementById('popup').style.display = 'block';
+document.getElementById('satInput').value = time;
+document.getElementById('datumInput').value = date;
+document.getElementById('popupSat').textContent = time;
+document.getElementById('popupDatum').textContent = date;
+document.getElementById('actionInput').value = 'book';
+var reservedListItems = document.getElementById('reservedListItems');
+reservedListItems.innerHTML = '';
+$.get(`/rezervacije/json/?start=${date}&end=${date}`, function(data) {
+var reserved = data.filter(event => {
+var eventDate = event.start.split('T')[0];
+var eventTime = event.start.split('T')[1].split(':')[0] + ':00';
+return eventDate === date && eventTime === time;
+        });
+var count = reserved.length;
+if (count > 0) {
+reserved.forEach(event => {
+var li = document.createElement('li');
+li.innerHTML = `${event.title} <button class="delete-btn" onclick="deleteReservation(${event.id}, '${event.title}', '${date}', '${time}')">X</button>`;
+reservedListItems.appendChild(li);
+            });
+        } else {
+reservedListItems.innerHTML = '<li>Nema zakazanih clanova.</li>';
+        }
+var slot = document.querySelector(`.time-slot[data-date="${date}"][data-time="${time}"]`);
+if (count >= 6) {
+slot.classList.add('full');
+document.getElementById('confirmButton').style.display = 'none';
+document.getElementById('clanSearch').style.display = 'none';
+document.getElementById('clanSelect').style.display = 'none';
+        } else {
+document.getElementById('confirmButton').style.display = 'block';
+document.getElementById('clanSearch').style.display = 'block';
+document.getElementById('clanSelect').style.display = 'block';
+        }
+    }).fail(function(xhr, status, error) {
+console.error('Error loading reserved list:', error);
+    });
+document.getElementById('clanSearch').value = '';
+document.getElementById('clanSelect').innerHTML = '';
+}
+function closePopup() {
+document.getElementById('popup').style.display = 'none';
+document.getElementById('reservationForm').reset();
+document.getElementById('popupSat').textContent = '';
+document.getElementById('popupDatum').textContent = '';
+}
+function prevWeek() {
+var from_date = new URLSearchParams(window.location.search).get('from_date') || new Date().toISOString().split('T')[0];
+var startDate = new Date(from_date);
+startDate.setDate(startDate.getDate() - 7);
+var endDate = new Date(startDate);
+endDate.setDate(startDate.getDate() + 6);
+window.location.href = `/rezervacije/?from_date=${startDate.toISOString().split('T')[0]}&to_date=${endDate.toISOString().split('T')[0]}`;
+}
+function nextWeek() {
+var from_date = new URLSearchParams(window.location.search).get('from_date') || new Date().toISOString().split('T')[0];
+var startDate = new Date(from_date);
+startDate.setDate(startDate.getDate() + 7);
+var endDate = new Date(startDate);
+endDate.setDate(startDate.getDate() + 6);
+window.location.href = `/rezervacije/?from_date=${startDate.toISOString().split('T')[0]}&to_date=${endDate.toISOString().split('T')[0]}`;
+}
+function autocompleteClan() {
+var input = document.getElementById('clanSearch');
+var filter = input.value.toLowerCase();
+var select = document.getElementById('clanSelect');
+select.innerHTML = '';
+$.get('/rezervacije/json/clanovi/?q=' + filter, function(data) {
+data.forEach(function(clan) {
+select.appendChild(new Option(clan.ime_prezime, clan.id));
+        });
+select.size = data.length || 1;
+    }).fail(function(xhr, status, error) {
+console.error('Error loading clan list:', error);
+    });
+}
+function deleteReservation(id, title, date, time) {
+if (confirm(`Da li zelite da otkazete rezervaciju za ${title}?`)) {
+$.ajax({
+url: '/brisi_rezervaciju/' + id + '/',
+type: 'POST',
+data: {
+'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+            },
+success: function() {
+toastr.success('Rezervacija obrisana!');
+openPopup(time, date);
+loadSchedule();
+            },
+error: function(xhr, status, error) {
+toastr.error('Greška pri brisanju!');
+            }
+        });
+    }
+}
+document.getElementById('reservationForm').addEventListener('submit', function(e) {
+e.preventDefault();
+var formData = new FormData(this);
+var clanId = document.getElementById('clanSelect').value;
+var datum = document.getElementById('datumInput').value;
+var sat = document.getElementById('satInput').value;
+if (document.getElementById('actionInput').value === 'book' && clanId) {
+$.ajax({
+url: '/rezervacije/',
+type: 'POST',
+data: formData,
+processData: false,
+contentType: false,
+success: function(data) {
+if (data.status === 'success') {
+toastr.success(data.message);
+closePopup();
+loadSchedule();
+                } else if (data.status === 'confirm') {
+if (confirm(data.message)) {
+formData.append('action', 'confirm');
+$.ajax({
+url: '/rezervacije/',
+type: 'POST',
+data: formData,
+processData: false,
+contentType: false,
+success: function(data) {
+if (data.status === 'success') {
+toastr.success(data.message);
+closePopup();
+loadSchedule();
+                                } else {
+toastr.error(data.message);
+                                }
+                            },
+error: function(xhr) {
+toastr.error('AJAX greška: ' + xhr.responseText);
+                            }
+                        });
+                    }
+                } else {
+toastr.error(data.message);
+                }
+            },
+error: function(xhr) {
+toastr.error('AJAX greška: ' + xhr.responseText);
+            }
+        });
+    }
+});
+// POKRENI ODMAH
+loadSchedule();
+</script>
+{% endblock %}

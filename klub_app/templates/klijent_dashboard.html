@@ -1,0 +1,57 @@
+<!-- /Users/dusansamardzic/fitnes_klub_app/templates/klijent_dashboard.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Klijentski dashboard - Fitness Klub{% endblock %}
+
+{% block content %}
+    <h1>Zdravo, {{ clan.ime_prezime }}</h1>
+
+    <!-- Uplate -->
+    <h2>Vaše uplate</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Datum</th>
+                <th>Iznos (EUR)</th>
+                <th>Datum isteka</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for uplata in uplate %}
+            <tr>
+                <td>{{ uplata.datum|date:"Y-m-d H:i" }}</td>
+                <td>{{ uplata.iznos|floatformat:2 }}</td>
+                <td>{{ uplata.to_date|date:"Y-m-d" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3">Nema uplata.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Rezervacije -->
+    <h2>Vaše rezervacije</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Datum</th>
+                <th>Vreme</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rezervacija in rezervacije %}
+            <tr>
+                <td>{{ rezervacija.datum|date:"Y-m-d" }}</td>
+                <td>{{ rezervacija.sat }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="2">Nema rezervacija.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

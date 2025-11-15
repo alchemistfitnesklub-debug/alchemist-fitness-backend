@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>FullCalendar 6.1.19 Test</title>
+    <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
+    <link rel="apple-touch-icon" href="/static/images/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" href="/static/images/favicon.ico">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+      body {
+        margin: 40px 10px;
+        padding: 0;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: linear-gradient(135deg, #1e3c72, #2a5298);
+        color: #fff;
+      }
+      #calendar {
+        max-width: 900px;
+        margin: 0 auto;
+        background: #fff;
+        border-radius: 10px;
+        padding: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+      .fc {
+        font-family: 'Segoe UI', Arial, sans-serif;
+      }
+      .fc .fc-toolbar {
+        background: #2a5298;
+        color: #fff;
+        border-radius: 8px 8px 0 0;
+        padding: 10px;
+      }
+      .fc .fc-button {
+        background: #00bfff;
+        border: none;
+        color: #fff;
+        transition: background 0.3s;
+      }
+      .fc .fc-button:hover {
+        background: #0099cc;
+      }
+      .fc .fc-daygrid-day:hover {
+        background: #f0f8ff;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="calendar"></div>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        if (typeof FullCalendar === 'undefined') {
+          console.error('FullCalendar not loaded. Check CDN: https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js');
+          return;
+        }
+        var calendarEl = document.getElementById("calendar");
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: "dayGridMonth",
+          headerToolbar: {
+            left: "prev,next today",
+            center: "title",
+            right: "dayGridMonth,timeGridWeek,timeGridDay",
+          },
+        });
+        try {
+          calendar.render();
+        } catch (e) {
+          console.error('Error rendering calendar:', e);
+        }
+      });
+    </script>
+  </body>
+</html>

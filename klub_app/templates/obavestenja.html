@@ -1,0 +1,62 @@
+<!-- templates/obavestenja.html -->
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Obaveštenja - Fitness Klub{% endblock %}
+
+{% block content %}
+<div class="glass-container">
+    <h1>Obaveštenja</h1>
+
+    <!-- FILTER FORMA -->
+    <div class="filter-form" style="margin-bottom: 20px; text-align: center;">
+        <form method="get">
+            Od: <input type="date" name="from_date" value="{{ from_date }}">
+            Do: <input type="date" name="to_date" value="{{ to_date }}">
+            <label><input type="checkbox" name="failed_only" value="true" {% if failed_only %}checked{% endif %}> Samo neuspešna</label>
+            <button type="submit" style="background: #00bfff; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer;">Filtriraj</button>
+        </form>
+    </div>
+
+    <!-- PRIKAZ OBAVEŠTENJA (ISTO KAO U DASHBOARDU) -->
+    <div class="obavestenja-lista">
+        {% if obavestenja %}
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                <thead>
+                    <tr style="background: #2a5298; color: white;">
+                        <th style="padding: 10px; text-align: left;">Klijent</th>
+                        <th style="padding: 10px; text-align: left;">Tip</th>
+                        <th style="padding: 10px; text-align: left;">Poruka</th>
+                        <th style="padding: 10px; text-align: left;">Status</th>
+                        <th style="padding: 10px; text-align: left;">Datum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ob in obavestenja %}
+                    <tr style="background: rgba(255,255,255,0.1); border-bottom: 1px solid #444;">
+                        <td style="padding: 10px;">{{ ob.clan.ime_prezime }}</td>
+                        <td style="padding: 10px;">
+                            <span style="padding: 4px 8px; border-radius: 4px; font-size: 0.8em; 
+                                {% if ob.tip == 'email' %}background: #4da6ff; color: white;
+                                {% else %}background: #25d366; color: white;{% endif %}">
+                                {{ ob.tip|upper }}
+                            </span>
+                        </td>
+                        <td style="padding: 10px; max-width: 300px;">{{ ob.poruka|truncatechars:80 }}</td>
+                        <td style="padding: 10px;">
+                            <span style="padding: 4px 8px; border-radius: 4px; font-size: 0.8em;
+                                {% if ob.status == 'sent' or ob.status == 'delivered' %}background: #28a745; color: white;
+                                {% else %}background: #dc3545; color: white;{% endif %}">
+                                {{ ob.status|upper }}
+                            </span>
+                        </td>
+                        <td style="padding: 10px;">{{ ob.datum_slanja|date:"d.m.Y H:i" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p style="text-align: center; color: #ccc; margin-top: 20px;">Nema obaveštenja za izabrani period.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

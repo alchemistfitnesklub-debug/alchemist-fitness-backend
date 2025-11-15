@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary fw-bold">Dashboard – Pregled kluba</h2>
+        <div class="text-muted">Poslednje ažuriranje: {% now "d.m.Y H:i" %}</div>
+    </div>
+
+    <!-- FILTER PERIOD -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body bg-light rounded">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label fw-semibold">Od datuma</label>
+                    <input type="date" name="from_date" class="form-control form-control-lg" value="{{ from_date }}" required>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label fw-semibold">Do datuma</label>
+                    <input type="date" name="to_date" class="form-control form-control-lg" value="{{ to_date }}" required>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm">
+                        Prikaži
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- KARTICE SA ZARADOM -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100 text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-center py-4">
+                    <h5 class="card-title mb-3 opacity-90">Članarine u periodu</h5>
+                    <h2 class="display-5 fw-bold">{{ total_payments_in_period|floatformat:2 }} €</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100 text-white" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="card-body text-center py-4">
+                    <h5 class="card-title mb-3 opacity-90">Šank – Krediti za vodu</h5>
+                    <h2 class="display-5 fw-bold">{{ total_bar_revenue|floatformat:2 }} €</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100 text-white" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="card-body text-center py-4">
+                    <h5 class="card-title mb-3 opacity-90">Aktivnih članarina</h5>
+                    <h2 class="display-5 fw-bold">{{ active_memberships }}</h2>
+                    <small class="opacity-75">od ukupno {{ total_members }} članova</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GRAFIKON -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0">
+            <h4 class="mb-0 text-dark fw-bold">Zarada po mesecima</h4>
+        </div>
+        <div class="card-body">
+            <canvas id="monthlyChart" height="100"></canvas>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- ČLANARINE ISTIČU -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100 {% if expirations_in_period %}border-danger border-3{% endif %}">
+                <div class="card-header {% if expirations_in_period %}bg-danger text-white{% else %}bg-light text-dark{% endif %}">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        Članarine ističu
+                        {% if expirations_in_period %}
+                        <span class="badge bg-white text-danger ms-2 fs-6">{{ expirations_in_period|length }}</span>
+                        {% else %}
+                        <span class="badge bg-secondary ms-2">0</span>
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if expirations_in_period %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Klijent</th>
+                                    <th>Iznos</th>
+                                    <th>Ističe</th>
+                                    <th class="text-end pe-4">Preostalo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for u in expirations_in_period %}
+                                <tr class="{% if u.do_datum|date:'Y-m-d' < today %}table-danger text-white fw-bold{% else %}table-warning{% endif %}">
+                                    <td class="ps-4"><strong>{{ u.clan.ime_prezime }}</strong></td>
+                                    <td>{{ u.iznos }} €</td>
+                                    <td>{{ u.do_datum|date:"d.m.Y" }}</td>
+                                    <td class="text-end pe-4 fw-bold">
+                                        {% with days=u.do_datum|timeuntil|cut:" days"|cut:" day"|cut:", 0 days"|cut:", 1 day"|cut:" "|cut:"," %}
+                                            {% if days == "0" %}<span class="text-danger-font">DANAS!</span>{% else %}{{ days }}{% endif %}
+                                        {% endwith %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 3.5rem;"></i>
+                        <p class="text-success mt-3 mb-0 fw-bold fs-5">SVE ČLANARINE SU AKTIVNE!</p>
+                        <small class="text-muted">Nema isteka u izabranom periodu</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- POSLEDNJA OBAVEŠTENJA – CEO U TABLI, SAVRŠENO -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Poslednja obaveštenja</h5>
+                    <span class="badge bg-white text-success fs-6 fw-bold">{{ recent_obavestenja|length }}</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_obavestenja %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-success text-white">
+                                <tr>
+                                    <th class="ps-4">Klijent</th>
+                                    <th>Poruka</th>
+                                    <th class="text-center">Tip</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-end pe-4">Poslato</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for o in recent_obavestenja %}
+                                <tr class="{% if o.status == 'failed' %}table-danger text-white{% elif o.status == 'delivered' %}table-light{% else %}table-success-subtle{% endif %}">
+                                    <td class="ps-4 fw-bold text-primary">{{ o.clan.ime_prezime }}</td>
+                                    <td class="small text-muted" style="max-width: 300px;">
+                                        {{ o.poruka|truncatechars:90 }}
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">
+                                            {% if o.tip == 'sms' %}SMS{% else %}Email{% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if o.status == 'delivered' %}
+                                            <span class="badge bg-success px-3 py-2">DOSTAVLJENO</span>
+                                        {% elif o.status == 'sent' or o.status == 'queued' %}
+                                            <span class="badge bg-warning text-dark px-3 py-2">POSLATO</span>
+                                        {% else %}
+                                            <span class="badge bg-danger px-3 py-2">GREŠKA</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-4 small text-muted">
+                                        {{ o.datum_slanja|date:"d.m." }}<br>
+                                        <strong>{{ o.datum_slanja|time:"H:i" }}</strong>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-bell-slash text-success" style="font-size: 4rem; opacity: 0.7;"></i>
+                        <p class="text-success mt-4 mb-0 fw-bold fs-4">TIŠINA JE ZLATO</p>
+                        <small class="text-muted">Nema poslatih obaveštenja u poslednjih 5 dana</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('monthlyChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ labels|safe }},
+            datasets: [
+                {
+                    label: 'Članarine (€)',
+                    data: {{ data|safe }},
+                    backgroundColor: 'rgba(102, 126, 234, 0.85)',
+                    borderColor: '#667eea',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                },
+                {
+                    label: 'Krediti za vodu (€)',
+                    data: {{ bar_data|safe }},
+                    backgroundColor: 'rgba(245, 87, 108, 0.85)',
+                    borderColor: '#f5576c',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top', labels: { font: { size: 14 } } },
+                tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + ' €'; } } }
+            },
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

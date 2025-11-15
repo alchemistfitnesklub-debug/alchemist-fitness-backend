@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Šank{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="text-center mb-5 text-primary">ŠANK - UPRAVLJANJE</h1>
+        </div>
+    </div>
+
+    <!-- DODAJ PROIZVOD -->
+    <div class="row mb-5">
+        <div class="col-md-6 mx-auto">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Dodaj novi proizvod</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="add_product">
+                        <div class="mb-3">
+                            <label class="form-label">Naziv proizvoda</label>
+                            <input type="text" name="naziv" class="form-control rounded-pill" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Količina</label>
+                            <input type="number" name="kolicina" class="form-control rounded-pill" min="0" value="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Cena (EUR)</label>
+                            <input type="number" name="cena" class="form-control rounded-pill" step="0.01" min="0" required>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 rounded-pill">Dodaj proizvod</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AŽURIRAJ ZALIHE -->
+    <div class="row mb-5">
+        <div class="col-md-6 mx-auto">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Ažuriraj zalihe</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="update_stock">
+                        <div class="mb-3">
+                            <label class="form-label">Izaberi proizvod</label>
+                            <select name="stock_id" class="form-select rounded-pill" required>
+                                <option value="">-- Izaberi --</option>
+                                {% for stock in stocks %}
+                                <option value="{{ stock.id }}">{{ stock.naziv }} ({{ stock.kolicina }} kom)</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Dodatna količina</label>
+                            <input type="number" name="dodatna_kolicina" class="form-control rounded-pill" min="1" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill">Ažuriraj zalihe</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRODAJA -->
+    <div class="row mb-5">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Nova prodaja</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="saleForm">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ sale_form.clan.label_tag }}
+                                {{ sale_form.clan|safe }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ sale_form.stock.label_tag }}
+                                {{ sale_form.stock|safe }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ sale_form.kolicina.label_tag }}
+                                {{ sale_form.kolicina|safe }}
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100 rounded-pill">Završi prodaju</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ISTORIJA PRODAJA -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Istorija prodaja</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Klijent</th>
+                                    <th>Proizvod</th>
+                                    <th>Količina</th>
+                                    <th>Cena</th>
+                                    <th>Datum</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sale in sales %}
+                                <tr>
+                                    <td>{{ sale.clan.ime_prezime }}</td>
+                                    <td>{{ sale.stock.naziv }}</td>
+                                    <td>{{ sale.kolicina }}</td>
+                                    <td><strong>{{ sale.price }} EUR</strong></td>
+                                    <td>{{ sale.datum|date:"d.m.Y H:i" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4">Nema prodaja</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- POPUP ZA MINUS -->
+<div class="modal fade" id="minusModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">UPOZORENJE: MINUS KREDITA!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <h4 id="minusAmount"></h4>
+                <p>Klijent je ušao u minus. Da li želite da nastavite?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Otkaži</button>
+                <button type="button" class="btn btn-danger rounded-pill" id="confirmMinus">Nastavi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const stocksData = {{ stocks_json|safe }};
+    let minusAmount = 0;
+
+    function updatePrice() {
+        const stockSelect = document.querySelector('[name="stock"]');
+        const kolicinaInput = document.querySelector('[name="kolicina"]');
+        if (stockSelect && kolicinaInput) {
+            const selectedId = stockSelect.value;
+            const stock = stocksData.find(s => s.id == selectedId);
+            const cenaPoKom = stock ? parseFloat(stock.cena) : 0;
+            const kolicina = parseInt(kolicinaInput.value) || 0;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        updatePrice();
+        document.querySelector('[name="stock"]').addEventListener('change', updatePrice);
+        document.querySelector('[name="kolicina"]').addEventListener('input', updatePrice);
+
+        const form = document.getElementById('saleForm');
+        form.addEventListener('submit', function(e) {
+            const clanSelect = document.querySelector('[name="clan"]');
+            const kolicina = parseInt(document.querySelector('[name="kolicina"]').value) || 0;
+            const stockSelect = document.querySelector('[name="stock"]');
+            const stock = stocksData.find(s => s.id == stockSelect.value);
+            const ukupnaCena = stock ? stock.cena * kolicina : 0;
+            const clanId = clanSelect.value;
+            if (!clanId || ukupnaCena <= 0) return;
+
+            fetch(`/krediti/json/${clanId}/`)
+                .then(r => r.json())
+                .then(data => {
+                    const trenutniKrediti = parseFloat(data.krediti);
+                    if (trenutniKrediti - ukupnaCena < 0) {
+                        minusAmount = Math.abs(trenutniKrediti - ukupnaCena).toFixed(2);
+                        document.getElementById('minusAmount').innerHTML = `<strong>${data.ime_prezime}</strong> će ući u minus: <span class="text-danger">-${minusAmount} EUR</span>`;
+                        const modal = new bootstrap.Modal(document.getElementById('minusModal'));
+                        modal.show();
+                        e.preventDefault();
+                        document.getElementById('confirmMinus').onclick = () => {
+                            form.submit();
+                        };
+                    }
+                });
+        });
+    });
+</script>
+
+<style>
+    .card { border-radius: 15px; overflow: hidden; }
+    .card-header { font-weight: bold; font-size: 1.1rem; }
+    .form-control, .form-select { border-radius: 50px !important; }
+    .btn { border-radius: 50px !important; font-weight: bold; }
+    .table th { background-color: #f8f9fa; font-weight: 600; }
+    .modal-content { border-radius: 15px; }
+    .rounded-pill { border-radius: 50px !important; }
+</style>
+{% endblock %}

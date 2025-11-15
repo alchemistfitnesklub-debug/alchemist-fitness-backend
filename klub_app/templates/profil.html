@@ -1,0 +1,380 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Profil - {{ clan.ime_prezime }}{% endblock %}
+{% block content %}
+<div class="container-fluid py-5">
+<div class="row justify-content-center">
+<div class="col-12 text-center mb-5">
+<h1 class="display-5 fw-bold text-primary">PROFIL: {{ clan.ime_prezime }}</h1>
+</div>
+</div>
+
+<!-- OSNOVNI PODACI -->
+<div class="row justify-content-center mb-5">
+<div class="col-lg-6 col-md-8">
+<div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+<div class="card-header bg-gradient-primary text-white py-4">
+<h5 class="mb-0 text-center fw-bold">Osnovni podaci</h5>
+</div>
+<div class="card-body p-4">
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="update_clan">
+    <!-- SLIKA -->
+    <div class="text-center mb-4">
+        <div class="position-relative d-inline-block">
+            {% if clan.slika and clan.slika.url %}
+            <img src="{{ clan.slika.url }}" class="rounded-circle shadow-sm" style="width: 110px; height: 110px; object-fit: cover; border: 4px solid #fff;">
+            {% else %}
+            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 110px; height: 110px; border: 4px solid #fff;">
+                <i class="fas fa-user fa-3x text-muted"></i>
+            </div>
+            {% endif %}
+            <div class="mt-2">
+                <input type="file" name="slika" class="form-control form-control-sm rounded-pill" accept="image/*">
+            </div>
+        </div>
+    </div>
+    <!-- POLJA -->
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Ime i prezime</label>
+        <div class="input-group">
+            {{ clan_form.ime_prezime|safe }}
+        </div>
+    </div>
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Telefon</label>
+        <div class="input-group">
+            {{ clan_form.telefon|safe }}
+        </div>
+    </div>
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Email</label>
+        <div class="input-group">
+            {{ clan_form.email|safe }}
+        </div>
+    </div>
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Datum rođenja</label>
+        <div class="input-group">
+            {{ clan_form.datum_rodjenja|safe }}
+        </div>
+    </div>
+    <div class="mb-4 text-center">
+        <label class="form-label fw-semibold d-inline me-2 mb-0">Krediti voda (EUR):</label>
+        <input type="text" class="form-control d-inline-block bg-light border-0 rounded-pill" style="width: 100px;" value="{{ clan.krediti_voda|floatformat:2 }}" readonly>
+    </div>
+    <div class="text-center">
+        <button type="submit" class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm">Sačuvaj izmene</button>
+    </div>
+</form>
+</div>
+</div>
+</div>
+</div>
+
+<!-- DODAJ UPLATU -->
+<div class="row justify-content-center mb-5">
+<div class="col-lg-6 col-md-8">
+<div class="card shadow-lg border-0 rounded-4">
+<div class="card-header bg-gradient-success text-white py-4">
+<h5 class="mb-0 text-center fw-bold">💳 Dodaj članarinu</h5>
+</div>
+<div class="card-body p-4">
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="add_uplata">
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Iznos (EUR)</label>
+        <div class="input-group">
+            <span class="input-group-text bg-light">€</span>
+            {{ uplata_form.iznos|safe }}
+        </div>
+    </div>
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Broj meseci</label>
+        <div class="input-group">
+            <span class="input-group-text bg-light"><i class="fas fa-calendar"></i></span>
+            {{ uplata_form.meseci|safe }}
+        </div>
+    </div>
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Važi od</label>
+        <div class="input-group">
+            <span class="input-group-text bg-light"><i class="fas fa-calendar-day"></i></span>
+            {{ uplata_form.od_datum|safe }}
+        </div>
+    </div>
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Važi do</label>
+        <div class="input-group">
+            <span class="input-group-text bg-light"><i class="fas fa-calendar-check"></i></span>
+            {{ uplata_form.do_datum|safe }}
+        </div>
+    </div>
+    <div class="alert alert-info rounded-3" role="alert">
+        <i class="fas fa-info-circle me-2"></i>
+        <small><strong>Napomena:</strong> Članarina se evidentira odvojeno od kredita za vodu.</small>
+    </div>
+    <div class="text-center">
+        <button type="submit" class="btn btn-success btn-lg px-5 rounded-pill shadow-sm">
+            <i class="fas fa-check-circle me-2"></i>Dodaj članarinu
+        </button>
+    </div>
+</form>
+</div>
+</div>
+</div>
+</div>
+
+<!-- DODAJ KREDIT ZA VODU -->
+{% if is_trener or request.user.userprofile.is_admin %}
+<div class="row justify-content-center mb-5">
+<div class="col-lg-6 col-md-8">
+<div class="card shadow-lg border-0 rounded-4">
+<div class="card-header bg-gradient-info text-white py-4">
+<h5 class="mb-0 text-center fw-bold">💧 Dodaj kredit za vodu</h5>
+</div>
+<div class="card-body p-4">
+<form method="post" onsubmit="return validateKreditForm()">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="add_kredit">
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Iznos (€)</label>
+        <div class="input-group">
+            <span class="input-group-text bg-light">€</span>
+            <input type="number" 
+                   step="0.01" 
+                   name="kredit_iznos" 
+                   id="kredit_iznos"
+                   class="form-control" 
+                   placeholder="10.00" 
+                   required 
+                   min="0.01"
+                   max="1000">
+        </div>
+        <small class="form-text text-muted">Možete uneti i sa zarezom (npr. 10,50)</small>
+    </div>
+    <div class="text-center">
+        <button type="submit" class="btn btn-info btn-lg px-5 rounded-pill shadow-sm">
+            <i class="fas fa-plus-circle me-2"></i>Dodaj kredit
+        </button>
+    </div>
+    <div class="mt-4 text-center p-3 bg-light rounded-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <span class="text-muted">Trenutni kredit:</span>
+            <strong class="text-success fs-4">{{ clan.krediti_voda|floatformat:2 }} €</strong>
+        </div>
+    </div>
+</form>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+function validateKreditForm() {
+    const input = document.getElementById('kredit_iznos');
+    const value = input.value.trim();
+    
+    if (!value) {
+        alert('Molimo unesite iznos.');
+        return false;
+    }
+    
+    const numValue = parseFloat(value.replace(',', '.'));
+    if (isNaN(numValue) || numValue <= 0) {
+        alert('Molimo unesite validan iznos veći od 0.');
+        return false;
+    }
+    
+    if (numValue > 1000) {
+        return confirm(`Unositi ${numValue.toFixed(2)} € kredita. Da li ste sigurni?`);
+    }
+    
+    return true;
+}
+</script>
+{% endif %}
+
+<!-- PORUKE -->
+<div class="row justify-content-center mb-5">
+<div class="col-lg-6 col-md-8">
+<div class="card shadow-lg border-0 rounded-4">
+<div class="card-header bg-gradient-info text-white py-4">
+<h5 class="mb-0 text-center fw-bold">Pošalji poruku</h5>
+</div>
+<div class="card-body p-4">
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="send_message">
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Poruka</label>
+        <textarea name="message_text" class="form-control rounded-pill" rows="3" required></textarea>
+    </div>
+    <div class="mb-3">
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" name="send_to" value="email" id="email_check" {% if clan.email %}checked{% endif %}>
+            <label class="form-check-label" for="email_check">Email</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" name="send_to" value="sms" id="sms_check" {% if clan.telefon %}checked{% endif %}>
+            <label class="form-check-label" for="sms_check">SMS</label>
+        </div>
+    </div>
+    <div class="text-center">
+        <button type="submit" class="btn btn-info btn-lg px-5 rounded-pill shadow-sm">Pošalji poruku</button>
+    </div>
+</form>
+</div>
+</div>
+</div>
+</div>
+
+<!-- PODACI ZA LOGOVANJE -->
+<div class="row justify-content-center mb-5">
+<div class="col-lg-6 col-md-8">
+<div class="card shadow-lg border-0 rounded-4">
+<div class="card-header bg-gradient-warning text-dark py-4">
+<h5 class="mb-0 text-center fw-bold">Podaci za logovanje</h5>
+</div>
+<div class="card-body p-4 text-center">
+<form method="post" class="d-inline">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="send_login">
+    <button type="submit" class="btn btn-warning btn-lg px-5 rounded-pill shadow-sm">Pošalji podatke za logovanje</button>
+</form>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ISTORIJA UPLATA -->
+<div class="row justify-content-center mb-5">
+<div class="col-lg-8 col-md-10">
+<div class="card shadow-lg border-0 rounded-4">
+<div class="card-header bg-gradient-info text-white py-4">
+<h5 class="mb-0 text-center fw-bold">Istorija uplata</h5>
+</div>
+<div class="card-body p-0">
+<div class="table-responsive">
+<table class="table table-hover align-middle mb-0">
+<thead class="table-light">
+<tr>
+<th>Datum uplate</th>
+<th>Iznos</th>
+<th>Meseci</th>
+<th>Važi do</th>
+</tr>
+</thead>
+<tbody>
+    {% for uplata in uplate %}
+    <tr>
+        <td>{{ uplata.datum|date:"d.m.Y" }}</td>
+        <td><strong class="text-success">{{ uplata.iznos }} EUR</strong></td>
+        <td>{{ uplata.meseci }}</td>
+        <td>{{ uplata.do_datum|date:"d.m.Y" }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4" class="text-center py-5 text-muted">Nema uplata</td></tr>
+    {% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ISTORIJA REZERVACIJA -->
+<div class="row justify-content-center">
+<div class="col-lg-8 col-md-10">
+<div class="card shadow-lg border-0 rounded-4">
+<div class="card-header bg-gradient-warning text-dark py-4">
+<h5 class="mb-0 text-center fw-bold">Istorija rezervacija</h5>
+</div>
+<div class="card-body p-0">
+<div class="table-responsive">
+<table class="table table-hover align-middle mb-0">
+<thead class="table-light">
+<tr>
+<th>Datum</th>
+<th>Vreme</th>
+</tr>
+</thead>
+<tbody>
+    {% for r in istorija_rezervacija %}
+    <tr>
+        <td>{{ r.datum|date:"d.m.Y" }}</td>
+        <td>{{ r.sat }}:00</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="2" class="text-center py-5 text-muted">Nema rezervacija</td></tr>
+    {% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<style>
+:root {
+    --bs-primary: #4361ee;
+    --bs-success: #3f37c9;
+    --bs-info: #4895ef;
+    --bs-warning: #f72585;
+}
+.bg-gradient-primary { background: linear-gradient(135deg, #4361ee, #3f37c9); }
+.bg-gradient-success { background: linear-gradient(135deg, #3f37c9, #4895ef); }
+.bg-gradient-info { background: linear-gradient(135deg, #4895ef, #4361ee); }
+.bg-gradient-warning { background: linear-gradient(135deg, #f72585, #7209b7); }
+.card {
+    border-radius: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
+}
+.card-header {
+    border-radius: 20px 20px 0 0 !important;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+.input-group .form-control, .input-group .form-select, .input-group textarea.form-control {
+    border-radius: 50px !important;
+    padding: 0.75rem 1.5rem;
+}
+.input-group .form-control:focus, .input-group .form-select:focus, .input-group textarea.form-control:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+}
+.btn {
+    border-radius: 50px !important;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+.table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-top: none;
+}
+.rounded-pill {
+    border-radius: 50px !important;
+}
+.shadow-lg {
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+}
+</style>
+{% endblock %}

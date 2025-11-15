@@ -1,0 +1,166 @@
+<!-- templates/klijenti.html -->
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Klijenti - Fitness Klub{% endblock %}
+{% block extra_head %}
+<style>
+    .search-container {
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .search-container input {
+        padding: 12px;
+        width: 300px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+    }
+    .action-btn {
+        background: #00bfff;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 5px;
+        text-decoration: none;
+        display: inline-block;
+        transition: background 0.3s, transform 0.2s;
+        margin: 5px;
+    }
+    .action-btn:hover {
+        background: #0099cc;
+        transform: scale(1.05);
+    }
+    .hidden-form {
+        display: none;
+        margin: 20px 0;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+    }
+    #autocomplete-results {
+        border: 1px solid #ccc;
+        max-height: 200px;
+        overflow-y: auto;
+        background: white;
+        position: absolute;
+        z-index: 1000;
+        width: 300px;
+        display: none;
+    }
+    #autocomplete-results div {
+        padding: 8px;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+        color: black !important;
+    }
+    #autocomplete-results div:hover {
+        background: #f0f0f0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>Klijenti</h1>
+
+<!-- PRETRAGA SA AUTOCOMPLETE -->
+<div class="search-container">
+    <input type="text" id="clanSearch" placeholder="Pretraži klijente..." autocomplete="off">
+    <div id="autocomplete-results"></div>
+</div>
+
+<!-- DUGMAD -->
+<a href="{% url 'klijenti' %}?export=excel" class="action-btn">Eksportuj u Excel</a>
+<button class="action-btn" onclick="toggleForm('add-client-form')">Dodaj novog klijenta</button>
+<button class="action-btn" onclick="toggleForm('import-excel-form')">Uvezi iz Excel-a</button>
+
+<!-- FORMA ZA DODAVANJE KLIJENTA -->
+<div id="add-client-form" class="hidden-form">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="action-btn">Dodaj klijenta</button>
+    </form>
+</div>
+
+<!-- FORMA ZA UVOZ EXCEL-A -->
+<div id="import-excel-form" class="hidden-form">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="excel_file" accept=".xlsx" required>
+        <button type="submit" class="action-btn">Uvezi</button>
+    </form>
+</div>
+
+<!-- TABELA KLIJENATA -->
+<table>
+    <thead>
+        <tr>
+            <th>Ime i prezime</th>
+            <th>Telefon</th>
+            <th>Email</th>
+            <th>Datum rođenja</th>
+            <th>Saldo</th>
+            <th>Akcije</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for clan in clanovi %}
+        <tr>
+            <td><a href="{% url 'profil' clan.id %}">{{ clan.ime_prezime }}</a></td>
+            <td>{{ clan.telefon }}</td>
+            <td>{{ clan.email }}</td>
+            <td>{{ clan.datum_rodjenja|date:"Y-m-d" }}</td>
+            <td>{{ clan.krediti_voda|floatformat:2 }} EUR</td>
+            <td><a href="{% url 'profil' clan.id %}" class="action-btn">Profil</a></td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6">Nema klijenata.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('clanSearch');
+    const resultsDiv = document.getElementById('autocomplete-results');
+
+    searchInput.addEventListener('input', function() {
+        const q = this.value.trim();
+        if (q.length >= 2) {
+            fetch(`/klijenti/json/clanovi/?q=${encodeURIComponent(q)}`)
+                .then(response => response.json())
+                .then(data => {
+                    resultsDiv.innerHTML = '';
+                    resultsDiv.style.display = 'block';
+                    data.forEach(item => {
+                        const div = document.createElement('div');
+                        div.textContent = item.ime_prezime;
+                        div.onclick = () => {
+                            window.location.href = `/profil/${item.id}/`;
+                        };
+                        resultsDiv.appendChild(div);
+                    });
+                })
+                .catch(() => {
+                    resultsDiv.style.display = 'none';
+                });
+        } else {
+            resultsDiv.style.display = 'none';
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
+            resultsDiv.style.display = 'none';
+        }
+    });
+});
+
+function toggleForm(formId) {
+    const form = document.getElementById(formId);
+    form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
+}
+</script>
+{% endblock %}

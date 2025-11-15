@@ -1,0 +1,37 @@
+**Zalepi ovaj sadržaj:**
+```
+# Python
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Django
+*.log
+db.sqlite3
+media/
+staticfiles/
+.env
+
+# Secrets
+firebase_service_account.json
+*.pem
+*.key
+
+# OS
+.DS_Store
+.vscode/
+.idea/
+
+# Node
+node_modules/
+package-lock.json
+
+# Misc
+project_structure.txt
+notifications.log
