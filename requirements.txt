@@ -5,3 +5,7 @@ openpyxl==3.1.5
 twilio==9.3.0
 phonenumbers==8.13.37
 gunicorn==21.2.0
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+firebase-admin==6.4.0
+django-recaptcha==4.0.0
