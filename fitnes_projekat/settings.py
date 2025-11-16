@@ -13,6 +13,10 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-9x4k2z3v6q8y7w0t1r5e3
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else []
+# CSRF TRUSTED ORIGINS
+CSRF_TRUSTED_ORIGINS = [
+    'https://alchemist-fitness-backend.onrender.com',
+]
 
 # Application definition
 INSTALLED_APPS = [
