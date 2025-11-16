@@ -31,6 +31,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -134,6 +135,9 @@ REST_FRAMEWORK = {
 # CORS - omogućava mobilnoj app da komunicira sa API-jem
 CORS_ALLOW_ALL_ORIGINS = True  # Za development
 CORS_ALLOW_CREDENTIALS = True
+
+# WHITENOISE STATIC FILES
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # DODATO ZA DEBUG MODE – SERVIRANJE MEDIA FAJLOVA
 if DEBUG:
