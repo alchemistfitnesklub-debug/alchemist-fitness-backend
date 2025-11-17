@@ -14,9 +14,8 @@ DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else []
 # CSRF TRUSTED ORIGINS
-CSRF_TRUSTED_ORIGINS = [
-    'https://alchemist-fitness-backend.onrender.com',
-]
+# CSRF TRUSTED ORIGINS
+CSRF_TRUSTED_ORIGINS = os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', 'https://alchemist-fitness-backend.onrender.com').split(',')
 
 # Application definition
 INSTALLED_APPS = [
