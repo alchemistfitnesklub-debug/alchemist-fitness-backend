@@ -146,3 +146,4 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 if DEBUG:
     import mimetypes
     mimetypes.add_type("application/javascript", ".js", True)
+    
