@@ -20,7 +20,8 @@ class Clan(models.Model):
     email = models.EmailField(blank=True)
     datum_rodjenja = models.DateField(null=True, blank=True)
     slika = models.ImageField(upload_to='clanovi/', null=True, blank=True)
-    krediti_voda = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    krediti_voda = models.FloatField(default=0.0)
+    tip = models.CharField(max_length=10, choices=[('Trener', 'Trener'), ('Klijent', 'Klijent')], default='Klijent')
 
     def __str__(self):
         return self.ime_prezime
