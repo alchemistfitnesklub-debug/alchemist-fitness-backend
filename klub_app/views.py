@@ -779,9 +779,10 @@ def trener_home(request):
     active_memberships = Uplata.objects.filter(do_datum__gte=today).count()
     
     context = {
+        'total_members': ukupno_clanova,          # ← PROMENJENO
+        'active_memberships': aktivnih_clanova,   # ← PROMENJENO
         'rezervacije_danas': rezervacije_danas,
-        'total_members': total_members,
-        'active_memberships': active_memberships,
+        'prihod_meseca': prihod_meseca,
     }
     return render(request, 'trener_home.html', context)
 
