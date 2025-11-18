@@ -1,3 +1,4 @@
+# klub_app/views.py – CEO FAJL – ISPRAVLJEN SEND_LOGIN – RADI 100% – NOVEMBAR 2025
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout as auth_logout, login, authenticate
@@ -42,9 +43,11 @@ def admin_only(view_func):
         try:
             profile = request.user.userprofile
             if not profile.is_admin:
+                # Ako je trener, pošalji ga na njegovu početnu stranicu
                 if profile.is_trener:
                     messages.warning(request, 'Ova stranica je dostupna samo administratoru.')
                     return redirect('trener_home')
+                # Ako nije ni admin ni trener, pošalji ga na login
                 messages.error(request, 'Nemate pristup ovoj stranici.')
                 return redirect('login')
             return view_func(request, *args, **kwargs)
@@ -72,16 +75,13 @@ def login_view(request):
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '').strip()
         recaptcha_response = request.POST.get('g-recaptcha-response')
-
         if not recaptcha_response:
             messages.error(request, 'Morate popuniti reCAPTCHA.')
             return render(request, 'registration/login.html')
-
         verify = requests.post(
             'https://www.google.com/recaptcha/api/siteverify',
             data={'secret': settings.RECAPTCHA_PRIVATE_KEY, 'response': recaptcha_response}
         ).json()
-
         if not verify.get('success'):
             messages.error(request, 'reCAPTCHA greška. Pokušajte ponovo.')
             return render(request, 'registration/login.html')
@@ -90,38 +90,25 @@ def login_view(request):
         if user is not None:
             login(request, user)
             messages.success(request, f'Dobrodošao, {username}!')
-
-            # ================== NOVI LOGIN PREKO clan.tip ==================
             try:
-                clan = Clan.objects.get(user=user)
-                print(f"🔍 DEBUG: User={user.username}, Clan={clan.ime_prezime}, Tip='{clan.tip}'")
-
-                if clan.tip == 'Trener':
-                    print("✅ Redirect to trener_home")
-                    return redirect('trener_home')
-                elif clan.tip == 'Klijent':
-                    print("✅ Redirect to klijent_dashboard")
-                    return redirect('klijent_dashboard')
-                elif clan.tip == 'Admin':
-                    print("✅ Redirect to dashboard (admin)")
-                    return redirect('dashboard')
+                profile = user.userprofile
+                if profile.is_admin:
+                    next_url = request.POST.get('next') or request.GET.get('next') or '/dashboard/'
+                elif profile.is_klijent:
+                    next_url = '/klijent-dashboard/'
+                elif profile.is_trener:
+                    next_url = '/dashboard/'
                 else:
-                    print(f"❌ Nepoznat tip: '{clan.tip}'")
                     messages.error(request, 'Nemate dodeljenu ulogu.')
                     auth_logout(request)
                     return render(request, 'registration/login.html')
-
-            except Clan.DoesNotExist:
-                print(f"❌ Clan.DoesNotExist za korisnika {user.username}")
-                messages.error(request, 'Niste povezani sa profilom člana.')
+                return redirect(next_url)
+            except (AttributeError, UserProfile.DoesNotExist):
+                messages.error(request, 'Profil korisnika ne postoji.')
                 auth_logout(request)
                 return render(request, 'registration/login.html')
-            # ==============================================================
-
         else:
             messages.error(request, 'Pogrešno korisničko ime ili lozinka.')
-            return render(request, 'registration/login.html')
-
     return render(request, 'registration/login.html')
 
 
@@ -135,14 +122,12 @@ def dashboard(request):
     try:
         from_date_str = request.GET.get('from_date')
         to_date_str = request.GET.get('to_date')
-
         if from_date_str:
             from_date = parse_date(from_date_str)
             if not from_date:
                 from_date = timezone.now().date() - timedelta(days=30)
         else:
             from_date = timezone.now().date() - timedelta(days=30)
-
         if to_date_str:
             to_date = parse_date(to_date_str)
             if not to_date:
@@ -160,13 +145,11 @@ def dashboard(request):
         data = [float(entry['total']) or 0 for entry in daily_payments]
         bar_data = [0] * len(labels)
         water_data = [0] * len(labels)
-
         for sale in daily_sales:
             date_str = sale['datum__date'].strftime('%Y-%m')
             if date_str in labels:
                 idx = labels.index(date_str)
                 bar_data[idx] = float(sale['total']) or 0
-
         for ws in water_sales:
             date_str = ws['datum__date'].strftime('%Y-%m')
             if date_str in labels:
