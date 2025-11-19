@@ -143,8 +143,36 @@ def login_view(request):
 
 
 @login_required
+@login_required
 def pocetna(request):
-    return redirect('dashboard')
+    try:
+        profile = request.user.userprofile
+        
+        # Admin ide na Dashboard
+        if profile.is_admin:
+            return redirect('dashboard')
+        
+        # Trener ide na Rezervacije
+        if profile.is_trener:
+            return redirect('rezervacije')
+        
+    except UserProfile.DoesNotExist:
+        pass
+    
+    # Ako nema profil, proveravamo Clan
+    try:
+        clan = Clan.objects.get(user=request.user)
+        if clan.tip == 'Admin':
+            return redirect('dashboard')
+        elif clan.tip == 'Trener':
+            return redirect('trener_home')
+        elif clan.tip == 'Klijent':
+            return redirect('klijent_dashboard')
+    except Clan.DoesNotExist:
+        pass
+    
+    # Default fallback
+    return redirect('login')
 
 
 @admin_only
