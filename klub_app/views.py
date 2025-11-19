@@ -452,7 +452,8 @@ def sank(request):
                 if stock.kolicina < kolicina:
                     messages.error(request, 'Nedovoljno zaliha!')
                     return redirect('sank')
-                clan.krediti_voda -= ukupna_cena
+                # Konvertuj Decimal u float pre oduzimanja
+                clan.krediti_voda -= float(ukupna_cena)
                 clan.save()
                 stock.kolicina -= kolicina
                 stock.save()
