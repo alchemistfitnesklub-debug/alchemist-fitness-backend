@@ -1,15 +1,28 @@
 from pathlib import Path
 import os
 
+# CLOUDINARY - mora biti inicijalizovan PRE svih ostalih imports
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# CLOUDINARY CONFIGURATION - django-cloudinary-storage style
+# CLOUDINARY CONFIGURATION - MORA BITI PRE SVEGA OSTALOG!
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
     'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
 }
+
+# Inicijalizuj Cloudinary odmah
+cloudinary.config(
+    cloud_name=CLOUDINARY_STORAGE['CLOUD_NAME'],
+    api_key=CLOUDINARY_STORAGE['API_KEY'],
+    api_secret=CLOUDINARY_STORAGE['API_SECRET'],
+    secure=True
+)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-9x4k2z3v6q8y7w0t1r5e3p9o2u8i4a6s7d8f0g1h2j3k4l5m6n7')
