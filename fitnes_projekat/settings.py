@@ -24,6 +24,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'cloudinary_storage',  # DODATO - mora biti PRE 'cloudinary'
+    'cloudinary',  # DODATO
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
@@ -92,9 +94,10 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# DEFAULT MEDIA FILES - ako Cloudinary nije dostupan
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# MEDIA FILES - sada se čuvaju na Cloudinary
+# Sledeće dve linije nisu potrebne jer koristimo Cloudinary
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -110,6 +113,17 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'alchemist.fitnesklub@gmail.com')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+
+# CLOUDINARY CONFIGURATION - ZA TRAJNO ČUVANJE SLIKA
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
+}
+
+# Koristi Cloudinary za media fajlove (slike)
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 
 # TWILIO CONFIGURATION
 TWILIO_SID = os.environ.get('TWILIO_SID', '')
@@ -147,4 +161,3 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 if DEBUG:
     import mimetypes
     mimetypes.add_type("application/javascript", ".js", True)
-
