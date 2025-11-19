@@ -1113,7 +1113,10 @@ def test_calendar(request):
     return render(request, 'test_calendar.html')
 
 
+@login_required
 def logout_view(request):
-    auth_logout(request)
-    messages.success(request, 'Uspešno ste se odjavili.')
-    return redirect('login')
+    if request.method == 'POST':
+        auth_logout(request)
+        messages.success(request, 'Uspešno ste se odjavili.')
+        return redirect('login')
+    return redirect('dashboard')
