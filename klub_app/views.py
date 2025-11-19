@@ -642,8 +642,8 @@ def profil(request, clan_id):
                 if iznos <= 0:
                     messages.error(request, 'Iznos mora biti veći od 0.')
                 else:
-                    # Konvertuj float u Decimal pre sabiranja
-                    clan.krediti_voda += Decimal(str(iznos))
+                    # Jednostavno dodaj float vrednost
+                    clan.krediti_voda += iznos
                     clan.save()
                     messages.success(request, f'Uspešno dodato {iznos:.2f} € kredita za vodu! Trenutni kredit: {clan.krediti_voda:.2f} €')
             except ValueError:
