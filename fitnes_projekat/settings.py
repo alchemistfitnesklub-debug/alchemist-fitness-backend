@@ -2,7 +2,8 @@
 
 from pathlib import Path
 import os
-
+import cloudinary
+import cloudinary_storage
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +26,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary_storage',  # DODATO ZA CLOUDINARY
     'django.contrib.staticfiles',
+    'cloudinary',  # DODATO ZA CLOUDINARY
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
@@ -140,7 +143,17 @@ REST_FRAMEWORK = {
 CORS_ALLOW_ALL_ORIGINS = True  # Za development
 CORS_ALLOW_CREDENTIALS = True
 
+# ========================================
+# CLOUDINARY KONFIGURACIJA - NOVO!
+# ========================================
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'dyhgvabal'),  # Tvoj cloud name
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),  # Ostavi prazno, dodaćeš u Render env
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),  # Ostavi prazno, dodaćeš u Render env
+}
 
+# Koristi Cloudinary za media fajlove
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # Koristi WhiteNoise za static fajlove (ostaje isto)
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
