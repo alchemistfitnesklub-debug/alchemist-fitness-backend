@@ -91,7 +91,24 @@ def login_view(request):
             login(request, user)
             messages.success(request, f'Dobrodošao, {username}!')
 
-            # ================== NOVI LOGIN PREKO clan.tip ==================
+            # ================== PRVO PROVERI UserProfile (trener/admin) ==================
+            try:
+                profile = UserProfile.objects.get(user=user)
+                
+                # Ako je admin (preko UserProfile)
+                if profile.is_admin:
+                    print(f"✅ Admin login: {user.username}")
+                    return redirect('dashboard')
+                
+                # Ako je trener (preko UserProfile)
+                if profile.is_trener:
+                    print(f"✅ Trener login: {user.username}")
+                    return redirect('rezervacije')  # Treneri idu na rezervacije
+                
+            except UserProfile.DoesNotExist:
+                print(f"⚠️ UserProfile ne postoji za {user.username}, proveravam Clan...")
+            
+            # ================== AKO NIJE TRENER/ADMIN, PROVERI CLAN ==================
             try:
                 clan = Clan.objects.get(user=user)
                 print(f"🔍 DEBUG: User={user.username}, Clan={clan.ime_prezime}, Tip='{clan.tip}'")
