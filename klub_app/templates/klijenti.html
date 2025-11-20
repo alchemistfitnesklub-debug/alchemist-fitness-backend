@@ -7,13 +7,20 @@
     .search-container {
         margin-bottom: 20px;
         text-align: center;
+        position: relative;
+        display: inline-block;
     }
     .search-container input {
-        padding: 12px;
-        width: 300px;
+        padding: 12px 20px;
+        width: 400px;
         border-radius: 8px;
-        border: 1px solid #ccc;
+        border: 2px solid #ccc;
         font-size: 16px;
+        transition: border-color 0.3s;
+    }
+    .search-container input:focus {
+        outline: none;
+        border-color: #00bfff;
     }
     .action-btn {
         background: #00bfff;
@@ -37,24 +44,70 @@
         background: rgba(255, 255, 255, 0.1);
         border-radius: 10px;
     }
+    
+    /* POBOLJŠANI AUTOCOMPLETE */
     #autocomplete-results {
-        border: 1px solid #ccc;
-        max-height: 200px;
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 500px;
+        max-height: 400px;
         overflow-y: auto;
         background: white;
-        position: absolute;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         z-index: 1000;
-        width: 300px;
         display: none;
+        margin-top: 5px;
     }
-    #autocomplete-results div {
-        padding: 8px;
+    
+    .autocomplete-item {
+        padding: 12px 15px;
         cursor: pointer;
-        border-bottom: 1px solid #eee;
-        color: black !important;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background-color 0.2s;
+        color: #333 !important;
     }
-    #autocomplete-results div:hover {
-        background: #f0f0f0;
+    
+    .autocomplete-item:hover {
+        background-color: #f5f5f5;
+    }
+    
+    .autocomplete-item:last-child {
+        border-bottom: none;
+    }
+    
+    .autocomplete-name {
+        font-weight: bold;
+        font-size: 16px;
+        color: #333;
+        margin-bottom: 5px;
+    }
+    
+    .autocomplete-details {
+        font-size: 14px;
+        color: #666;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+    
+    .autocomplete-detail {
+        margin-right: 15px;
+    }
+    
+    .autocomplete-krediti {
+        color: #00bfff;
+        font-weight: 600;
+    }
+    
+    .no-results {
+        padding: 15px;
+        text-align: center;
+        color: #999;
+        font-style: italic;
     }
 </style>
 {% endblock %}
@@ -64,7 +117,7 @@
 
 <!-- PRETRAGA SA AUTOCOMPLETE -->
 <div class="search-container">
-    <input type="text" id="clanSearch" placeholder="Pretraži klijente..." autocomplete="off">
+    <input type="text" id="clanSearch" placeholder="Pretraži klijente po imenu..." autocomplete="off">
     <div id="autocomplete-results"></div>
 </div>
 
@@ -125,36 +178,73 @@
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('clanSearch');
     const resultsDiv = document.getElementById('autocomplete-results');
+    let debounceTimer;
 
     searchInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
         const q = this.value.trim();
-        if (q.length >= 2) {
+        
+        if (q.length < 2) {
+            resultsDiv.innerHTML = '';
+            resultsDiv.style.display = 'none';
+            return;
+        }
+
+        // Debounce za 300ms
+        debounceTimer = setTimeout(() => {
             fetch(`/klijenti/json/clanovi/?q=${encodeURIComponent(q)}`)
                 .then(response => response.json())
                 .then(data => {
                     resultsDiv.innerHTML = '';
-                    resultsDiv.style.display = 'block';
+                    
+                    if (data.length === 0) {
+                        resultsDiv.innerHTML = '<div class="no-results">Nema rezultata</div>';
+                        resultsDiv.style.display = 'block';
+                        return;
+                    }
+
                     data.forEach(item => {
                         const div = document.createElement('div');
-                        div.textContent = item.ime_prezime;
+                        div.className = 'autocomplete-item';
+                        
+                        div.innerHTML = `
+                            <div class="autocomplete-name">${item.ime_prezime}</div>
+                            <div class="autocomplete-details">
+                                <span class="autocomplete-detail">📞 ${item.telefon || 'N/A'}</span>
+                                <span class="autocomplete-detail">📧 ${item.email || 'N/A'}</span>
+                                <span class="autocomplete-krediti">💰 ${parseFloat(item.krediti_voda).toFixed(2)} EUR</span>
+                            </div>
+                        `;
+                        
                         div.onclick = () => {
                             window.location.href = `/profil/${item.id}/`;
                         };
+                        
                         resultsDiv.appendChild(div);
                     });
+                    
+                    resultsDiv.style.display = 'block';
                 })
-                .catch(() => {
-                    resultsDiv.style.display = 'none';
+                .catch(error => {
+                    console.error('Greška pri pretrazi:', error);
+                    resultsDiv.innerHTML = '<div class="no-results">Greška pri pretrazi</div>';
+                    resultsDiv.style.display = 'block';
                 });
-        } else {
-            resultsDiv.style.display = 'none';
-        }
+        }, 300);
     });
 
+    // Zatvori rezultate kada klikneš van search box-a
     document.addEventListener('click', function(e) {
         if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
             resultsDiv.style.display = 'none';
         }
+    });
+    
+    // Očisti rezultate kada search input izgubi fokus
+    searchInput.addEventListener('blur', function() {
+        setTimeout(() => {
+            resultsDiv.style.display = 'none';
+        }, 200);
     });
 });
 
