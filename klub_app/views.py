@@ -810,7 +810,9 @@ def klijenti_json_clanovi(request):
     if not profile or (not profile.is_trener and not profile.is_admin):
         return JsonResponse([], safe=False)
     q = request.GET.get('q', '')
-    clanovi = Clan.objects.filter(ime_prezime__icontains=q).values('id', 'ime_prezime')[:10]
+    clanovi = Clan.objects.filter(ime_prezime__icontains=q).values(
+        'id', 'ime_prezime', 'telefon', 'email', 'krediti_voda'
+    )[:20]  # Povećano sa 10 na 20 rezultata
     return JsonResponse(list(clanovi), safe=False)
 
 
