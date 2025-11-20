@@ -8,6 +8,11 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('rezervacije/', views.rezervacije, name='rezervacije'),
     path('klijenti/', views.klijenti, name='klijenti'),
+    
+    # ========== DODATO ZA AUTOCOMPLETE ==========
+    path('klijenti/json/clanovi/', views.klijenti_json_clanovi, name='klijenti_json_clanovi'),
+    # ============================================
+    
     path('sank/', views.sank, name='sank'),
     path('obavestenja/', views.obavestenja, name='obavestenja'),
     path('statistike/', views.statistike, name='statistike'),
