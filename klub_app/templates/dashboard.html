@@ -31,6 +31,41 @@
         </div>
     </div>
 
+    <!-- ========================================
+         DUGME ZA AUTOMATSKA OBAVEŠTENJA - NOVO!
+         ======================================== -->
+    <div class="card border-0 shadow-sm mb-4" style="border-left: 5px solid #28a745 !important;">
+        <div class="card-header text-white" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+            <h4 class="mb-0 d-flex align-items-center">
+                <i class="fas fa-bell me-2"></i>
+                Automatska Obaveštenja
+            </h4>
+        </div>
+        <div class="card-body bg-light">
+            <p class="text-dark mb-3">
+                <i class="fas fa-info-circle text-success me-2"></i>
+                Kliknite dugme ispod da ručno pokrenete slanje automatskih obaveštenja:
+            </p>
+            <ul class="text-dark mb-4">
+                <li><strong>Članarine</strong> koje ističu za <span class="badge bg-warning text-dark">7 dana</span></li>
+                <li><strong>Rođendanske čestitke</strong> za <span class="badge bg-info">danas</span></li>
+            </ul>
+            
+            <div class="d-flex gap-2">
+                <a href="{% url 'test_notifications' %}" class="btn btn-success btn-lg shadow-sm">
+                    <i class="fas fa-paper-plane me-2"></i>
+                    Pošalji Obaveštenja Sada
+                </a>
+                
+                <a href="{% url 'obavestenja' %}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-list me-2"></i>
+                    Vidi Istoriju
+                </a>
+            </div>
+        </div>
+    </div>
+    <!-- ======================================== -->
+
     <!-- KARTICE SA ZARADOM -->
     <div class="row g-4 mb-4">
         <div class="col-lg-4">
