@@ -2,12 +2,6 @@
 {% load static %}
 {% block title %}Šank{% endblock %}
 
-{% block extra_head %}
-<!-- Select2 CSS -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
-{% endblock %}
-
 {% block content %}
 <div class="container-fluid py-4">
     <div class="row">
@@ -88,20 +82,42 @@
                     <form method="post" id="saleForm">
                         {% csrf_token %}
                         <div class="row">
+                            <!-- AUTOCOMPLETE PRETRAGA KLIJENATA -->
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Klijent</label>
-                                <select name="clan" id="clanSelect" class="form-select" required style="width: 100%;">
-                                    <option value="">Pretraži klijenta...</option>
-                                </select>
-                                <div id="kreditInfo" class="mt-2" style="display: none;">
-                                    <div class="alert alert-info mb-0">
-                                        <strong>Trenutni krediti:</strong> <span id="kreditAmount"></span> €
+                                <div class="autocomplete-wrapper" style="position: relative;">
+                                    <input 
+                                        type="text" 
+                                        id="clanSearchInput" 
+                                        class="form-control"
+                                        placeholder="🔍 Pretraži po imenu..." 
+                                        autocomplete="off"
+                                        style="border-radius: 25px; padding-right: 40px;">
+                                    
+                                    <input type="hidden" name="clan" id="clanIdInput" required>
+                                    
+                                    <!-- Clear button -->
+                                    <button type="button" id="clearClan" style="display: none; position: absolute; right: 10px; top: 8px; border: none; background: none; cursor: pointer; font-size: 18px; color: #999;">
+                                        ✕
+                                    </button>
+                                    
+                                    <!-- Autocomplete rezultati -->
+                                    <div id="autocompleteResults" class="autocomplete-results"></div>
+                                    
+                                    <!-- Prikaz izabranog klijenta -->
+                                    <div id="selectedClan" style="display: none; margin-top: 10px;">
+                                        <div class="alert alert-info mb-0" style="border-radius: 15px;">
+                                            <strong id="selectedClanName"></strong>
+                                            <br>
+                                            <small>Krediti: <span id="selectedClanKrediti" class="fw-bold"></span> €</small>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                            
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Proizvod</label>
-                                <select name="stock" id="stockSelect" class="form-select rounded-pill" required>
+                                <select name="stock" id="stockSelect" class="form-select" style="border-radius: 25px;" required>
                                     <option value="">-- Izaberi proizvod --</option>
                                     {% for stock in stocks %}
                                     <option value="{{ stock.id }}" data-cena="{{ stock.cena }}">
@@ -114,14 +130,17 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Količina</label>
-                                <input type="number" name="kolicina" id="kolicinaInput" class="form-control rounded-pill" min="1" value="1" required>
+                                <input type="number" name="kolicina" id="kolicinaInput" class="form-control" style="border-radius: 25px;" min="1" value="1" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Ukupna cena</label>
-                                <input type="text" id="ukupnaCenaDisplay" class="form-control rounded-pill" readonly value="0.00 €">
+                                <div class="input-group">
+                                    <input type="text" id="ukupnaCenaDisplay" class="form-control" style="border-radius: 25px 0 0 25px; font-weight: bold; font-size: 1.1rem;" readonly value="0.00">
+                                    <span class="input-group-text" style="border-radius: 0 25px 25px 0; background: #f8f9fa;">€</span>
+                                </div>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-danger w-100 rounded-pill">Završi prodaju</button>
+                        <button type="submit" class="btn btn-danger w-100" style="border-radius: 25px; font-weight: bold; font-size: 1.1rem;">Završi prodaju</button>
                     </form>
                 </div>
             </div>
@@ -190,79 +209,203 @@
     </div>
 </div>
 
-<!-- jQuery (potreban za Select2) -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- Select2 JS -->
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<style>
+    .card { border-radius: 15px; overflow: hidden; }
+    .card-header { font-weight: bold; font-size: 1.1rem; }
+    .table th { background-color: #f8f9fa; font-weight: 600; }
+    .modal-content { border-radius: 15px; }
+    
+    /* Autocomplete styling */
+    .autocomplete-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        max-height: 250px;
+        overflow-y: auto;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        margin-top: 5px;
+        display: none;
+    }
+    
+    .autocomplete-results.show {
+        display: block;
+    }
+    
+    .autocomplete-item {
+        padding: 12px 15px;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.2s;
+    }
+    
+    .autocomplete-item:last-child {
+        border-bottom: none;
+    }
+    
+    .autocomplete-item:hover {
+        background: #f8f9fa;
+    }
+    
+    .autocomplete-item strong {
+        color: #333;
+        display: block;
+        margin-bottom: 3px;
+    }
+    
+    .autocomplete-item small {
+        color: #666;
+        font-size: 0.85rem;
+    }
+    
+    .autocomplete-item.no-results {
+        text-align: center;
+        color: #999;
+        cursor: default;
+    }
+    
+    .autocomplete-item.no-results:hover {
+        background: white;
+    }
+    
+    /* Loading spinner */
+    .autocomplete-loading {
+        text-align: center;
+        padding: 15px;
+        color: #666;
+    }
+</style>
 
 <script>
     const stocksData = {{ stocks_json|safe }};
     let currentKrediti = 0;
+    let selectedClanId = null;
+    let selectedClanName = '';
     let minusConfirmed = false;
+    let searchTimeout = null;
 
-    // Initialize Select2 sa AJAX pretraga
-    $(document).ready(function() {
-        $('#clanSelect').select2({
-            theme: 'bootstrap-5',
-            placeholder: 'Pretraži klijenta...',
-            allowClear: true,
-            minimumInputLength: 2,
-            ajax: {
-                url: '/sank/json/clanovi/',
-                dataType: 'json',
-                delay: 250,
-                data: function (params) {
-                    return {
-                        q: params.term // Pretraga po imenu
-                    };
-                },
-                processResults: function (data) {
-                    return {
-                        results: data.map(function(clan) {
-                            return {
-                                id: clan.id,
-                                text: clan.ime_prezime
-                            };
-                        })
-                    };
-                },
-                cache: true
-            }
-        });
+    // Autocomplete funkcionalnost
+    const searchInput = document.getElementById('clanSearchInput');
+    const resultsDiv = document.getElementById('autocompleteResults');
+    const clanIdInput = document.getElementById('clanIdInput');
+    const selectedClanDiv = document.getElementById('selectedClan');
+    const clearBtn = document.getElementById('clearClan');
 
-        // Kada korisnik izabere klijenta, učitaj kredite
-        $('#clanSelect').on('select2:select', function (e) {
-            const clanId = e.params.data.id;
-            if (clanId) {
-                fetch(`/krediti/json/${clanId}/`)
-                    .then(r => r.json())
-                    .then(data => {
-                        currentKrediti = parseFloat(data.krediti_voda) || 0;
-                        document.getElementById('kreditAmount').textContent = currentKrediti.toFixed(2);
-                        document.getElementById('kreditInfo').style.display = 'block';
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        // Sakrij clear dugme ako je prazan input
+        if (query === '') {
+            clearBtn.style.display = 'none';
+            resultsDiv.classList.remove('show');
+            return;
+        }
+        
+        clearBtn.style.display = 'block';
+        
+        // Debounce - čekaj 300ms pre pretrage
+        clearTimeout(searchTimeout);
+        
+        if (query.length < 2) {
+            resultsDiv.innerHTML = '<div class="autocomplete-item no-results">Ukucaj minimum 2 slova...</div>';
+            resultsDiv.classList.add('show');
+            return;
+        }
+        
+        searchTimeout = setTimeout(() => {
+            // Prikaži loading
+            resultsDiv.innerHTML = '<div class="autocomplete-loading">Pretraga...</div>';
+            resultsDiv.classList.add('show');
+            
+            // AJAX pretraga
+            fetch(`/sank/json/clanovi/?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        resultsDiv.innerHTML = '<div class="autocomplete-item no-results">Nema rezultata</div>';
+                    } else {
+                        resultsDiv.innerHTML = data.map(clan => `
+                            <div class="autocomplete-item" data-id="${clan.id}" data-name="${clan.ime_prezime}">
+                                <strong>${clan.ime_prezime}</strong>
+                            </div>
+                        `).join('');
                         
-                        // Promeni boju ako je minus
-                        const alertDiv = document.querySelector('#kreditInfo .alert');
-                        if (currentKrediti < 0) {
-                            alertDiv.classList.remove('alert-info');
-                            alertDiv.classList.add('alert-danger');
-                        } else {
-                            alertDiv.classList.remove('alert-danger');
-                            alertDiv.classList.add('alert-info');
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Greška pri učitavanju kredita:', err);
-                        document.getElementById('kreditInfo').style.display = 'none';
-                    });
-            }
-        });
+                        // Dodaj event listener na svaki rezultat
+                        resultsDiv.querySelectorAll('.autocomplete-item').forEach(item => {
+                            item.addEventListener('click', function() {
+                                selectClan(this.dataset.id, this.dataset.name);
+                            });
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Greška pri pretrazi:', error);
+                    resultsDiv.innerHTML = '<div class="autocomplete-item no-results">Greška pri pretrazi</div>';
+                });
+        }, 300);
+    });
 
-        // Kada korisnik obriše izbor
-        $('#clanSelect').on('select2:clear', function () {
-            document.getElementById('kreditInfo').style.display = 'none';
-            currentKrediti = 0;
-        });
+    // Funkcija za izbor klijenta
+    function selectClan(clanId, clanName) {
+        selectedClanId = clanId;
+        selectedClanName = clanName;
+        
+        // Postavi vrednosti
+        clanIdInput.value = clanId;
+        searchInput.value = clanName;
+        
+        // Sakrij rezultate
+        resultsDiv.classList.remove('show');
+        
+        // Učitaj kredite
+        fetch(`/krediti/json/${clanId}/`)
+            .then(r => r.json())
+            .then(data => {
+                currentKrediti = parseFloat(data.krediti_voda) || 0;
+                
+                // Prikaži info o klijentu
+                document.getElementById('selectedClanName').textContent = clanName;
+                document.getElementById('selectedClanKrediti').textContent = currentKrediti.toFixed(2);
+                
+                // Promeni boju ako je minus
+                const alertDiv = selectedClanDiv.querySelector('.alert');
+                if (currentKrediti < 0) {
+                    alertDiv.classList.remove('alert-info');
+                    alertDiv.classList.add('alert-danger');
+                } else {
+                    alertDiv.classList.remove('alert-danger');
+                    alertDiv.classList.add('alert-info');
+                }
+                
+                selectedClanDiv.style.display = 'block';
+            })
+            .catch(err => {
+                console.error('Greška pri učitavanju kredita:', err);
+            });
+    }
+
+    // Clear dugme
+    clearBtn.addEventListener('click', function() {
+        searchInput.value = '';
+        clanIdInput.value = '';
+        selectedClanId = null;
+        selectedClanName = '';
+        currentKrediti = 0;
+        resultsDiv.classList.remove('show');
+        selectedClanDiv.style.display = 'none';
+        clearBtn.style.display = 'none';
+        searchInput.focus();
+    });
+
+    // Zatvori rezultate ako se klikne van
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
+            resultsDiv.classList.remove('show');
+        }
     });
 
     // Automatsko računanje ukupne cene
@@ -277,7 +420,7 @@
             const kolicina = parseInt(kolicinaInput.value) || 0;
             const ukupnaCena = cena * kolicina;
             
-            ukupnaCenaDisplay.value = ukupnaCena.toFixed(2) + ' €';
+            ukupnaCenaDisplay.value = ukupnaCena.toFixed(2);
         }
     }
 
@@ -290,23 +433,26 @@
         const form = document.getElementById('saleForm');
         form.addEventListener('submit', function(e) {
             if (minusConfirmed) {
-                // Ako je već potvrđeno, dozvoli submit
-                return;
+                return; // Dozvoli submit
             }
 
             e.preventDefault(); // Zaustavi submit
             
-            const clanSelect = document.getElementById('clanSelect');
             const stockSelect = document.getElementById('stockSelect');
             const kolicinaInput = document.getElementById('kolicinaInput');
             
-            const clanId = clanSelect.value;
+            if (!selectedClanId) {
+                alert('Molimo izaberite klijenta!');
+                searchInput.focus();
+                return;
+            }
+            
             const selectedOption = stockSelect.options[stockSelect.selectedIndex];
             const cena = parseFloat(selectedOption.dataset.cena) || 0;
             const kolicina = parseInt(kolicinaInput.value) || 0;
             const ukupnaCena = cena * kolicina;
             
-            if (!clanId || ukupnaCena <= 0) {
+            if (ukupnaCena <= 0) {
                 alert('Molimo popunite sva polja!');
                 return;
             }
@@ -316,54 +462,22 @@
             
             if (noviKrediti < 0) {
                 const minusAmount = Math.abs(noviKrediti).toFixed(2);
-                const clanText = $('#clanSelect').select2('data')[0].text;
                 
                 document.getElementById('minusAmount').innerHTML = 
-                    `<strong>${clanText}</strong> će ući u minus: <span class="text-danger">-${minusAmount} EUR</span>`;
+                    `<strong>${selectedClanName}</strong> će ući u minus: <span class="text-danger">-${minusAmount} EUR</span>`;
                 
                 const modal = new bootstrap.Modal(document.getElementById('minusModal'));
                 modal.show();
                 
-                // Ako korisnik klikne "Nastavi", dozvoli submit
                 document.getElementById('confirmMinus').onclick = () => {
                     minusConfirmed = true;
                     modal.hide();
                     form.submit();
                 };
             } else {
-                // Nema minusa, direktno submit
                 form.submit();
             }
         });
     });
 </script>
-
-<style>
-    .card { border-radius: 15px; overflow: hidden; }
-    .card-header { font-weight: bold; font-size: 1.1rem; }
-    .form-control, .form-select { border-radius: 50px !important; }
-    .btn { border-radius: 50px !important; font-weight: bold; }
-    .table th { background-color: #f8f9fa; font-weight: 600; }
-    .modal-content { border-radius: 15px; }
-    .rounded-pill { border-radius: 50px !important; }
-    
-    /* Select2 custom styling */
-    .select2-container--bootstrap-5 .select2-selection {
-        border-radius: 50px !important;
-        min-height: 38px;
-    }
-    
-    .select2-container--bootstrap-5 .select2-dropdown {
-        border-radius: 10px;
-    }
-    
-    .select2-container--bootstrap-5 .select2-results__option {
-        padding: 10px 15px;
-    }
-    
-    .select2-container--bootstrap-5 .select2-results__option--highlighted {
-        background-color: #dc3545 !important;
-        color: white;
-    }
-</style>
 {% endblock %}
