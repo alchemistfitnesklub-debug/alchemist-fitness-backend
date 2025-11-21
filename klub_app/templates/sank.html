@@ -135,12 +135,12 @@
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Ukupna cena</label>
                                 <div class="input-group">
-                                    <input type="text" id="ukupnaCenaDisplay" class="form-control" style="border-radius: 25px 0 0 25px; font-weight: bold; font-size: 1.1rem;" readonly value="0.00">
+                                    <input type="text" id="ukupnaCenaDisplay" class="form-control" style="border-radius: 25px 0 0 25px; font-weight: bold; font-size: 0.95rem;" readonly value="0.00">
                                     <span class="input-group-text" style="border-radius: 0 25px 25px 0; background: #f8f9fa;">€</span>
                                 </div>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-danger w-100" style="border-radius: 25px; font-weight: bold; font-size: 1.1rem;">Završi prodaju</button>
+                        <button type="submit" class="btn btn-danger w-100" style="border-radius: 25px; font-weight: bold; font-size: 0.95rem;">Završi prodaju</button>
                     </form>
                 </div>
             </div>
@@ -287,6 +287,7 @@
     let selectedClanName = '';
     let minusConfirmed = false;
     let searchTimeout = null;
+    let minusModal = null;
 
     // Autocomplete funkcionalnost
     const searchInput = document.getElementById('clanSearchInput');
@@ -429,11 +430,22 @@
         document.getElementById('stockSelect').addEventListener('change', updatePrice);
         document.getElementById('kolicinaInput').addEventListener('input', updatePrice);
 
+        // Inicijalizuj modal
+        const minusModalElement = document.getElementById('minusModal');
+        minusModal = new bootstrap.Modal(minusModalElement);
+        
+        // Reset flag kada se modal zatvori
+        minusModalElement.addEventListener('hidden.bs.modal', function () {
+            minusConfirmed = false;
+        });
+
         // Submit forma sa proverom minusa
         const form = document.getElementById('saleForm');
         form.addEventListener('submit', function(e) {
             if (minusConfirmed) {
-                return; // Dozvoli submit
+                // Dozvoli submit i resetuj flag
+                minusConfirmed = false;
+                return true;
             }
 
             e.preventDefault(); // Zaustavi submit
@@ -466,17 +478,23 @@
                 document.getElementById('minusAmount').innerHTML = 
                     `<strong>${selectedClanName}</strong> će ući u minus: <span class="text-danger">-${minusAmount} EUR</span>`;
                 
-                const modal = new bootstrap.Modal(document.getElementById('minusModal'));
-                modal.show();
-                
-                document.getElementById('confirmMinus').onclick = () => {
-                    minusConfirmed = true;
-                    modal.hide();
-                    form.submit();
-                };
+                // Prikaži modal
+                minusModal.show();
             } else {
+                // Direktan submit ako ne ide u minus
                 form.submit();
             }
+        });
+        
+        // Dugme "Nastavi" u modalu
+        document.getElementById('confirmMinus').addEventListener('click', function() {
+            minusConfirmed = true;
+            minusModal.hide();
+            
+            // Sacekaj da se modal zatvori, pa submituj formu
+            setTimeout(() => {
+                document.getElementById('saleForm').submit();
+            }, 300);
         });
     });
 </script>
