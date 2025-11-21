@@ -143,7 +143,6 @@ def login_view(request):
 
 
 @login_required
-@login_required
 def pocetna(request):
     try:
         profile = request.user.userprofile
@@ -812,7 +811,7 @@ def klijenti_json_clanovi(request):
     q = request.GET.get('q', '')
     clanovi = Clan.objects.filter(ime_prezime__icontains=q).values(
         'id', 'ime_prezime', 'telefon', 'email', 'krediti_voda'
-    )[:20]  # Povećano sa 10 na 20 rezultata
+    )[:20]
     return JsonResponse(list(clanovi), safe=False)
 
 
@@ -823,12 +822,18 @@ def trener_home(request):
     """
     today = timezone.now().date()
     rezervacije_danas = Rezervacija.objects.filter(datum=today).select_related('clan').order_by('sat')
-    total_members = Clan.objects.count()
-    active_memberships = Uplata.objects.filter(do_datum__gte=today).count()
+    
+    # POPRAVKA: Dodate varijable koje nedostaju
+    ukupno_clanova = Clan.objects.count()
+    aktivnih_clanova = Uplata.objects.filter(do_datum__gte=today).count()
+    
+    # Prihod ovog meseca
+    prvi_dan_meseca = today.replace(day=1)
+    prihod_meseca = Uplata.objects.filter(datum__gte=prvi_dan_meseca).aggregate(Sum('iznos'))['iznos__sum'] or 0
     
     context = {
-        'total_members': ukupno_clanova,          # ← PROMENJENO
-        'active_memberships': aktivnih_clanova,   # ← PROMENJENO
+        'total_members': ukupno_clanova,
+        'active_memberships': aktivnih_clanova,
         'rezervacije_danas': rezervacije_danas,
         'prihod_meseca': prihod_meseca,
     }
@@ -982,9 +987,54 @@ def send_birthday_notifications():
 
 @trener_or_admin_required
 def test_notifications(request):
-    send_expiration_notifications()
-    send_birthday_notifications()
-    messages.success(request, 'Test obavestenja pokrenut!')
+    """
+    Ručno slanje automatskih obaveštenja - samo za Admin
+    """
+    try:
+        profile = request.user.userprofile
+        
+        # VAŽNO: Samo admin može pokrenuti obaveštenja
+        if not profile.is_admin:
+            messages.error(request, 'Samo administrator može pokrenuti obaveštenja.')
+            return redirect('rezervacije')  # Treneri idu nazad na rezervacije
+        
+    except (AttributeError, UserProfile.DoesNotExist):
+        messages.error(request, 'Nemate pristup ovoj stranici.')
+        return redirect('login')
+    
+    try:
+        # Brojanje pre slanja
+        today = timezone.now().date()
+        sedam_dana = today + timedelta(days=7)
+        
+        clanarinske_count = Uplata.objects.filter(
+            do_datum=sedam_dana,
+            notification_sent=False
+        ).count()
+        
+        rodjendanske_count = Clan.objects.filter(
+            datum_rodjenja__month=today.month,
+            datum_rodjenja__day=today.day
+        ).count()
+        
+        # Pokretanje obaveštenja
+        send_expiration_notifications()
+        send_birthday_notifications()
+        
+        # Uspešna poruka sa detaljima
+        if clanarinske_count > 0 or rodjendanske_count > 0:
+            messages.success(
+                request, 
+                f'✅ Poslato {clanarinske_count} obaveštenja o članarinama i {rodjendanske_count} rođendanskih čestitki!'
+            )
+        else:
+            messages.info(request, 'ℹ️ Nema novih obaveštenja za slanje danas.')
+        
+    except Exception as e:
+        # Greška pri slanju
+        messages.error(request, f'❌ Greška pri slanju obaveštenja: {str(e)}')
+    
+    # Vrati se na Dashboard
     return redirect('dashboard')
 
 
