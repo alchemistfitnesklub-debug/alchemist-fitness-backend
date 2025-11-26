@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db.models import Sum, Count
 from django.utils import timezone
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, date
 from decimal import Decimal
 import time
 import urllib.parse
@@ -452,8 +452,14 @@ def klijenti(request):
     return render(request, 'klijenti.html', context)
 
 
+# ═══════════════════════════════════════════════════════════════
+# NOVA FUNKCIJA - MODERNIZOVAN ŠANK SA STATISTIKAMA
+# ═══════════════════════════════════════════════════════════════
 @trener_or_admin_required
 def sank(request):
+    """Šank modul sa statistikama i upravljanjem"""
+    
+    # POSTOJEĆA LOGIKA ZA POST - NE DIRAM JE!
     if request.method == 'POST':
         if 'add_product' in request.POST:
             naziv = request.POST.get('naziv')
@@ -470,12 +476,13 @@ def sank(request):
             except ValueError:
                 messages.error(request, 'Nevalidan unos za količinu ili cenu!')
             return redirect('sank')
+        
         elif 'update_stock' in request.POST:
             stock_id = request.POST.get('stock_id')
             dodatna_kolicina = request.POST.get('dodatna_kolicina')
             try:
                 dodatna_kolicina = int(dodatna_kolicina)
-                stock = get_object_or_404(Stock, id=stock_id)
+                stock = Stock.objects.get(id=stock_id)
                 if dodatna_kolicina > 0:
                     stock.kolicina += dodatna_kolicina
                     stock.save()
@@ -484,8 +491,12 @@ def sank(request):
                     messages.error(request, 'Dodatna količina mora biti veća od 0!')
             except ValueError:
                 messages.error(request, 'Nevalidan unos za količinu!')
+            except Stock.DoesNotExist:
+                messages.error(request, 'Proizvod nije pronađen.')
             return redirect('sank')
+        
         else:
+            # POSTOJEĆA LOGIKA ZA PRODAJU
             form = SaleForm(request.POST)
             if form.is_valid():
                 sale = form.save(commit=False)
@@ -493,33 +504,80 @@ def sank(request):
                 stock = form.cleaned_data['stock']
                 kolicina = form.cleaned_data['kolicina']
                 ukupna_cena = stock.cena * kolicina
+                
                 if stock.kolicina < kolicina:
                     messages.error(request, 'Nedovoljno zaliha!')
                     return redirect('sank')
-                # Konvertuj Decimal u float pre oduzimanja
+                
+                # Konvertuj u float pre oduzimanja
                 clan.krediti_voda -= float(ukupna_cena)
                 clan.save()
+                
                 stock.kolicina -= kolicina
                 stock.save()
+                
                 sale.price = ukupna_cena
                 sale.save()
+                
                 messages.success(request, f'Prodaja uspešna! Skinuto {ukupna_cena:.2f} EUR. {clan.ime_prezime} ima {clan.krediti_voda:.2f} EUR kredita preostalo.')
+                
                 if clan.krediti_voda < 0:
                     messages.warning(request, f'{clan.ime_prezime} je u minusu: -{abs(clan.krediti_voda):.2f} EUR!')
+                
                 return redirect('sank')
             else:
                 messages.error(request, f'Greška pri prodaji: {form.errors.as_text()}')
-    else:
-        form = SaleForm()
+    
+    # ============================================================
+    # NOVO - STATISTIKA ZA DASHBOARD KARTICE
+    # ============================================================
+    
+    danas = date.today()
+    
+    # STATISTIKA 1: Zarada danas
+    danas_zarada = Sale.objects.filter(
+        datum__date=danas
+    ).aggregate(total=Sum('price'))['total'] or 0
+    
+    # STATISTIKA 2: Broj prodatih proizvoda danas
+    danas_prodato = Sale.objects.filter(
+        datum__date=danas
+    ).aggregate(total=Sum('kolicina'))['total'] or 0
+    
+    # STATISTIKA 3: Ukupan broj proizvoda u bazi
+    ukupno_proizvoda = Stock.objects.count()
+    
+    # STATISTIKA 4: Najprodavaniji proizvod danas
+    najprodavaniji_query = Sale.objects.filter(
+        datum__date=danas
+    ).values('stock__naziv').annotate(
+        ukupno=Sum('kolicina')
+    ).order_by('-ukupno').first()
+    
+    najprodavaniji = najprodavaniji_query['stock__naziv'] if najprodavaniji_query else None
+    
+    # ============================================================
+    # POSTOJEĆI CONTEXT - DODAJEM STATISTIKU
+    # ============================================================
+    
     stocks = Stock.objects.all()
+    
     context = {
         'clanovi': Clan.objects.all(),
         'stocks': stocks,
         'sales': Sale.objects.all().order_by('-datum').select_related('clan', 'stock'),
-        'sale_form': form,
-        'stocks_json': json.dumps([{'id': s.id, 'cena': float(s.cena)} for s in stocks])
+        'sale_form': SaleForm(),
+        'stocks_json': json.dumps([{'id': s.id, 'cena': float(s.cena)} for s in stocks]),
+        
+        # NOVO - Statistika
+        'danas_zarada': float(danas_zarada),
+        'danas_prodato': int(danas_prodato),
+        'ukupno_proizvoda': ukupno_proizvoda,
+        'najprodavaniji': najprodavaniji,
     }
+    
     return render(request, 'sank.html', context)
+# ═══════════════════════════════════════════════════════════════
 
 
 @trener_or_admin_required
