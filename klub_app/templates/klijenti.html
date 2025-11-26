@@ -6,7 +6,7 @@
 {% block extra_head %}
 <style>
 /* ========================================
-   KLIJENTI - MODERNIZOVAN DIZAJN
+   KLIJENTI - MODERNIZOVAN DIZAJN (FIXED)
    ======================================== */
 
 /* KARTICE STATISTIKE */
@@ -454,13 +454,13 @@ body.dark-theme .client-card {
         <div class="stat-card orange">
             <i class="fas fa-exclamation-triangle"></i>
             <h3 id="expiring-count">0</h3>
-            <p>Ističe uskoro</p>
+            <p>Ističe uskoro (7 dana)</p>
         </div>
         
         <div class="stat-card purple">
             <i class="fas fa-user-plus"></i>
-            <h3 id="new-count">{{ clanovi|slice:":5"|length }}</h3>
-            <p>Novih (zadnjih 5)</p>
+            <h3 id="new-count">0</h3>
+            <p>Neaktivnih</p>
         </div>
     </div>
 
@@ -543,7 +543,12 @@ body.dark-theme .client-card {
     <!-- GRID PRIKAZ KLIJENATA -->
     <div class="clients-grid" id="clients-grid">
         {% for clan in clanovi %}
-        <div class="client-card" onclick="window.location.href='{% url 'profil' clan.id %}'" data-status="{% if clan.uplate.all %}active{% else %}expired{% endif %}">
+        {% with uplata=clan.uplata_set.all|dictsortreversed:"do_datum"|first %}
+        <div class="client-card" 
+             onclick="window.location.href='{% url 'profil' clan.id %}'" 
+             data-status="{% if uplata %}{% now 'Y-m-d' as danas %}{% if uplata.do_datum|date:'Y-m-d' >= danas %}active{% else %}expired{% endif %}{% else %}expired{% endif %}"
+             data-expiry="{% if uplata %}{{ uplata.do_datum|date:'Y-m-d' }}{% endif %}">
+            
             <div class="client-avatar">
                 {% if clan.slika %}
                     <img src="{{ clan.slika.url }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
@@ -572,24 +577,22 @@ body.dark-theme .client-card {
             </div>
             
             <!-- STATUS ČLANARINE -->
-            {% with last_uplata=clan.uplate.all.last %}
-                {% if last_uplata %}
-                    {% now "Y-m-d" as today %}
-                    {% if last_uplata.do_datum|date:"Y-m-d" >= today %}
-                        <span class="client-status status-active">
-                            <i class="fas fa-check-circle"></i> Aktivna do {{ last_uplata.do_datum|date:"d.m.Y" }}
-                        </span>
-                    {% else %}
-                        <span class="client-status status-expired">
-                            <i class="fas fa-times-circle"></i> Istekla
-                        </span>
-                    {% endif %}
+            {% if uplata %}
+                {% now "Y-m-d" as danas %}
+                {% if uplata.do_datum|date:"Y-m-d" >= danas %}
+                    <span class="client-status status-active">
+                        <i class="fas fa-check-circle"></i> Aktivna do {{ uplata.do_datum|date:"d.m.Y" }}
+                    </span>
                 {% else %}
                     <span class="client-status status-expired">
-                        <i class="fas fa-info-circle"></i> Nema članarine
+                        <i class="fas fa-times-circle"></i> Istekla
                     </span>
                 {% endif %}
-            {% endwith %}
+            {% else %}
+                <span class="client-status status-expired">
+                    <i class="fas fa-info-circle"></i> Nema članarine
+                </span>
+            {% endif %}
             
             <!-- KREDITI -->
             <div class="client-credits">
@@ -597,6 +600,7 @@ body.dark-theme .client-card {
                 <div style="font-size: 0.85em; opacity: 0.7; margin-top: 5px;">Krediti za vodu</div>
             </div>
         </div>
+        {% endwith %}
         {% empty %}
         <div style="text-align: center; padding: 50px; grid-column: 1 / -1;">
             <i class="fas fa-users" style="font-size: 4em; opacity: 0.3; margin-bottom: 20px;"></i>
@@ -626,7 +630,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         debounceTimer = setTimeout(() => {
             fetch(`/klijenti/json/clanovi/?q=${encodeURIComponent(q)}`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     resultsDiv.innerHTML = '';
                     
@@ -660,6 +669,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .catch(error => {
                     console.error('Greška pri pretrazi:', error);
+                    resultsDiv.innerHTML = '<div class="autocomplete-item" style="text-align: center; cursor: default; color: #ff4444;">Greška: autocomplete endpoint ne postoji</div>';
+                    resultsDiv.style.display = 'block';
                 });
         }, 300);
     });
@@ -670,6 +681,9 @@ document.addEventListener('DOMContentLoaded', function() {
             resultsDiv.style.display = 'none';
         }
     });
+    
+    // Izračunaj statistiku
+    calculateStats();
 });
 
 // TOGGLE FORME
@@ -685,30 +699,71 @@ function filterClients(filter) {
     
     // Update active tab
     tabs.forEach(tab => tab.classList.remove('active'));
-    event.target.classList.add('active');
+    event.target.closest('.filter-tab').classList.add('active');
+    
+    const danas = new Date();
+    const za7Dana = new Date();
+    za7Dana.setDate(za7Dana.getDate() + 7);
     
     cards.forEach(card => {
         const status = card.dataset.status;
+        const expiryDateStr = card.dataset.expiry;
+        
+        let show = false;
         
         if (filter === 'all') {
-            card.style.display = 'block';
+            show = true;
         } else if (filter === 'active' && status === 'active') {
-            card.style.display = 'block';
-        } else if (filter === 'expiring' && status === 'expiring') {
-            card.style.display = 'block';
+            show = true;
+        } else if (filter === 'expiring') {
+            if (status === 'active' && expiryDateStr) {
+                const expiryDate = new Date(expiryDateStr);
+                if (expiryDate >= danas && expiryDate <= za7Dana) {
+                    show = true;
+                }
+            }
         } else if (filter === 'expired' && status === 'expired') {
-            card.style.display = 'block';
-        } else {
-            card.style.display = 'none';
+            show = true;
         }
+        
+        card.style.display = show ? 'block' : 'none';
     });
 }
 
-// IZRAČUNAJ STATISTIKU (aktivnih, ističe uskoro)
-document.addEventListener('DOMContentLoaded', function() {
-    // Ovu logiku možeš proširiti ako imaš podatke o datumima isteka
-    // Za sada samo prikazujemo statičke brojeve
-});
+// IZRAČUNAJ STATISTIKU
+function calculateStats() {
+    const cards = document.querySelectorAll('.client-card');
+    let activeCount = 0;
+    let expiringCount = 0;
+    let expiredCount = 0;
+    
+    const danas = new Date();
+    const za7Dana = new Date();
+    za7Dana.setDate(za7Dana.getDate() + 7);
+    
+    cards.forEach(card => {
+        const status = card.dataset.status;
+        const expiryDateStr = card.dataset.expiry;
+        
+        if (status === 'active') {
+            activeCount++;
+            
+            // Proveri da li ističe uskoro (7 dana)
+            if (expiryDateStr) {
+                const expiryDate = new Date(expiryDateStr);
+                if (expiryDate >= danas && expiryDate <= za7Dana) {
+                    expiringCount++;
+                }
+            }
+        } else if (status === 'expired') {
+            expiredCount++;
+        }
+    });
+    
+    document.getElementById('active-count').textContent = activeCount;
+    document.getElementById('expiring-count').textContent = expiringCount;
+    document.getElementById('new-count').textContent = expiredCount;
+}
 </script>
 
 {% endblock %}
