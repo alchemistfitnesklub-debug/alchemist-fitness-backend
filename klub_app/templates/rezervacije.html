@@ -1,487 +1,1008 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block title %}Rezervacije - Fitness Klub{% endblock %}
+
 {% block extra_head %}
 <!-- jQuery i toastr iz CDN-a -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
 <style>
-/* BOJA PO BROJU */
+/* ========================================
+   REZERVACIJE - MODERNIZOVAN DIZAJN
+   ======================================== */
+
+/* KARTICE STATISTIKE */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s, box-shadow 0.3s;
+    text-align: center;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.stat-card i {
+    font-size: 2.5em;
+    margin-bottom: 15px;
+    opacity: 0.9;
+}
+
+.stat-card h3 {
+    font-size: 2em;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+.stat-card p {
+    font-size: 0.95em;
+    opacity: 0.85;
+    margin: 5px 0;
+}
+
+.stat-card.blue { color: #4facfe; }
+.stat-card.green { color: #43e97b; }
+.stat-card.orange { color: #f093fb; }
+.stat-card.purple { color: #667eea; }
+
+body.dark-theme .stat-card {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* HEADER */
+.page-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.page-header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+.page-header h1 i {
+    color: #00bfff;
+    margin-right: 15px;
+}
+
+#weekRange {
+    font-size: 1.2em;
+    opacity: 0.9;
+    color: #00bfff;
+}
+
+/* FILTER SEKCIJA */
+.filter-section {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body.dark-theme .filter-section {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2));
+}
+
+#dateFilter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    position: relative;
+}
+
+#dateFilter label {
+    font-weight: 600;
+    font-size: 1em;
+}
+
+#dateFilter input[type="date"] {
+    padding: 12px 15px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    font-size: 1em;
+    transition: all 0.3s;
+}
+
+body.dark-theme #dateFilter input[type="date"] {
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+}
+
+#dateFilter input[type="date"]:focus {
+    outline: none;
+    border-color: #00bfff;
+    box-shadow: 0 0 15px rgba(0, 191, 255, 0.3);
+}
+
+#dateFilter button[type="submit"] {
+    background: linear-gradient(135deg, #00bfff, #0099cc);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(0, 191, 255, 0.3);
+}
+
+#dateFilter button[type="submit"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 191, 255, 0.4);
+}
+
+.nav-arrows {
+    display: flex;
+    gap: 10px;
+}
+
+.nav-arrows button {
+    background: linear-gradient(135deg, #00bfff, #0099cc);
+    color: white;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(0, 191, 255, 0.3);
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-arrows button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 191, 255, 0.4);
+}
+
+/* GRID KALENDARA */
+.schedule {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.day {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+    backdrop-filter: blur(10px);
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s;
+}
+
+body.dark-theme .day {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2));
+}
+
+.day:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.day h3 {
+    margin: 0 0 15px 0;
+    color: #00bfff;
+    font-size: 1.1em;
+    text-align: center;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba(0, 191, 255, 0.3);
+}
+
+/* TIME SLOTOVI - BOJA PO BROJU */
 .time-slot {
-background: #ffffff !important; /* BELO - niko nije zakazan */
-color: #000 !important;
-opacity: 1 !important;
-    }
+    height: 60px;
+    margin: 5px 0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    font-size: 1em;
+}
+
+/* BELO - niko nije zakazan */
+.time-slot {
+    background: linear-gradient(135deg, #ffffff, #f0f0f0) !important;
+    color: #333 !important;
+}
+
+body.dark-theme .time-slot {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05)) !important;
+    color: #fff !important;
+}
+
+/* PLAVO - 1-4 zakazanih */
 .time-slot[data-count="1"],
 .time-slot[data-count="2"],
 .time-slot[data-count="3"],
 .time-slot[data-count="4"] {
-background: #4da6ff !important; /* PLAVO - 1-4 */
-color: white !important;
-    }
+    background: linear-gradient(135deg, #4facfe, #00f2fe) !important;
+    color: white !important;
+}
+
+/* ŽUTO - 5 zakazanih (skoro puno) */
 .time-slot[data-count="5"] {
-background: #ffcc00 !important; /* ŽUTO - 5 */
-color: black !important;
-    }
+    background: linear-gradient(135deg, #ffd700, #ffa500) !important;
+    color: #333 !important;
+}
+
+/* CRVENO - 6 zakazanih (puno) */
 .time-slot[data-count="6"] {
-background: #ff4444 !important; /* CRVENO - 6+ */
-color: white !important;
-    }
-/* BROJ PO SREDINI */
-.count-badge {
-position: absolute;
-top: 50%;
-left: 50%;
-transform: translate(-50%, -50%);
-background: rgba(0,0,0,0.7);
-color: white;
-font-weight: bold;
-font-size: 0.9em;
-width: 28px;
-height: 28px;
-line-height: 28px;
-border-radius: 50%;
-text-align: center;
-z-index: 11;
-pointer-events: none;
-    }
-.schedule {
-display: grid;
-grid-template-columns: repeat(7, 1fr);
-gap: 10px;
-margin-top: 20px;
-    }
-.day {
-background: rgba(255, 255, 255, 0.05);
-padding: 10px;
-border-radius: 10px;
-box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-.day h3 {
-margin: 0 0 10px 0;
-color: #00bfff;
-font-size: 1.2em;
-    }
-.time-slot {
-height: 60px;
-background: #ffffff;
-margin: 2px 0;
-border-radius: 8px;
-cursor: pointer;
-transition: all 0.3s ease;
-display: flex;
-align-items: center;
-justify-content: center;
-font-weight: bold;
-position: relative;
-box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
+    background: linear-gradient(135deg, #ff6b6b, #ee5a6f) !important;
+    color: white !important;
+}
+
 .time-slot:hover {
-transform: translateY(-2px);
-box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
-#dateFilter {
-margin-bottom: 20px;
-text-align: center;
-position: relative;
-    }
-#dateFilter input {
-margin: 5px;
-padding: 10px;
-border-radius: 8px;
-color: #000;
-background: #fff;
-border: 1px solid #ddd;
-font-size: 1em;
-    }
-#dateFilter button {
-background: #00bfff;
-color: white;
-border: none;
-padding: 10px 20px;
-border-radius: 8px;
-cursor: pointer;
-font-weight: bold;
-transition: 0.3s;
-    }
-#dateFilter button:hover {
-background: #0099cc;
-transform: translateY(-2px);
-    }
-.nav-arrows {
-position: absolute;
-right: 10px;
-top: 50%;
-transform: translateY(-50%);
-    }
-.nav-arrows button {
-background: #00bfff;
-color: white;
-border: none;
-padding: 8px 12px;
-border-radius: 50%;
-cursor: pointer;
-margin: 0 5px;
-font-weight: bold;
-transition: 0.3s;
-    }
-.nav-arrows button:hover {
-background: #0099cc;
-transform: scale(1.1);
-    }
-/* OBLACIĆ – MANJE TRANSPARENTAN */
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(0, 191, 255, 0.4);
+}
+
+/* BROJ U KRUGU */
+.count-badge {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    font-weight: bold;
+    font-size: 1em;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    border-radius: 50%;
+    text-align: center;
+    z-index: 11;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+/* POPUP - MODERNIZOVAN */
 #popup {
-display: none;
-position: fixed;
-top: 50%;
-left: 50%;
-transform: translate(-50%, -50%);
-background: rgba(255, 255, 255, 0.95) !important;
-backdrop-filter: blur(15px) !important;
-padding: 30px;
-border-radius: 20px;
-box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-border: 1px solid rgba(255, 255, 255, 0.5);
-z-index: 1000;
-width: 90%;
-max-width: 400px;
-color: #000;
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(20px) !important;
+    padding: 35px;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    z-index: 1000;
+    width: 90%;
+    max-width: 500px;
+    color: #000;
+    animation: popupSlideIn 0.3s ease-out;
+}
+
+body.dark-theme #popup {
+    background: rgba(0, 0, 0, 0.95) !important;
+    color: #fff;
+}
+
+@keyframes popupSlideIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
     }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
 #popup h3 {
-color: #00bfff;
-margin-top: 0;
-    }
-#popup select, #popup input, #popup button {
-margin: 10px 0;
-padding: 12px;
-border-radius: 10px;
-width: 100%;
-box-sizing: border-box;
-border: 1px solid #ddd;
-font-size: 1em;
-    }
+    color: #00bfff;
+    margin-top: 0;
+    font-size: 1.5em;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#popup h3 i {
+    font-size: 1.2em;
+}
+
+#popup p {
+    margin-bottom: 15px;
+    opacity: 0.8;
+}
+
+#popup input,
+#popup select {
+    margin: 10px 0;
+    padding: 12px 15px;
+    border-radius: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    font-size: 1em;
+    transition: all 0.3s;
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+}
+
+body.dark-theme #popup input,
+body.dark-theme #popup select {
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+#popup input:focus,
+#popup select:focus {
+    outline: none;
+    border-color: #00bfff;
+    box-shadow: 0 0 15px rgba(0, 191, 255, 0.3);
+}
+
 #popup button[type="submit"] {
-background: #00bfff;
-color: white;
-border: none;
-font-weight: bold;
-cursor: pointer;
-transition: 0.3s;
-    }
+    background: linear-gradient(135deg, #43e97b, #38d278);
+    color: white;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    padding: 12px 25px;
+    border-radius: 10px;
+    width: 100%;
+    margin-top: 10px;
+    box-shadow: 0 4px 15px rgba(67, 233, 123, 0.3);
+    font-size: 1em;
+}
+
 #popup button[type="submit"]:hover {
-background: #0099cc;
-transform: translateY(-2px);
-    }
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(67, 233, 123, 0.4);
+}
+
 #popup button[type="button"] {
-background: #ccc;
-color: #333;
-    }
+    background: linear-gradient(135deg, #ccc, #aaa);
+    color: #333;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    padding: 12px 25px;
+    border-radius: 10px;
+    width: 100%;
+    margin-top: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    font-size: 1em;
+}
+
 #popup button[type="button"]:hover {
-background: #bbb;
-    }
+    background: linear-gradient(135deg, #bbb, #999);
+    transform: translateY(-2px);
+}
+
+/* LISTA ZAKAZANIH */
 #reservedList {
-margin-top: 15px;
-text-align: left;
-    }
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid rgba(0, 191, 255, 0.3);
+}
+
 #reservedList h4 {
-color: #00bfff;
-margin: 10px 0;
-    }
+    color: #00bfff;
+    margin: 10px 0;
+    font-size: 1.2em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#reservedList h4 i {
+    font-size: 1em;
+}
+
 #reservedList ul {
-list-style: none;
-padding: 0;
-    }
+    list-style: none;
+    padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
 #reservedList li {
-margin: 8px 0;
-padding: 8px;
-background: rgba(0,0,0,0.1);
-border-radius: 8px;
-display: flex;
-justify-content: space-between;
-align-items: center;
-    }
+    margin: 10px 0;
+    padding: 12px 15px;
+    background: rgba(0, 191, 255, 0.1);
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s;
+    border: 1px solid rgba(0, 191, 255, 0.2);
+}
+
+#reservedList li:hover {
+    background: rgba(0, 191, 255, 0.2);
+    transform: translateX(3px);
+}
+
 .delete-btn {
-color: #ff4444;
-border: none;
-background: none;
-cursor: pointer;
-font-weight: bold;
-font-size: 1.2em;
-    }
+    color: #ff4444;
+    border: none;
+    background: rgba(255, 68, 68, 0.2);
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.2em;
+    padding: 5px 10px;
+    border-radius: 50%;
+    transition: all 0.3s;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .delete-btn:hover {
-transform: scale(1.2);
+    background: #ff4444;
+    color: white;
+    transform: scale(1.2) rotate(90deg);
+}
+
+/* ANIMACIJE */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
     }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.day {
+    animation: slideIn 0.5s ease-out;
+}
+
+.day:nth-child(1) { animation-delay: 0.05s; }
+.day:nth-child(2) { animation-delay: 0.1s; }
+.day:nth-child(3) { animation-delay: 0.15s; }
+.day:nth-child(4) { animation-delay: 0.2s; }
+.day:nth-child(5) { animation-delay: 0.25s; }
+.day:nth-child(6) { animation-delay: 0.3s; }
+.day:nth-child(7) { animation-delay: 0.35s; }
+
+/* RESPONSIVE */
+@media (max-width: 1400px) {
+    .schedule {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+@media (max-width: 1024px) {
+    .schedule {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .schedule {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    #dateFilter {
+        flex-direction: column;
+    }
+    
+    .nav-arrows {
+        margin-top: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .schedule {
+        grid-template-columns: 1fr;
+    }
+}
 </style>
 {% endblock %}
+
 {% block content %}
-<div class="glass-container">
-<h1>Nedeljni raspored: <span id="weekRange"></span></h1>
-<div id="dateFilter">
-<form method="get">
-            Od: <input type="date" name="from_date" id="fromDateInput" value="{{ from_date }}">
-            Do: <input type="date" name="to_date" id="toDateInput" value="{{ to_date }}">
-<button type="submit">Filtriraj nedelju</button>
-</form>
-<div class="nav-arrows">
-<button onclick="prevWeek()">←</button>
-<button onclick="nextWeek()">→</button>
-</div>
-</div>
-<!-- KALENDAR OVDE -->
-<div class="schedule" id="schedule"></div>
-<!-- POPUP -->
-<div id="popup">
-<h3>Rezervacija za <span id="popupSat"></span> na <span id="popupDatum"></span></h3>
-<p>Dodajte novu rezervaciju:</p>
-<form method="post" id="reservationForm">
+<div style="max-width: 1600px; margin: 0 auto;">
+    
+    <!-- HEADER -->
+    <div class="page-header">
+        <h1>
+            <i class="fas fa-calendar-alt"></i>
+            REZERVACIJE - NEDELJNI RASPORED
+        </h1>
+        <div id="weekRange" style="margin-top: 10px;"></div>
+    </div>
+
+    <!-- STATISTIKA KARTICE -->
+    <div class="stats-row">
+        <div class="stat-card blue">
+            <i class="fas fa-calendar-check"></i>
+            <h3 id="total-count">0</h3>
+            <p>Ukupno rezervacija</p>
+        </div>
+        
+        <div class="stat-card green">
+            <i class="fas fa-calendar-day"></i>
+            <h3 id="today-count">0</h3>
+            <p>Danas</p>
+        </div>
+        
+        <div class="stat-card orange">
+            <i class="fas fa-calendar-plus"></i>
+            <h3 id="tomorrow-count">0</h3>
+            <p>Sutra</p>
+        </div>
+        
+        <div class="stat-card purple">
+            <i class="fas fa-chart-pie"></i>
+            <h3 id="capacity-percent">0%</h3>
+            <p>Prosečna popunjenost</p>
+        </div>
+    </div>
+
+    <!-- FILTER SEKCIJA -->
+    <div class="filter-section">
+        <div id="dateFilter">
+            <form method="get" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                <label>Od:</label>
+                <input type="date" name="from_date" id="fromDateInput" value="{{ from_date }}">
+                
+                <label>Do:</label>
+                <input type="date" name="to_date" id="toDateInput" value="{{ to_date }}">
+                
+                <button type="submit">
+                    <i class="fas fa-filter"></i> Filtriraj nedelju
+                </button>
+            </form>
+            
+            <div class="nav-arrows">
+                <button onclick="prevWeek()" title="Prethodna nedelja">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button onclick="nextWeek()" title="Sledeća nedelja">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- KALENDAR GRID -->
+    <div class="schedule" id="schedule"></div>
+
+    <!-- POPUP MODAL -->
+    <div id="popup">
+        <h3>
+            <i class="fas fa-clock"></i>
+            Rezervacija za <span id="popupSat"></span> na <span id="popupDatum"></span>
+        </h3>
+        
+        <p>Dodajte novu rezervaciju:</p>
+        
+        <form method="post" id="reservationForm">
             {% csrf_token %}
-<input type="hidden" name="action" id="actionInput" value="book">
-<input type="hidden" name="datum" id="datumInput">
-<input type="text" id="clanSearch" placeholder="Pretraga clana..." onkeyup="autocompleteClan()">
-<select id="clanSelect" name="clan_id" required></select>
-<input type="text" id="satInput" name="sat" placeholder="Sat" required readonly>
-<button type="submit" id="confirmButton">Zakazi</button>
-<button type="button" onclick="closePopup()">Zatvori</button>
-</form>
-<div id="reservedList">
-<h4>Zakazani clanovi:</h4>
-<ul id="reservedListItems"></ul>
-</div>
-</div>
+            <input type="hidden" name="action" id="actionInput" value="book">
+            <input type="hidden" name="datum" id="datumInput">
+            
+            <input type="text" 
+                   id="clanSearch" 
+                   placeholder="🔍 Pretraži člana (ime, prezime...)" 
+                   onkeyup="autocompleteClan()">
+            
+            <select id="clanSelect" name="clan_id" required size="1"></select>
+            
+            <input type="text" 
+                   id="satInput" 
+                   name="sat" 
+                   placeholder="Sat" 
+                   required 
+                   readonly>
+            
+            <button type="submit" id="confirmButton">
+                <i class="fas fa-check-circle"></i> Zakaži
+            </button>
+            
+            <button type="button" onclick="closePopup()">
+                <i class="fas fa-times-circle"></i> Zatvori
+            </button>
+        </form>
+        
+        <!-- LISTA ZAKAZANIH -->
+        <div id="reservedList">
+            <h4>
+                <i class="fas fa-users"></i>
+                Zakazani članovi:
+            </h4>
+            <ul id="reservedListItems"></ul>
+        </div>
+    </div>
+
     {% if message %}
-<p style="color: #ffcc00; font-weight: bold;">{{ message }}</p>
+    <p style="color: #ffcc00; font-weight: bold; text-align: center; margin-top: 20px;">
+        <i class="fas fa-info-circle"></i> {{ message }}
+    </p>
     {% endif %}
+
 </div>
-<!-- SKRIPTA POSLE SVIH ELEMENATA -->
+
+<!-- JAVASCRIPT - ZADRŽANA ORIGINAL LOGIKA -->
 <script>
-console.log('SKRIPTA SE UČITAVA ODMAH POSLE #schedule');
+console.log('SKRIPTA SE UČITAVA');
+
+// LOAD SCHEDULE
 function loadSchedule() {
-console.log('loadSchedule() pokrenut');
-var today = new Date();
-var currentDay = today.getDay() || 7;
-var monday = new Date(today);
-monday.setDate(today.getDate() - (currentDay - 1));
-var sunday = new Date(monday);
-sunday.setDate(monday.getDate() + 6);
-var from_date = new URLSearchParams(window.location.search).get('from_date') || monday.toISOString().split('T')[0];
-var to_date = new URLSearchParams(window.location.search).get('to_date') || sunday.toISOString().split('T')[0];
-var startDate = new Date(from_date);
-var days = [];
-for (var i = 0; i < 7; i++) {
-var day = new Date(startDate);
-day.setDate(startDate.getDate() + i);
-days.push(day.toISOString().split('T')[0]);
+    console.log('loadSchedule() pokrenut');
+    
+    var today = new Date();
+    var currentDay = today.getDay() || 7;
+    var monday = new Date(today);
+    monday.setDate(today.getDate() - (currentDay - 1));
+    var sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    
+    var from_date = new URLSearchParams(window.location.search).get('from_date') || monday.toISOString().split('T')[0];
+    var to_date = new URLSearchParams(window.location.search).get('to_date') || sunday.toISOString().split('T')[0];
+    
+    var startDate = new Date(from_date);
+    var days = [];
+    for (var i = 0; i < 7; i++) {
+        var day = new Date(startDate);
+        day.setDate(startDate.getDate() + i);
+        days.push(day.toISOString().split('T')[0]);
     }
-var weekStart = new Date(days[0]);
-var weekEnd = new Date(days[6]);
-document.getElementById('weekRange').textContent = `Ponedeljak, ${weekStart.toLocaleDateString('sr-RS', {day: '2-digit', month: '2-digit', year: 'numeric'})} - Nedelja, ${weekEnd.toLocaleDateString('sr-RS', {day: '2-digit', month: '2-digit', year: 'numeric'})}`;
-document.getElementById('fromDateInput').value = from_date;
-document.getElementById('toDateInput').value = to_date;
-var schedule = document.getElementById('schedule');
-if (!schedule) { console.error('#schedule NE POSTOJI!'); return; }
-schedule.innerHTML = '';
-var dayNames = ['Ponedeljak', 'Utorak', 'Sreda', 'Četvrtak', 'Petak', 'Subota', 'Nedelja'];
-var startHour = 8;
-var endHour = 20;
-for (var i = 0; i < 7; i++) {
-var dayDiv = document.createElement('div');
-dayDiv.className = 'day';
-dayDiv.innerHTML = `<h3>${dayNames[i]} (${days[i]})</h3>`;
-for (var hour = startHour; hour < endHour; hour++) {
-var timeSlot = document.createElement('div');
-timeSlot.className = 'time-slot';
-timeSlot.dataset.date = days[i];
-timeSlot.dataset.time = `${hour.toString().padStart(2, '0')}:00`;
-timeSlot.textContent = `${hour}:00`;
-timeSlot.dataset.count = '0'; // Početno belo
-// DODAJ KLIK PRE POSTAVLJANJA BROJA
-timeSlot.addEventListener('click', function(e) {
-console.log('Klik na slot:', this.dataset.time, this.dataset.date);
-openPopup(this.dataset.time, this.dataset.date);
+    
+    var weekStart = new Date(days[0]);
+    var weekEnd = new Date(days[6]);
+    document.getElementById('weekRange').textContent = `${weekStart.toLocaleDateString('sr-RS', {day: '2-digit', month: '2-digit', year: 'numeric'})} - ${weekEnd.toLocaleDateString('sr-RS', {day: '2-digit', month: '2-digit', year: 'numeric'})}`;
+    
+    document.getElementById('fromDateInput').value = from_date;
+    document.getElementById('toDateInput').value = to_date;
+    
+    var schedule = document.getElementById('schedule');
+    if (!schedule) { 
+        console.error('#schedule NE POSTOJI!'); 
+        return; 
+    }
+    
+    schedule.innerHTML = '';
+    
+    var dayNames = ['Ponedeljak', 'Utorak', 'Sreda', 'Četvrtak', 'Petak', 'Subota', 'Nedelja'];
+    var startHour = 8;
+    var endHour = 20;
+    
+    for (var i = 0; i < 7; i++) {
+        var dayDiv = document.createElement('div');
+        dayDiv.className = 'day';
+        dayDiv.innerHTML = `<h3>${dayNames[i]}<br><small style="opacity: 0.7; font-size: 0.85em;">${days[i]}</small></h3>`;
+        
+        for (var hour = startHour; hour < endHour; hour++) {
+            var timeSlot = document.createElement('div');
+            timeSlot.className = 'time-slot';
+            timeSlot.dataset.date = days[i];
+            timeSlot.dataset.time = `${hour.toString().padStart(2, '0')}:00`;
+            timeSlot.textContent = `${hour}:00`;
+            timeSlot.dataset.count = '0';
+            
+            timeSlot.addEventListener('click', function(e) {
+                console.log('Klik na slot:', this.dataset.time, this.dataset.date);
+                openPopup(this.dataset.time, this.dataset.date);
             });
-dayDiv.appendChild(timeSlot);
+            
+            dayDiv.appendChild(timeSlot);
         }
-schedule.appendChild(dayDiv);
+        
+        schedule.appendChild(dayDiv);
     }
-loadReservations(from_date, to_date);
+    
+    loadReservations(from_date, to_date);
 }
+
+// LOAD RESERVATIONS
 function loadReservations(from_date, to_date) {
-$.get(`/rezervacije/json/?start=${from_date}&end=${to_date}`, function(data) {
-var slotCounts = {};
-data.forEach(function(event) {
-var date = event.start.split('T')[0];
-var time = event.start.split('T')[1].split(':')[0] + ':00';
-var key = `${date}_${time}`;
-slotCounts[key] = (slotCounts[key] || 0) + 1;
+    $.get(`/rezervacije/json/?start=${from_date}&end=${to_date}`, function(data) {
+        var slotCounts = {};
+        
+        data.forEach(function(event) {
+            var date = event.start.split('T')[0];
+            var time = event.start.split('T')[1].split(':')[0] + ':00';
+            var key = `${date}_${time}`;
+            slotCounts[key] = (slotCounts[key] || 0) + 1;
         });
-Object.keys(slotCounts).forEach(function(key) {
-var [date, time] = key.split('_');
-var slot = document.querySelector(`.time-slot[data-date="${date}"][data-time="${time}"]`);
-if (slot) {
-var count = slotCounts[key];
-slot.dataset.count = count;
-const oldBadge = slot.querySelector('.count-badge');
-if (oldBadge) oldBadge.remove();
-const badge = document.createElement('div');
-badge.className = 'count-badge';
-badge.innerText = count;
-slot.appendChild(badge);
+        
+        // Ažuriraj slotove
+        Object.keys(slotCounts).forEach(function(key) {
+            var [date, time] = key.split('_');
+            var slot = document.querySelector(`.time-slot[data-date="${date}"][data-time="${time}"]`);
+            
+            if (slot) {
+                var count = slotCounts[key];
+                slot.dataset.count = count;
+                
+                const oldBadge = slot.querySelector('.count-badge');
+                if (oldBadge) oldBadge.remove();
+                
+                const badge = document.createElement('div');
+                badge.className = 'count-badge';
+                badge.innerText = count;
+                slot.appendChild(badge);
             }
         });
+        
+        // Izračunaj statistiku
+        calculateStats(data, from_date, to_date);
+        
     }).fail(function(xhr, status, error) {
-console.error('Error loading reservations:', error);
+        console.error('Error loading reservations:', error);
     });
 }
+
+// IZRAČUNAJ STATISTIKU
+function calculateStats(data, from_date, to_date) {
+    var total = data.length;
+    
+    var today = new Date().toISOString().split('T')[0];
+    var tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    var tomorrowStr = tomorrow.toISOString().split('T')[0];
+    
+    var todayCount = data.filter(e => e.start.split('T')[0] === today).length;
+    var tomorrowCount = data.filter(e => e.start.split('T')[0] === tomorrowStr).length;
+    
+    // Izračunaj prosečnu popunjenost (maksimalno 6 po slotu, 12 sati dnevno, 7 dana)
+    var maxCapacity = 7 * 12 * 6; // 7 dana * 12 sati * 6 maksimalno
+    var capacityPercent = maxCapacity > 0 ? Math.round((total / maxCapacity) * 100) : 0;
+    
+    document.getElementById('total-count').textContent = total;
+    document.getElementById('today-count').textContent = todayCount;
+    document.getElementById('tomorrow-count').textContent = tomorrowCount;
+    document.getElementById('capacity-percent').textContent = capacityPercent + '%';
+}
+
+// OPEN POPUP
 function openPopup(time, date) {
-console.log('openPopup() pozvan za:', time, date);
-document.getElementById('popup').style.display = 'block';
-document.getElementById('satInput').value = time;
-document.getElementById('datumInput').value = date;
-document.getElementById('popupSat').textContent = time;
-document.getElementById('popupDatum').textContent = date;
-document.getElementById('actionInput').value = 'book';
-var reservedListItems = document.getElementById('reservedListItems');
-reservedListItems.innerHTML = '';
-$.get(`/rezervacije/json/?start=${date}&end=${date}`, function(data) {
-var reserved = data.filter(event => {
-var eventDate = event.start.split('T')[0];
-var eventTime = event.start.split('T')[1].split(':')[0] + ':00';
-return eventDate === date && eventTime === time;
+    console.log('openPopup() pozvan za:', time, date);
+    
+    document.getElementById('popup').style.display = 'block';
+    document.getElementById('satInput').value = time;
+    document.getElementById('datumInput').value = date;
+    document.getElementById('popupSat').textContent = time;
+    document.getElementById('popupDatum').textContent = date;
+    document.getElementById('actionInput').value = 'book';
+    
+    var reservedListItems = document.getElementById('reservedListItems');
+    reservedListItems.innerHTML = '<li style="text-align: center; opacity: 0.5;">Učitavanje...</li>';
+    
+    $.get(`/rezervacije/json/?start=${date}&end=${date}`, function(data) {
+        var reserved = data.filter(event => {
+            var eventDate = event.start.split('T')[0];
+            var eventTime = event.start.split('T')[1].split(':')[0] + ':00';
+            return eventDate === date && eventTime === time;
         });
-var count = reserved.length;
-if (count > 0) {
-reserved.forEach(event => {
-var li = document.createElement('li');
-li.innerHTML = `${event.title} <button class="delete-btn" onclick="deleteReservation(${event.id}, '${event.title}', '${date}', '${time}')">X</button>`;
-reservedListItems.appendChild(li);
+        
+        var count = reserved.length;
+        
+        reservedListItems.innerHTML = '';
+        
+        if (count > 0) {
+            reserved.forEach(event => {
+                var li = document.createElement('li');
+                li.innerHTML = `
+                    <span><i class="fas fa-user"></i> ${event.title}</span>
+                    <button class="delete-btn" onclick="deleteReservation(${event.id}, '${event.title}', '${date}', '${time}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                reservedListItems.appendChild(li);
             });
         } else {
-reservedListItems.innerHTML = '<li>Nema zakazanih clanova.</li>';
+            reservedListItems.innerHTML = '<li style="text-align: center; opacity: 0.5;"><i class="fas fa-info-circle"></i> Nema zakazanih članova</li>';
         }
-var slot = document.querySelector(`.time-slot[data-date="${date}"][data-time="${time}"]`);
-if (count >= 6) {
-slot.classList.add('full');
-document.getElementById('confirmButton').style.display = 'none';
-document.getElementById('clanSearch').style.display = 'none';
-document.getElementById('clanSelect').style.display = 'none';
+        
+        // Proveri da li je pun (6 ili više)
+        var slot = document.querySelector(`.time-slot[data-date="${date}"][data-time="${time}"]`);
+        if (count >= 6) {
+            slot.classList.add('full');
+            document.getElementById('confirmButton').style.display = 'none';
+            document.getElementById('clanSearch').style.display = 'none';
+            document.getElementById('clanSelect').style.display = 'none';
         } else {
-document.getElementById('confirmButton').style.display = 'block';
-document.getElementById('clanSearch').style.display = 'block';
-document.getElementById('clanSelect').style.display = 'block';
+            document.getElementById('confirmButton').style.display = 'block';
+            document.getElementById('clanSearch').style.display = 'block';
+            document.getElementById('clanSelect').style.display = 'block';
         }
+        
     }).fail(function(xhr, status, error) {
-console.error('Error loading reserved list:', error);
+        console.error('Error loading reserved list:', error);
+        reservedListItems.innerHTML = '<li style="text-align: center; color: #ff4444;"><i class="fas fa-exclamation-triangle"></i> Greška pri učitavanju</li>';
     });
-document.getElementById('clanSearch').value = '';
-document.getElementById('clanSelect').innerHTML = '';
+    
+    document.getElementById('clanSearch').value = '';
+    document.getElementById('clanSelect').innerHTML = '';
 }
+
+// CLOSE POPUP
 function closePopup() {
-document.getElementById('popup').style.display = 'none';
-document.getElementById('reservationForm').reset();
-document.getElementById('popupSat').textContent = '';
-document.getElementById('popupDatum').textContent = '';
+    document.getElementById('popup').style.display = 'none';
+    document.getElementById('reservationForm').reset();
+    document.getElementById('popupSat').textContent = '';
+    document.getElementById('popupDatum').textContent = '';
 }
+
+// PREVIOUS WEEK
 function prevWeek() {
-var from_date = new URLSearchParams(window.location.search).get('from_date') || new Date().toISOString().split('T')[0];
-var startDate = new Date(from_date);
-startDate.setDate(startDate.getDate() - 7);
-var endDate = new Date(startDate);
-endDate.setDate(startDate.getDate() + 6);
-window.location.href = `/rezervacije/?from_date=${startDate.toISOString().split('T')[0]}&to_date=${endDate.toISOString().split('T')[0]}`;
+    var from_date = new URLSearchParams(window.location.search).get('from_date') || new Date().toISOString().split('T')[0];
+    var startDate = new Date(from_date);
+    startDate.setDate(startDate.getDate() - 7);
+    var endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 6);
+    window.location.href = `/rezervacije/?from_date=${startDate.toISOString().split('T')[0]}&to_date=${endDate.toISOString().split('T')[0]}`;
 }
+
+// NEXT WEEK
 function nextWeek() {
-var from_date = new URLSearchParams(window.location.search).get('from_date') || new Date().toISOString().split('T')[0];
-var startDate = new Date(from_date);
-startDate.setDate(startDate.getDate() + 7);
-var endDate = new Date(startDate);
-endDate.setDate(startDate.getDate() + 6);
-window.location.href = `/rezervacije/?from_date=${startDate.toISOString().split('T')[0]}&to_date=${endDate.toISOString().split('T')[0]}`;
+    var from_date = new URLSearchParams(window.location.search).get('from_date') || new Date().toISOString().split('T')[0];
+    var startDate = new Date(from_date);
+    startDate.setDate(startDate.getDate() + 7);
+    var endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 6);
+    window.location.href = `/rezervacije/?from_date=${startDate.toISOString().split('T')[0]}&to_date=${endDate.toISOString().split('T')[0]}`;
 }
+
+// AUTOCOMPLETE CLAN
 function autocompleteClan() {
-var input = document.getElementById('clanSearch');
-var filter = input.value.toLowerCase();
-var select = document.getElementById('clanSelect');
-select.innerHTML = '';
-$.get('/rezervacije/json/clanovi/?q=' + filter, function(data) {
-data.forEach(function(clan) {
-select.appendChild(new Option(clan.ime_prezime, clan.id));
+    var input = document.getElementById('clanSearch');
+    var filter = input.value.toLowerCase();
+    var select = document.getElementById('clanSelect');
+    
+    select.innerHTML = '';
+    
+    if (filter.length < 2) {
+        select.size = 1;
+        return;
+    }
+    
+    $.get('/rezervacije/json/clanovi/?q=' + filter, function(data) {
+        data.forEach(function(clan) {
+            select.appendChild(new Option(clan.ime_prezime, clan.id));
         });
-select.size = data.length || 1;
+        select.size = Math.min(data.length, 5) || 1;
     }).fail(function(xhr, status, error) {
-console.error('Error loading clan list:', error);
+        console.error('Error loading clan list:', error);
     });
 }
+
+// DELETE RESERVATION
 function deleteReservation(id, title, date, time) {
-if (confirm(`Da li zelite da otkazete rezervaciju za ${title}?`)) {
-$.ajax({
-url: '/brisi_rezervaciju/' + id + '/',
-type: 'POST',
-data: {
-'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+    if (confirm(`Da li želite da otkažete rezervaciju za ${title}?`)) {
+        $.ajax({
+            url: '/brisi_rezervaciju/' + id + '/',
+            type: 'POST',
+            data: {
+                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
             },
-success: function() {
-toastr.success('Rezervacija obrisana!');
-openPopup(time, date);
-loadSchedule();
+            success: function() {
+                toastr.success('Rezervacija obrisana!');
+                openPopup(time, date);
+                loadSchedule();
             },
-error: function(xhr, status, error) {
-toastr.error('Greška pri brisanju!');
+            error: function(xhr, status, error) {
+                toastr.error('Greška pri brisanju!');
             }
         });
     }
 }
+
+// FORM SUBMIT
 document.getElementById('reservationForm').addEventListener('submit', function(e) {
-e.preventDefault();
-var formData = new FormData(this);
-var clanId = document.getElementById('clanSelect').value;
-var datum = document.getElementById('datumInput').value;
-var sat = document.getElementById('satInput').value;
-if (document.getElementById('actionInput').value === 'book' && clanId) {
-$.ajax({
-url: '/rezervacije/',
-type: 'POST',
-data: formData,
-processData: false,
-contentType: false,
-success: function(data) {
-if (data.status === 'success') {
-toastr.success(data.message);
-closePopup();
-loadSchedule();
+    e.preventDefault();
+    
+    var formData = new FormData(this);
+    var clanId = document.getElementById('clanSelect').value;
+    var datum = document.getElementById('datumInput').value;
+    var sat = document.getElementById('satInput').value;
+    
+    if (document.getElementById('actionInput').value === 'book' && clanId) {
+        $.ajax({
+            url: '/rezervacije/',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(data) {
+                if (data.status === 'success') {
+                    toastr.success(data.message);
+                    closePopup();
+                    loadSchedule();
                 } else if (data.status === 'confirm') {
-if (confirm(data.message)) {
-formData.append('action', 'confirm');
-$.ajax({
-url: '/rezervacije/',
-type: 'POST',
-data: formData,
-processData: false,
-contentType: false,
-success: function(data) {
-if (data.status === 'success') {
-toastr.success(data.message);
-closePopup();
-loadSchedule();
+                    if (confirm(data.message)) {
+                        formData.append('action', 'confirm');
+                        $.ajax({
+                            url: '/rezervacije/',
+                            type: 'POST',
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            success: function(data) {
+                                if (data.status === 'success') {
+                                    toastr.success(data.message);
+                                    closePopup();
+                                    loadSchedule();
                                 } else {
-toastr.error(data.message);
+                                    toastr.error(data.message);
                                 }
                             },
-error: function(xhr) {
-toastr.error('AJAX greška: ' + xhr.responseText);
+                            error: function(xhr) {
+                                toastr.error('AJAX greška: ' + xhr.responseText);
                             }
                         });
                     }
                 } else {
-toastr.error(data.message);
+                    toastr.error(data.message);
                 }
             },
-error: function(xhr) {
-toastr.error('AJAX greška: ' + xhr.responseText);
+            error: function(xhr) {
+                toastr.error('AJAX greška: ' + xhr.responseText);
             }
         });
     }
 });
+
 // POKRENI ODMAH
 loadSchedule();
+
+// Close popup kada klikneš van njega
+document.addEventListener('click', function(e) {
+    var popup = document.getElementById('popup');
+    if (e.target === popup) {
+        closePopup();
+    }
+});
 </script>
+
 {% endblock %}
