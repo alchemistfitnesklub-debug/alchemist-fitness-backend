@@ -1,157 +1,566 @@
-<!-- /Users/dusansamardzic/fitnes_klub_app/templates/statistike.html -->
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
 
-{% block title %}Statistike - Fitness Klub{% endblock %}
+{% block title %}Statistike{% endblock %}
 
 {% block extra_head %}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        .filter-form {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .filter-form input, .filter-form button {
-            padding: 10px;
-            margin: 5px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-        }
-        .filter-form button {
-            background: #00bfff;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        .filter-form button:hover {
-            background: #0099cc;
-            transform: scale(1.05);
-        }
-    </style>
+<style>
+/* ========================================
+   STATISTIKE - MODERNIZOVAN DIZAJN
+   ======================================== */
+
+/* KARTICE STATISTIKE */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s, box-shadow 0.3s;
+    text-align: center;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.stat-card i {
+    font-size: 2.5em;
+    margin-bottom: 15px;
+    opacity: 0.9;
+}
+
+.stat-card h3 {
+    font-size: 2em;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+.stat-card p {
+    font-size: 0.95em;
+    opacity: 0.85;
+    margin: 5px 0;
+}
+
+.stat-card.blue { color: #4facfe; }
+.stat-card.purple { color: #667eea; }
+.stat-card.green { color: #43e97b; }
+
+body.dark-theme .stat-card {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* SECTION KARTICE */
+.section-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    padding: 25px;
+    margin: 20px 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body.dark-theme .section-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.section-header i {
+    font-size: 1.8em;
+    margin-right: 15px;
+    color: #00bfff;
+}
+
+.section-header h2 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+/* FILTER SEKCIJA */
+.filter-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body.dark-theme .filter-card {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: 2fr 2fr 1fr 1fr;
+    gap: 15px;
+    align-items: end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-group label {
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 0.95em;
+    color: #e0e0e0;
+}
+
+body.dark-theme .filter-group label {
+    color: #fff;
+}
+
+.filter-group input {
+    padding: 12px 15px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    font-size: 1em;
+    transition: all 0.3s;
+}
+
+body.dark-theme .filter-group input {
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.filter-group input:focus {
+    outline: none;
+    border-color: #00bfff;
+    box-shadow: 0 0 15px rgba(0, 191, 255, 0.3);
+}
+
+/* DUGMIĆI */
+.btn-primary {
+    background: linear-gradient(135deg, #00bfff, #0099cc);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(0, 191, 255, 0.3);
+    font-size: 1em;
+    width: 100%;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 191, 255, 0.4);
+    color: white;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #43e97b, #38d278);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(67, 233, 123, 0.3);
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(67, 233, 123, 0.4);
+    color: white;
+}
+
+/* TABELA - MODERNIZOVANA */
+.table-container {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+body.dark-theme .table-container {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.table-container table {
+    margin: 0;
+    background: transparent;
+}
+
+.table-container th {
+    background: linear-gradient(135deg, #2a5298, #1e3c72);
+    color: #fff;
+    padding: 15px 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9em;
+    letter-spacing: 0.5px;
+}
+
+body.dark-theme .table-container th {
+    background: linear-gradient(135deg, #4a5568, #2c3e50);
+}
+
+.table-container td {
+    padding: 12px;
+    vertical-align: middle;
+}
+
+.table-container tr:hover {
+    background: rgba(0, 191, 255, 0.1) !important;
+}
+
+body.dark-theme .table-container tr:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* BADGE-OVI */
+.badge-gold {
+    background: linear-gradient(135deg, #ffd700, #ffb700);
+    color: #333;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+.badge-silver {
+    background: linear-gradient(135deg, #c0c0c0, #a0a0a0);
+    color: #333;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+.badge-bronze {
+    background: linear-gradient(135deg, #cd7f32, #b36a28);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+.badge-info {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .stats-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .filter-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .section-card {
+        padding: 15px;
+    }
+}
+
+/* ANIMACIJE */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.section-card {
+    animation: slideIn 0.5s ease-out;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.1s; }
+.stat-card:nth-child(2) { animation-delay: 0.2s; }
+.stat-card:nth-child(3) { animation-delay: 0.3s; }
+</style>
 {% endblock %}
 
 {% block content %}
-    <h1>Statistike klijenata</h1>
-
-    <!-- Filter i eksport -->
-    <div class="filter-form">
-        <form method="get">
-            Od: <input type="date" name="from_date" value="{{ from_date }}">
-            Do: <input type="date" name="to_date" value="{{ to_date }}">
-            <button type="submit">Filtriraj</button>
-        </form>
-        <a href="{% url 'statistike' %}?export=excel" class="action-btn">Eksportuj u Excel</a>
+<div style="max-width: 1400px; margin: 0 auto;">
+    
+    <!-- NASLOV -->
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="font-size: 2.5em; margin-bottom: 10px;">
+            <i class="fas fa-chart-bar"></i> STATISTIKE - ANALIZA TRENINGA
+        </h1>
+        <p style="opacity: 0.8; font-size: 1.1em;">Detaljni pregled aktivnosti i poseta</p>
     </div>
 
-    <!-- Broj rezervacija po klijentu -->
-    <h2>Broj rezervacija po klijentu</h2>
-    <canvas id="rezervacijeChart" width="400" height="200"></canvas>
-    <table>
-        <thead>
-            <tr>
-                <th>Klijent</th>
-                <th>Broj rezervacija</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for stat in clanovi_stats %}
-            <tr>
-                <td>{{ stat.clan__ime_prezime }}</td>
-                <td>{{ stat.total }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="2">Nema podataka za ovaj period.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <!-- FILTER PERIOD -->
+    <div class="filter-card">
+        <form method="get" class="filter-grid">
+            <div class="filter-group">
+                <label>Od datuma</label>
+                <input type="date" name="from_date" value="{{ from_date }}" required>
+            </div>
+            <div class="filter-group">
+                <label>Do datuma</label>
+                <input type="date" name="to_date" value="{{ to_date }}" required>
+            </div>
+            <div class="filter-group">
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-search"></i> Prikaži
+                </button>
+            </div>
+            <div class="filter-group">
+                <a href="?from_date={{ from_date }}&to_date={{ to_date }}&export=excel" class="btn-success">
+                    <i class="fas fa-file-excel"></i> Excel
+                </a>
+            </div>
+        </form>
+    </div>
 
-    <!-- Prosečan broj poseta mesečno -->
-    <h2>Prosečan broj poseta mesečno</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Klijent</th>
-                <th>Prosečan broj poseta</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for stat in avg_visits %}
-            <tr>
-                <td>{{ stat.ime_prezime }}</td>
-                <td>{{ stat.avg_visits|floatformat:2 }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="2">Nema podataka za ovaj period.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <!-- STATISTIKA - KARTICE -->
+    <div class="stats-row">
+        <div class="stat-card blue">
+            <i class="fas fa-calendar-check"></i>
+            <h3>{{ clanovi_stats|length }}</h3>
+            <p>Ukupno rezervacija</p>
+        </div>
+        
+        <div class="stat-card purple">
+            <i class="fas fa-user-friends"></i>
+            <h3>{{ clanovi_stats|length }}</h3>
+            <p>Aktivnih klijenata</p>
+        </div>
+        
+        <div class="stat-card green">
+            <i class="fas fa-calendar-day"></i>
+            <h3>{% now "l" %}</h3>
+            <p>Danas je</p>
+        </div>
+    </div>
 
-    <!-- Posete po danu u nedelji -->
-    <h2>Posete po danu u nedelji</h2>
-    <canvas id="dailyVisitsChart" width="400" height="200"></canvas>
+    <!-- GRAFIKON - TOP 10 KLIJENATA -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-trophy"></i>
+            <h2>Top 10 klijenata po broju rezervacija</h2>
+        </div>
+        <canvas id="topClientsChart" height="100"></canvas>
+    </div>
 
-    <!-- Chart.js skripte -->
-    <script>
-        const ctx = document.getElementById('rezervacijeChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: {{ labels|safe }},
-                datasets: [{
-                    label: 'Broj rezervacija',
-                    data: {{ data|safe }},
-                    backgroundColor: '#00bfff',
-                    borderColor: '#0099cc',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Broj rezervacija' }
-                    },
-                    x: {
-                        title: { display: true, text: 'Klijent' }
+    <!-- GRAFIKON - POSETE PO DANIMA -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-chart-line"></i>
+            <h2>Raspodela poseta po danima u nedelji</h2>
+        </div>
+        <canvas id="dailyChart" height="100"></canvas>
+    </div>
+
+    <!-- TABELA - DETALJNA STATISTIKA -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-list"></i>
+            <h2>Detaljna statistika klijenata</h2>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Klijent</th>
+                        <th>Ukupno rezervacija</th>
+                        <th>Prosečno mesečno</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in clanovi_stats %}
+                    <tr>
+                        <td style="font-weight: bold; font-size: 1.2em;">
+                            {% if forloop.counter == 1 %}
+                                <span class="badge-gold">🥇</span>
+                            {% elif forloop.counter == 2 %}
+                                <span class="badge-silver">🥈</span>
+                            {% elif forloop.counter == 3 %}
+                                <span class="badge-bronze">🥉</span>
+                            {% else %}
+                                {{ forloop.counter }}
+                            {% endif %}
+                        </td>
+                        <td><strong style="color: #00bfff;">{{ stat.clan__ime_prezime }}</strong></td>
+                        <td style="font-size: 1.2em; font-weight: bold;">{{ stat.total }}</td>
+                        <td>
+                            {% for avg in avg_visits %}
+                                {% if avg.ime_prezime == stat.clan__ime_prezime %}
+                                    {{ avg.avg_visits }}
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% if stat.total >= 20 %}
+                                <span class="badge-gold">VIP</span>
+                            {% elif stat.total >= 10 %}
+                                <span class="badge-info">Aktivan</span>
+                            {% else %}
+                                <span class="badge-silver">Redovan</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // GRAFIKON 1 - TOP KLIJENTI
+    const ctx1 = document.getElementById('topClientsChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: {{ labels|safe }},
+            datasets: [{
+                label: 'Broj rezervacija',
+                data: {{ data|safe }},
+                backgroundColor: 'rgba(102, 126, 234, 0.85)',
+                borderColor: '#667eea',
+                borderWidth: 2,
+                borderRadius: 8,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { 
+                    position: 'top',
+                    labels: { 
+                        font: { size: 14 },
+                        color: '#fff'
                     }
                 },
-                plugins: {
-                    legend: { display: true, position: 'top' }
+                tooltip: { 
+                    callbacks: { 
+                        label: function(context) { 
+                            return 'Rezervacija: ' + context.parsed.y; 
+                        } 
+                    } 
                 }
-            }
-        });
-
-        const dailyCtx = document.getElementById('dailyVisitsChart').getContext('2d');
-        new Chart(dailyCtx, {
-            type: 'bar',
-            data: {
-                labels: {{ daily_labels|safe }},
-                datasets: [{
-                    label: 'Broj poseta',
-                    data: {{ daily_data|safe }},
-                    backgroundColor: '#28a745',
-                    borderColor: '#218838',
-                    borderWidth: 1
-                }]
             },
-            options: {
-                scales: {
-                    y: { 
-                        beginAtZero: true, 
-                        title: { display: true, text: 'Broj poseta' } 
-                    },
-                    x: { 
-                        title: { display: true, text: 'Dan u nedelji' } 
+            scales: {
+                y: { 
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    ticks: { 
+                        color: '#fff',
+                        stepSize: 1
                     }
                 },
-                plugins: {
-                    legend: { display: true, position: 'top' }
+                x: { 
+                    grid: { display: false },
+                    ticks: { 
+                        color: '#fff',
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
                 }
             }
-        });
-    </script>
+        }
+    });
+
+    // GRAFIKON 2 - DANI U NEDELJI
+    const ctx2 = document.getElementById('dailyChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'line',
+        data: {
+            labels: {{ daily_labels|safe }},
+            datasets: [{
+                label: 'Broj poseta',
+                data: {{ daily_data|safe }},
+                backgroundColor: 'rgba(67, 233, 123, 0.2)',
+                borderColor: '#43e97b',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 6,
+                pointBackgroundColor: '#43e97b',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { 
+                    position: 'top',
+                    labels: { 
+                        font: { size: 14 },
+                        color: '#fff'
+                    }
+                },
+                tooltip: { 
+                    callbacks: { 
+                        label: function(context) { 
+                            return 'Poseta: ' + context.parsed.y; 
+                        } 
+                    } 
+                }
+            },
+            scales: {
+                y: { 
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    ticks: { 
+                        color: '#fff',
+                        stepSize: 1
+                    }
+                },
+                x: { 
+                    grid: { display: false },
+                    ticks: { color: '#fff' }
+                }
+            }
+        }
+    });
+});
+</script>
 {% endblock %}
