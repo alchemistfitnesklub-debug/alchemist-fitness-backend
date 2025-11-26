@@ -1,178 +1,781 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Profil - {{ clan.ime_prezime }}{% endblock %}
-{% block content %}
-<div class="container-fluid py-5">
-<div class="row justify-content-center">
-<div class="col-12 text-center mb-5">
-<h1 class="display-5 fw-bold text-primary">PROFIL: {{ clan.ime_prezime }}</h1>
-</div>
-</div>
 
-<!-- OSNOVNI PODACI -->
-<div class="row justify-content-center mb-5">
-<div class="col-lg-6 col-md-8">
-<div class="card shadow-lg border-0 rounded-4 overflow-hidden">
-<div class="card-header bg-gradient-primary text-white py-4">
-<h5 class="mb-0 text-center fw-bold">Osnovni podaci</h5>
-</div>
-<div class="card-body p-4">
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="update_clan">
-    <!-- SLIKA -->
-    <div class="text-center mb-4">
-        <div class="position-relative d-inline-block">
-            {% if clan.slika and clan.slika.url %}
-            <img src="{{ clan.slika.url }}" class="rounded-circle shadow-sm" style="width: 110px; height: 110px; object-fit: cover; border: 4px solid #fff;">
+{% block title %}Profil - {{ clan.ime_prezime }}{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ========================================
+   PROFIL - MODERAN TAB SISTEM
+   ======================================== */
+
+/* KARTICE STATISTIKE */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s, box-shadow 0.3s;
+    text-align: center;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.stat-card i {
+    font-size: 2em;
+    margin-bottom: 10px;
+    opacity: 0.9;
+}
+
+.stat-card h3 {
+    font-size: 1.5em;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+.stat-card p {
+    font-size: 0.9em;
+    opacity: 0.85;
+    margin: 5px 0;
+}
+
+.stat-card.blue { color: #4facfe; }
+.stat-card.purple { color: #667eea; }
+.stat-card.pink { color: #f093fb; }
+.stat-card.green { color: #43e97b; }
+
+body.dark-theme .stat-card {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* HEADER SA SLIKOM */
+.profile-header {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    flex-wrap: wrap;
+}
+
+body.dark-theme .profile-header {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2));
+}
+
+.profile-avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    object-fit: cover;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4em;
+    color: white;
+    flex-shrink: 0;
+}
+
+.profile-info {
+    flex: 1;
+    min-width: 250px;
+}
+
+.profile-info h1 {
+    font-size: 2em;
+    margin-bottom: 15px;
+    color: #00bfff;
+}
+
+.profile-info-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0;
+    font-size: 1.1em;
+}
+
+.profile-info-item i {
+    color: #00bfff;
+    width: 20px;
+}
+
+/* TAB SISTEM */
+.tabs-container {
+    margin-bottom: 30px;
+}
+
+.tabs-nav {
+    display: flex;
+    gap: 10px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    padding: 15px 25px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: #ccc;
+    border-bottom: 3px solid transparent;
+    position: relative;
+}
+
+.tab-button:hover {
+    color: #00bfff;
+}
+
+.tab-button.active {
+    color: #00bfff;
+    border-bottom-color: #00bfff;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* SECTION KARTICE */
+.section-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    padding: 25px;
+    margin: 20px 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body.dark-theme .section-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.section-header i {
+    font-size: 1.5em;
+    margin-right: 15px;
+    color: #00bfff;
+}
+
+.section-header h3 {
+    margin: 0;
+    font-size: 1.3em;
+}
+
+/* FORME */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 0.95em;
+    color: #e0e0e0;
+}
+
+body.dark-theme .form-group label {
+    color: #fff;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 12px 15px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    font-size: 1em;
+    transition: all 0.3s;
+}
+
+body.dark-theme .form-group input,
+body.dark-theme .form-group select,
+body.dark-theme .form-group textarea {
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #00bfff;
+    box-shadow: 0 0 15px rgba(0, 191, 255, 0.3);
+}
+
+/* DUGMIĆI */
+.btn-primary, .btn-success, .btn-info, .btn-warning {
+    background: linear-gradient(135deg, #00bfff, #0099cc);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(0, 191, 255, 0.3);
+    font-size: 1em;
+    width: 100%;
+    margin-top: 15px;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #43e97b, #38d278);
+    box-shadow: 0 4px 15px rgba(67, 233, 123, 0.3);
+}
+
+.btn-info {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
+}
+
+.btn-primary:hover, .btn-success:hover, .btn-info:hover, .btn-warning:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 191, 255, 0.4);
+}
+
+/* TABELE */
+.table-container {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    margin-top: 15px;
+}
+
+body.dark-theme .table-container {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.table-container table {
+    width: 100%;
+    margin: 0;
+    background: transparent;
+}
+
+.table-container th {
+    background: linear-gradient(135deg, #2a5298, #1e3c72);
+    color: #fff;
+    padding: 15px 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9em;
+    letter-spacing: 0.5px;
+}
+
+body.dark-theme .table-container th {
+    background: linear-gradient(135deg, #4a5568, #2c3e50);
+}
+
+.table-container td {
+    padding: 12px;
+    vertical-align: middle;
+}
+
+.table-container tr:hover {
+    background: rgba(0, 191, 255, 0.1) !important;
+}
+
+body.dark-theme .table-container tr:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* ALERT BOX */
+.alert-info {
+    background: rgba(79, 172, 254, 0.2);
+    border-left: 4px solid #4facfe;
+    padding: 15px;
+    border-radius: 10px;
+    margin: 15px 0;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .stats-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .tabs-nav {
+        overflow-x: auto;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto;">
+    
+    <!-- HEADER SA PROFILOM -->
+    <div class="profile-header">
+        <div class="profile-avatar">
+            {% if clan.slika %}
+                <img src="{{ clan.slika.url }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
             {% else %}
-            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 110px; height: 110px; border: 4px solid #fff;">
-                <i class="fas fa-user fa-3x text-muted"></i>
+                <i class="fas fa-user"></i>
+            {% endif %}
+        </div>
+        
+        <div class="profile-info">
+            <h1>{{ clan.ime_prezime }}</h1>
+            
+            {% if clan.telefon %}
+            <div class="profile-info-item">
+                <i class="fas fa-phone"></i>
+                <span>{{ clan.telefon }}</span>
             </div>
             {% endif %}
-            <div class="mt-2">
-                <input type="file" name="slika" class="form-control form-control-sm rounded-pill" accept="image/*">
+            
+            {% if clan.email %}
+            <div class="profile-info-item">
+                <i class="fas fa-envelope"></i>
+                <span>{{ clan.email }}</span>
+            </div>
+            {% endif %}
+            
+            {% if clan.datum_rodjenja %}
+            <div class="profile-info-item">
+                <i class="fas fa-birthday-cake"></i>
+                <span>{{ clan.datum_rodjenja|date:"d.m.Y" }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- STATISTIKA -->
+    <div class="stats-row">
+        <div class="stat-card blue">
+            <i class="fas fa-calendar-check"></i>
+            <h3>
+                {% with last_uplata=clan.uplate.all.last %}
+                    {% if last_uplata %}
+                        {{ last_uplata.do_datum|date:"d.m.Y" }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                {% endwith %}
+            </h3>
+            <p>Članarina važi do</p>
+        </div>
+        
+        <div class="stat-card green">
+            <i class="fas fa-euro-sign"></i>
+            <h3>{{ clan.krediti_voda|floatformat:2 }} €</h3>
+            <p>Krediti za vodu</p>
+        </div>
+        
+        <div class="stat-card pink">
+            <i class="fas fa-dumbbell"></i>
+            <h3>{{ clan.rezervacija_set.count }}</h3>
+            <p>Ukupno treninga</p>
+        </div>
+        
+        <div class="stat-card purple">
+            <i class="fas fa-clock"></i>
+            <h3>
+                {% if clan.datum_rodjenja %}
+                    {% now "Y" as current_year %}
+                    {{ current_year|add:"-"|add:clan.datum_rodjenja.year }} god
+                {% else %}
+                    N/A
+                {% endif %}
+            </h3>
+            <p>Starost</p>
+        </div>
+    </div>
+
+    <!-- TAB NAVIGACIJA -->
+    <div class="tabs-container">
+        <div class="tabs-nav">
+            <button class="tab-button active" onclick="openTab('podaci')">
+                <i class="fas fa-user"></i> Podaci
+            </button>
+            <button class="tab-button" onclick="openTab('clanarineTab')">
+                <i class="fas fa-credit-card"></i> Članarine
+            </button>
+            <button class="tab-button" onclick="openTab('krediti')">
+                <i class="fas fa-tint"></i> Krediti
+            </button>
+            <button class="tab-button" onclick="openTab('poruke')">
+                <i class="fas fa-envelope"></i> Poruke
+            </button>
+            <button class="tab-button" onclick="openTab('rezervacije')">
+                <i class="fas fa-calendar"></i> Rezervacije
+            </button>
+        </div>
+
+        <!-- TAB 1: PODACI -->
+        <div id="podaci" class="tab-content active">
+            <div class="section-card">
+                <div class="section-header">
+                    <i class="fas fa-user-edit"></i>
+                    <h3>Ažuriraj osnovne podatke</h3>
+                </div>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_clan">
+                    
+                    <div class="form-group">
+                        <label>Slika profila</label>
+                        <input type="file" name="slika" accept="image/*">
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Ime i prezime</label>
+                            {{ clan_form.ime_prezime }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Telefon</label>
+                            {{ clan_form.telefon }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Email</label>
+                            {{ clan_form.email }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Datum rođenja</label>
+                            {{ clan_form.datum_rodjenja }}
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> Sačuvaj izmene
+                    </button>
+                </form>
             </div>
         </div>
-    </div>
-    <!-- POLJA -->
-    <div class="mb-3">
-        <label class="form-label fw-semibold">Ime i prezime</label>
-        <div class="input-group">
-            {{ clan_form.ime_prezime|safe }}
-        </div>
-    </div>
-    <div class="mb-3">
-        <label class="form-label fw-semibold">Telefon</label>
-        <div class="input-group">
-            {{ clan_form.telefon|safe }}
-        </div>
-    </div>
-    <div class="mb-3">
-        <label class="form-label fw-semibold">Email</label>
-        <div class="input-group">
-            {{ clan_form.email|safe }}
-        </div>
-    </div>
-    <div class="mb-3">
-        <label class="form-label fw-semibold">Datum rođenja</label>
-        <div class="input-group">
-            {{ clan_form.datum_rodjenja|safe }}
-        </div>
-    </div>
-    <div class="mb-4 text-center">
-        <label class="form-label fw-semibold d-inline me-2 mb-0">Krediti voda (EUR):</label>
-        <input type="text" class="form-control d-inline-block bg-light border-0 rounded-pill" style="width: 100px;" value="{{ clan.krediti_voda|floatformat:2 }}" readonly>
-    </div>
-    <div class="text-center">
-        <button type="submit" class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm">Sačuvaj izmene</button>
-    </div>
-</form>
-</div>
-</div>
-</div>
-</div>
 
-<!-- DODAJ UPLATU -->
-<div class="row justify-content-center mb-5">
-<div class="col-lg-6 col-md-8">
-<div class="card shadow-lg border-0 rounded-4">
-<div class="card-header bg-gradient-success text-white py-4">
-<h5 class="mb-0 text-center fw-bold">💳 Dodaj članarinu</h5>
-</div>
-<div class="card-body p-4">
-<form method="post">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="add_uplata">
-    <div class="mb-3">
-        <label class="form-label fw-semibold">Iznos (EUR)</label>
-        <div class="input-group">
-            <span class="input-group-text bg-light">€</span>
-            {{ uplata_form.iznos|safe }}
+        <!-- TAB 2: ČLANARINE -->
+        <div id="clanarineTab" class="tab-content">
+            <!-- DODAJ NOVU ČLANARINU -->
+            <div class="section-card">
+                <div class="section-header">
+                    <i class="fas fa-plus-circle"></i>
+                    <h3>Dodaj novu članarinu</h3>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_uplata">
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Iznos (EUR)</label>
+                            {{ uplata_form.iznos }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Broj meseci</label>
+                            {{ uplata_form.meseci }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Važi od</label>
+                            {{ uplata_form.od_datum }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Važi do</label>
+                            {{ uplata_form.do_datum }}
+                        </div>
+                    </div>
+                    
+                    <div class="alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Napomena:</strong> Članarina se evidentira odvojeno od kredita za vodu.
+                    </div>
+                    
+                    <button type="submit" class="btn-success">
+                        <i class="fas fa-check-circle"></i> Dodaj članarinu
+                    </button>
+                </form>
+            </div>
+            
+            <!-- ISTORIJA ČLANARINA -->
+            <div class="section-card">
+                <div class="section-header">
+                    <i class="fas fa-history"></i>
+                    <h3>Istorija uplata</h3>
+                </div>
+                
+                {% if uplate %}
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Datum uplate</th>
+                                <th>Iznos</th>
+                                <th>Meseci</th>
+                                <th>Važi do</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for uplata in uplate %}
+                            <tr>
+                                <td>{{ uplata.datum|date:"d.m.Y" }}</td>
+                                <td><strong style="color: #43e97b;">{{ uplata.iznos }} €</strong></td>
+                                <td>{{ uplata.meseci }}</td>
+                                <td>{{ uplata.do_datum|date:"d.m.Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p style="text-align: center; padding: 30px; opacity: 0.7;">
+                    <i class="fas fa-info-circle"></i> Nema evidencije o uplatama
+                </p>
+                {% endif %}
+            </div>
         </div>
-    </div>
-    <div class="mb-3">
-        <label class="form-label fw-semibold">Broj meseci</label>
-        <div class="input-group">
-            <span class="input-group-text bg-light"><i class="fas fa-calendar"></i></span>
-            {{ uplata_form.meseci|safe }}
-        </div>
-    </div>
-    <div class="mb-3">
-        <label class="form-label fw-semibold">Važi od</label>
-        <div class="input-group">
-            <span class="input-group-text bg-light"><i class="fas fa-calendar-day"></i></span>
-            {{ uplata_form.od_datum|safe }}
-        </div>
-    </div>
-    <div class="mb-3">
-        <label class="form-label fw-semibold">Važi do</label>
-        <div class="input-group">
-            <span class="input-group-text bg-light"><i class="fas fa-calendar-check"></i></span>
-            {{ uplata_form.do_datum|safe }}
-        </div>
-    </div>
-    <div class="alert alert-info rounded-3" role="alert">
-        <i class="fas fa-info-circle me-2"></i>
-        <small><strong>Napomena:</strong> Članarina se evidentira odvojeno od kredita za vodu.</small>
-    </div>
-    <div class="text-center">
-        <button type="submit" class="btn btn-success btn-lg px-5 rounded-pill shadow-sm">
-            <i class="fas fa-check-circle me-2"></i>Dodaj članarinu
-        </button>
-    </div>
-</form>
-</div>
-</div>
-</div>
-</div>
 
-<!-- DODAJ KREDIT ZA VODU -->
-{% if is_trener or request.user.userprofile.is_admin %}
-<div class="row justify-content-center mb-5">
-<div class="col-lg-6 col-md-8">
-<div class="card shadow-lg border-0 rounded-4">
-<div class="card-header bg-gradient-info text-white py-4">
-<h5 class="mb-0 text-center fw-bold">💧 Dodaj kredit za vodu</h5>
-</div>
-<div class="card-body p-4">
-<form method="post" onsubmit="return validateKreditForm()">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="add_kredit">
-    <div class="mb-3">
-        <label class="form-label fw-semibold">Iznos (€)</label>
-        <div class="input-group">
-            <span class="input-group-text bg-light">€</span>
-            <input type="number" 
-                   step="0.01" 
-                   name="kredit_iznos" 
-                   id="kredit_iznos"
-                   class="form-control" 
-                   placeholder="10.00" 
-                   required 
-                   min="0.01"
-                   max="1000">
+        <!-- TAB 3: KREDITI -->
+        <div id="krediti" class="tab-content">
+            {% if is_trener or request.user.userprofile.is_admin %}
+            <div class="section-card">
+                <div class="section-header">
+                    <i class="fas fa-tint"></i>
+                    <h3>Dodaj kredit za vodu</h3>
+                </div>
+                
+                <div style="text-align: center; padding: 30px; background: rgba(0, 191, 255, 0.1); border-radius: 15px; margin-bottom: 20px;">
+                    <div style="font-size: 0.9em; opacity: 0.7; margin-bottom: 10px;">Trenutni kredit</div>
+                    <div style="font-size: 3em; font-weight: bold; color: #00bfff;">
+                        {{ clan.krediti_voda|floatformat:2 }} €
+                    </div>
+                </div>
+                
+                <form method="post" onsubmit="return validateKreditForm()">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_kredit">
+                    
+                    <div class="form-group">
+                        <label>Iznos (€)</label>
+                        <input type="number" 
+                               step="0.01" 
+                               name="kredit_iznos" 
+                               id="kredit_iznos"
+                               placeholder="10.00" 
+                               required 
+                               min="0.01"
+                               max="1000">
+                        <small style="opacity: 0.7; margin-top: 5px; display: block;">
+                            Možete uneti i sa zarezom (npr. 10,50)
+                        </small>
+                    </div>
+                    
+                    <button type="submit" class="btn-info">
+                        <i class="fas fa-plus-circle"></i> Dodaj kredit
+                    </button>
+                </form>
+            </div>
+            {% else %}
+            <div class="section-card">
+                <p style="text-align: center; padding: 30px; opacity: 0.7;">
+                    <i class="fas fa-lock"></i> Nemate dozvolu za dodavanje kredita
+                </p>
+            </div>
+            {% endif %}
         </div>
-        <small class="form-text text-muted">Možete uneti i sa zarezom (npr. 10,50)</small>
-    </div>
-    <div class="text-center">
-        <button type="submit" class="btn btn-info btn-lg px-5 rounded-pill shadow-sm">
-            <i class="fas fa-plus-circle me-2"></i>Dodaj kredit
-        </button>
-    </div>
-    <div class="mt-4 text-center p-3 bg-light rounded-3">
-        <div class="d-flex justify-content-between align-items-center">
-            <span class="text-muted">Trenutni kredit:</span>
-            <strong class="text-success fs-4">{{ clan.krediti_voda|floatformat:2 }} €</strong>
+
+        <!-- TAB 4: PORUKE -->
+        <div id="poruke" class="tab-content">
+            <div class="section-card">
+                <div class="section-header">
+                    <i class="fas fa-paper-plane"></i>
+                    <h3>Pošalji poruku klijentu</h3>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="send_message">
+                    
+                    <div class="form-group">
+                        <label>Tekst poruke</label>
+                        <textarea name="message_text" rows="5" required></textarea>
+                    </div>
+                    
+                    <div style="margin: 15px 0;">
+                        <label style="display: inline-flex; align-items: center; margin-right: 20px; cursor: pointer;">
+                            <input type="checkbox" name="send_to" value="email" {% if clan.email %}checked{% endif %} style="margin-right: 8px;">
+                            <i class="fas fa-envelope" style="margin-right: 5px; color: #4facfe;"></i> Email
+                        </label>
+                        
+                        <label style="display: inline-flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" name="send_to" value="sms" {% if clan.telefon %}checked{% endif %} style="margin-right: 8px;">
+                            <i class="fas fa-sms" style="margin-right: 5px; color: #43e97b;"></i> SMS
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn-info">
+                        <i class="fas fa-paper-plane"></i> Pošalji poruku
+                    </button>
+                </form>
+            </div>
+            
+            <!-- PODACI ZA LOGOVANJE -->
+            <div class="section-card">
+                <div class="section-header">
+                    <i class="fas fa-key"></i>
+                    <h3>Podaci za logovanje</h3>
+                </div>
+                <p style="opacity: 0.8; margin-bottom: 20px;">
+                    Pošaljite klijentu pristupne podatke za mobilnu aplikaciju.
+                </p>
+                <form method="post" style="text-align: center;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="send_login">
+                    <button type="submit" class="btn-warning">
+                        <i class="fas fa-key"></i> Pošalji podatke za logovanje
+                    </button>
+                </form>
+            </div>
         </div>
+
+        <!-- TAB 5: REZERVACIJE -->
+        <div id="rezervacije" class="tab-content">
+            <div class="section-card">
+                <div class="section-header">
+                    <i class="fas fa-calendar-alt"></i>
+                    <h3>Istorija rezervacija</h3>
+                </div>
+                
+                {% if istorija_rezervacija %}
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Datum</th>
+                                <th>Vreme</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in istorija_rezervacija|slice:":20" %}
+                            <tr>
+                                <td>{{ r.datum|date:"d.m.Y" }}</td>
+                                <td><strong>{{ r.sat }}:00</strong></td>
+                                <td>
+                                    {% now "Y-m-d" as today %}
+                                    {% if r.datum|date:"Y-m-d" >= today %}
+                                        <span style="color: #43e97b;">
+                                            <i class="fas fa-check-circle"></i> Predstoji
+                                        </span>
+                                    {% else %}
+                                        <span style="opacity: 0.6;">
+                                            <i class="fas fa-check"></i> Završeno
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p style="text-align: center; padding: 30px; opacity: 0.7;">
+                    <i class="fas fa-calendar-times"></i> Nema evidencije o rezervacijama
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
     </div>
-</form>
-</div>
-</div>
-</div>
+
 </div>
 
 <script>
+// TAB SISTEM
+function openTab(tabName) {
+    // Sakrij sve tabove
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(tab => tab.classList.remove('active'));
+    
+    // Ukloni active sa svih dugmića
+    const tabButtons = document.querySelectorAll('.tab-button');
+    tabButtons.forEach(btn => btn.classList.remove('active'));
+    
+    // Prikaži izabrani tab
+    document.getElementById(tabName).classList.add('active');
+    
+    // Aktiviraj dugme
+    event.target.classList.add('active');
+}
+
+// VALIDACIJA KREDITA
 function validateKreditForm() {
     const input = document.getElementById('kredit_iznos');
     const value = input.value.trim();
@@ -195,186 +798,5 @@ function validateKreditForm() {
     return true;
 }
 </script>
-{% endif %}
 
-<!-- PORUKE -->
-<div class="row justify-content-center mb-5">
-<div class="col-lg-6 col-md-8">
-<div class="card shadow-lg border-0 rounded-4">
-<div class="card-header bg-gradient-info text-white py-4">
-<h5 class="mb-0 text-center fw-bold">Pošalji poruku</h5>
-</div>
-<div class="card-body p-4">
-<form method="post">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="send_message">
-    <div class="mb-3">
-        <label class="form-label fw-semibold">Poruka</label>
-        <textarea name="message_text" class="form-control rounded-pill" rows="3" required></textarea>
-    </div>
-    <div class="mb-3">
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" name="send_to" value="email" id="email_check" {% if clan.email %}checked{% endif %}>
-            <label class="form-check-label" for="email_check">Email</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" name="send_to" value="sms" id="sms_check" {% if clan.telefon %}checked{% endif %}>
-            <label class="form-check-label" for="sms_check">SMS</label>
-        </div>
-    </div>
-    <div class="text-center">
-        <button type="submit" class="btn btn-info btn-lg px-5 rounded-pill shadow-sm">Pošalji poruku</button>
-    </div>
-</form>
-</div>
-</div>
-</div>
-</div>
-
-<!-- PODACI ZA LOGOVANJE -->
-<div class="row justify-content-center mb-5">
-<div class="col-lg-6 col-md-8">
-<div class="card shadow-lg border-0 rounded-4">
-<div class="card-header bg-gradient-warning text-dark py-4">
-<h5 class="mb-0 text-center fw-bold">Podaci za logovanje</h5>
-</div>
-<div class="card-body p-4 text-center">
-<form method="post" class="d-inline">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="send_login">
-    <button type="submit" class="btn btn-warning btn-lg px-5 rounded-pill shadow-sm">Pošalji podatke za logovanje</button>
-</form>
-</div>
-</div>
-</div>
-</div>
-
-<!-- ISTORIJA UPLATA -->
-<div class="row justify-content-center mb-5">
-<div class="col-lg-8 col-md-10">
-<div class="card shadow-lg border-0 rounded-4">
-<div class="card-header bg-gradient-info text-white py-4">
-<h5 class="mb-0 text-center fw-bold">Istorija uplata</h5>
-</div>
-<div class="card-body p-0">
-<div class="table-responsive">
-<table class="table table-hover align-middle mb-0">
-<thead class="table-light">
-<tr>
-<th>Datum uplate</th>
-<th>Iznos</th>
-<th>Meseci</th>
-<th>Važi do</th>
-</tr>
-</thead>
-<tbody>
-    {% for uplata in uplate %}
-    <tr>
-        <td>{{ uplata.datum|date:"d.m.Y" }}</td>
-        <td><strong class="text-success">{{ uplata.iznos }} EUR</strong></td>
-        <td>{{ uplata.meseci }}</td>
-        <td>{{ uplata.do_datum|date:"d.m.Y" }}</td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="4" class="text-center py-5 text-muted">Nema uplata</td></tr>
-    {% endfor %}
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div>
-
-<!-- ISTORIJA REZERVACIJA -->
-<div class="row justify-content-center">
-<div class="col-lg-8 col-md-10">
-<div class="card shadow-lg border-0 rounded-4">
-<div class="card-header bg-gradient-warning text-dark py-4">
-<h5 class="mb-0 text-center fw-bold">Istorija rezervacija</h5>
-</div>
-<div class="card-body p-0">
-<div class="table-responsive">
-<table class="table table-hover align-middle mb-0">
-<thead class="table-light">
-<tr>
-<th>Datum</th>
-<th>Vreme</th>
-</tr>
-</thead>
-<tbody>
-    {% for r in istorija_rezervacija %}
-    <tr>
-        <td>{{ r.datum|date:"d.m.Y" }}</td>
-        <td>{{ r.sat }}:00</td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="2" class="text-center py-5 text-muted">Nema rezervacija</td></tr>
-    {% endfor %}
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-
-<style>
-:root {
-    --bs-primary: #4361ee;
-    --bs-success: #3f37c9;
-    --bs-info: #4895ef;
-    --bs-warning: #f72585;
-}
-.bg-gradient-primary { background: linear-gradient(135deg, #4361ee, #3f37c9); }
-.bg-gradient-success { background: linear-gradient(135deg, #3f37c9, #4895ef); }
-.bg-gradient-info { background: linear-gradient(135deg, #4895ef, #4361ee); }
-.bg-gradient-warning { background: linear-gradient(135deg, #f72585, #7209b7); }
-.card {
-    border-radius: 20px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
-}
-.card-header {
-    border-radius: 20px 20px 0 0 !important;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-}
-.input-group .form-control, .input-group .form-select, .input-group textarea.form-control {
-    border-radius: 50px !important;
-    padding: 0.75rem 1.5rem;
-}
-.input-group .form-control:focus, .input-group .form-select:focus, .input-group textarea.form-control:focus {
-    border-color: var(--bs-primary);
-    box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
-}
-.btn {
-    border-radius: 50px !important;
-    padding: 0.75rem 2rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    transition: all 0.3s ease;
-}
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-}
-.table th {
-    background-color: #f8f9fa;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    border-top: none;
-}
-.rounded-pill {
-    border-radius: 50px !important;
-}
-.shadow-lg {
-    box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
-}
-</style>
 {% endblock %}
