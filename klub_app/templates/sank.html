@@ -1,15 +1,15 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Šank{% endblock %}
+{% block title %}Šank - Upravljanje{% endblock %}
 
 {% block extra_head %}
 <style>
 /* ========================================
-   ŠANK MODUL - MODERNIZOVAN SA LOW STOCK
+   ŠANK MODUL - MODERNIZOVAN DIZAJN
    ======================================== */
 
-/* DASHBOARD KARTICE */
+/* KARTICE STATISTIKE - kao na Dashboard-u */
 .stats-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -51,6 +51,7 @@
     margin: 5px 0;
 }
 
+/* BOJE ZA RAZLIČITE KARTICE */
 .stat-card.blue { color: #4facfe; }
 .stat-card.purple { color: #667eea; }
 .stat-card.pink { color: #f093fb; }
@@ -61,7 +62,7 @@ body.dark-theme .stat-card {
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* SECTION KARTICE */
+/* SEKCIJE SA KARTICAMA */
 .section-card {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 15px;
@@ -88,6 +89,7 @@ body.dark-theme .section-card {
 .section-header i {
     font-size: 1.8em;
     margin-right: 15px;
+    color: #00bfff;
 }
 
 .section-header h2 {
@@ -95,11 +97,12 @@ body.dark-theme .section-card {
     font-size: 1.5em;
 }
 
-/* FORME - GRID LAYOUT */
+/* FORME - MODERNE I ORGANIZOVANE */
 .form-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 15px;
+    margin-bottom: 20px;
 }
 
 .form-group {
@@ -143,6 +146,49 @@ body.dark-theme .form-group select {
     box-shadow: 0 0 15px rgba(0, 191, 255, 0.3);
 }
 
+/* AUTOCOMPLETE REZULTATI */
+#autocomplete-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 300px;
+    overflow-y: auto;
+    background: white;
+    border: 2px solid #00bfff;
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    display: none;
+}
+
+.autocomplete-item {
+    padding: 12px 15px;
+    cursor: pointer;
+    transition: background 0.2s;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.autocomplete-item:hover {
+    background: #f0f8ff;
+}
+
+.autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.autocomplete-krediti {
+    color: #00bfff;
+    font-weight: 600;
+}
+
 /* DUGMIĆI */
 .btn-primary {
     background: linear-gradient(135deg, #00bfff, #0099cc);
@@ -160,130 +206,32 @@ body.dark-theme .form-group select {
 .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 191, 255, 0.4);
+    background: linear-gradient(135deg, #0099cc, #007a99);
 }
 
-.btn-success {
-    background: linear-gradient(135deg, #43e97b, #38d278);
+.btn-secondary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
     border: none;
-    padding: 12px 25px;
+    padding: 10px 20px;
     border-radius: 10px;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s;
-    box-shadow: 0 4px 15px rgba(67, 233, 123, 0.3);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
-.btn-success:hover {
+.btn-secondary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(67, 233, 123, 0.4);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
-/* ========================================
-   LOW STOCK UPOZORENJA - NOVA FUNKCIONALNOST!
-   ======================================== */
-
-/* LOW STOCK BADGE - Pored imena proizvoda u tabeli */
-.low-stock-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 0.75em;
-    font-weight: bold;
-    margin-left: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.low-stock-critical {
-    background: linear-gradient(135deg, #ff4444, #cc0000);
-    color: white;
-    animation: pulse 2s infinite;
-}
-
-.low-stock-warning {
-    background: linear-gradient(135deg, #ffa500, #ff8c00);
-    color: white;
-}
-
-.low-stock-ok {
-    background: linear-gradient(135deg, #43e97b, #38d278);
-    color: white;
-}
-
-/* HIGHLIGHT CELOG REDA U TABELI */
-tr.stock-critical {
-    background: rgba(255, 68, 68, 0.2) !important;
-    border-left: 5px solid #ff4444 !important;
-}
-
-tr.stock-warning {
-    background: rgba(255, 165, 0, 0.15) !important;
-    border-left: 5px solid #ffa500 !important;
-}
-
-body.dark-theme tr.stock-critical {
-    background: rgba(255, 68, 68, 0.3) !important;
-}
-
-body.dark-theme tr.stock-warning {
-    background: rgba(255, 165, 0, 0.25) !important;
-}
-
-/* PULSIRANJE ANIMACIJA ZA KRITIČNE */
-@keyframes pulse {
-    0%, 100% {
-        box-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
-    }
-    50% {
-        box-shadow: 0 0 20px rgba(255, 68, 68, 0.8);
-    }
-}
-
-/* LOW STOCK STATISTIKA KARTICA */
-.low-stock-summary {
-    background: linear-gradient(135deg, rgba(255, 68, 68, 0.2), rgba(255, 165, 0, 0.2));
-    border-left: 5px solid #ff4444;
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.low-stock-summary i {
-    font-size: 2em;
-    color: #ff4444;
-}
-
-.low-stock-summary .summary-text {
-    flex: 1;
-}
-
-.low-stock-summary .summary-text h4 {
-    margin: 0 0 5px 0;
-    font-size: 1.1em;
-    color: #ff4444;
-}
-
-.low-stock-summary .summary-text p {
-    margin: 0;
-    font-size: 0.9em;
-    opacity: 0.9;
-}
-
-/* ========================================
-   OSTALI STILOVI
-   ======================================== */
-
-/* TABELA */
+/* TABELA - MODERNIZOVANA */
 .table-container {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 15px;
     overflow: hidden;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    margin-top: 20px;
 }
 
 body.dark-theme .table-container {
@@ -322,37 +270,14 @@ body.dark-theme .table-container tr:hover {
     background: rgba(255, 255, 255, 0.05) !important;
 }
 
-/* AUTOCOMPLETE */
-#autocomplete-list {
-    position: absolute;
-    background: white;
-    border: 2px solid #00bfff;
-    border-radius: 10px;
-    max-height: 250px;
-    overflow-y: auto;
-    z-index: 1000;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-    width: calc(100% - 4px);
-}
-
-body.dark-theme #autocomplete-list {
-    background: #1a1a1a;
-    border-color: #00bfff;
-}
-
-.autocomplete-item {
-    padding: 12px 15px;
-    cursor: pointer;
-    transition: all 0.2s;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-body.dark-theme .autocomplete-item {
-    border-bottom-color: rgba(255, 255, 255, 0.1);
-}
-
-.autocomplete-item:hover {
-    background: linear-gradient(135deg, #00bfff, #0099cc);
+/* BADGE ZA PROIZVODE */
+.product-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 600;
+    background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
 }
 
@@ -391,7 +316,191 @@ body.dark-theme .autocomplete-item {
 .stat-card:nth-child(2) { animation-delay: 0.2s; }
 .stat-card:nth-child(3) { animation-delay: 0.3s; }
 .stat-card:nth-child(4) { animation-delay: 0.4s; }
+
+/* AUTOCOMPLETE DODATNI STILOVI */
+.autocomplete-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 2px solid #00bfff;
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    margin-top: 5px;
+    display: none;
+}
+
+.autocomplete-results.show {
+    display: block;
+}
+
+.autocomplete-item {
+    padding: 12px 15px;
+    cursor: pointer;
+    transition: background 0.2s;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.autocomplete-item:hover {
+    background: #f8f9fa;
+}
+
+.autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-item strong {
+    color: #333;
+    display: block;
+    margin-bottom: 3px;
+}
+
+.autocomplete-item.no-results {
+    text-align: center;
+    color: #999;
+    cursor: default;
+}
+
+.autocomplete-item.no-results:hover {
+    background: white;
+}
+
+.autocomplete-loading {
+    text-align: center;
+    padding: 15px;
+    color: #666;
+}
+
+/* ALERT STILOVI */
+.alert {
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 0;
+}
+
+.alert-info {
+    background: rgba(0, 191, 255, 0.1);
+    border: 1px solid rgba(0, 191, 255, 0.3);
+    color: #00bfff;
+}
+
+body.dark-theme .alert-info {
+    background: rgba(0, 191, 255, 0.15);
+    border-color: rgba(0, 191, 255, 0.4);
+}
+
+/* MODAL STILOVI */
+.modal {
+    background: rgba(0, 0, 0, 0.5);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+}
+
+.modal-dialog {
+    position: relative;
+    width: auto;
+    margin: 1.75rem auto;
+    max-width: 500px;
+}
+
+.modal-dialog-centered {
+    display: flex;
+    align-items: center;
+    min-height: calc(100% - 3.5rem);
+}
+
+.modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    pointer-events: auto;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid rgba(0,0,0,.2);
+    border-radius: 15px;
+    outline: 0;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-title {
+    margin: 0;
+    line-height: 1.5;
+}
+
+.modal-body {
+    position: relative;
+    flex: 1 1 auto;
+    padding: 1rem;
+}
+
+.modal-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0.75rem;
+    border-top: 1px solid #dee2e6;
+}
+
+.btn-close {
+    background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 01-1.414-1.414L6.586 8 .293 1.707a1 1 0 010-1.414z'/%3e%3c/svg%3e") center/1em auto no-repeat;
+    border: 0;
+    width: 1em;
+    height: 1em;
+    padding: 0.25em;
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+.btn-close:hover {
+    opacity: 0.75;
+}
+
+.modal.fade {
+    opacity: 0;
+}
+
+.modal.show {
+    opacity: 1;
+}
+
+body.dark-theme .modal-content {
+    background: rgba(30, 30, 30, 0.98);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-theme .modal-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-theme .modal-footer {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
 </style>
+
+<!-- Bootstrap 5 CDN za Modal funkcionalnost -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 {% endblock %}
 
 {% block content %}
@@ -400,12 +509,12 @@ body.dark-theme .autocomplete-item {
     <!-- NASLOV -->
     <div style="text-align: center; margin-bottom: 30px;">
         <h1 style="font-size: 2.5em; margin-bottom: 10px;">
-            <i class="fas fa-shopping-cart"></i> ŠANK - UPRAVLJANJE I PRODAJA
+            <i class="fas fa-coffee"></i> ŠANK - UPRAVLJANJE
         </h1>
-        <p style="opacity: 0.8; font-size: 1.1em;">Trenutno stanje: {% now "d.m.Y H:i" %}</p>
+        <p style="opacity: 0.8; font-size: 1.1em;">Upravljanje proizvodima, zalihama i prodajom</p>
     </div>
 
-    <!-- STATISTIKA DASHBOARD -->
+    <!-- STATISTIKA - DASHBOARD KARTICE -->
     <div class="stats-row">
         <div class="stat-card blue">
             <i class="fas fa-euro-sign"></i>
@@ -414,9 +523,9 @@ body.dark-theme .autocomplete-item {
         </div>
         
         <div class="stat-card purple">
-            <i class="fas fa-shopping-bag"></i>
+            <i class="fas fa-shopping-cart"></i>
             <h3>{{ danas_prodato }}</h3>
-            <p>Proizvoda prodato</p>
+            <p>Proizvoda prodato danas</p>
         </div>
         
         <div class="stat-card pink">
@@ -426,207 +535,150 @@ body.dark-theme .autocomplete-item {
         </div>
         
         <div class="stat-card green">
-            <i class="fas fa-trophy"></i>
+            <i class="fas fa-star"></i>
             <h3>{{ najprodavaniji|default:"N/A" }}</h3>
             <p>Najprodavaniji danas</p>
         </div>
     </div>
 
-    <!-- ========================================
-         LOW STOCK UPOZORENJE - NOVA SEKCIJA!
-         ======================================== -->
-    {% with low_stock_critical=stocks|length|add:0 low_stock_warning=0 %}
-        {% for stock in stocks %}
-            {% if stock.kolicina < 5 %}
-                {% with low_stock_critical=low_stock_critical|add:1 %}{% endwith %}
-            {% elif stock.kolicina < 10 %}
-                {% with low_stock_warning=low_stock_warning|add:1 %}{% endwith %}
-            {% endif %}
-        {% endfor %}
-        
-        {% if low_stock_critical > 0 or low_stock_warning > 0 %}
-        <div class="low-stock-summary">
-            <i class="fas fa-exclamation-triangle"></i>
-            <div class="summary-text">
-                <h4>⚠️ NISKE ZALIHE UPOZORENJE</h4>
-                <p>
-                    {% if low_stock_critical > 0 %}
-                        <strong style="color: #ff4444;">{{ low_stock_critical }} proizvoda</strong> ima manje od 5 komada (KRITIČNO!)
-                    {% endif %}
-                    {% if low_stock_warning > 0 %}
-                        | <strong style="color: #ffa500;">{{ low_stock_warning }} proizvoda</strong> ima manje od 10 komada
-                    {% endif %}
-                </p>
-            </div>
-        </div>
-        {% endif %}
-    {% endwith %}
-
-    <!-- DODAVANJE NOVOG PROIZVODA -->
+    <!-- DODAJ NOVI PROIZVOD -->
     <div class="section-card">
         <div class="section-header">
-            <i class="fas fa-plus-circle" style="color: #43e97b;"></i>
+            <i class="fas fa-plus-circle"></i>
             <h2>Dodaj novi proizvod</h2>
         </div>
-        <form method="post">
+        
+        <form method="post" action="{% url 'sank' %}">
             {% csrf_token %}
+            <input type="hidden" name="add_product">
+            
             <div class="form-grid">
                 <div class="form-group">
-                    <label>Naziv proizvoda</label>
-                    <input type="text" name="naziv" placeholder="npr. ROSA - Voda 0.5" required>
+                    <label for="naziv_proizvoda">Naziv proizvoda</label>
+                    <input type="text" id="naziv_proizvoda" name="naziv" placeholder="Npr. ROSA - Voda 0.5" required>
                 </div>
+                
                 <div class="form-group">
-                    <label>Početna količina</label>
-                    <input type="number" name="kolicina" placeholder="20" min="0" required>
+                    <label for="kolicina">Količina</label>
+                    <input type="number" id="kolicina" name="kolicina" placeholder="0" step="1" min="0" required>
                 </div>
+                
                 <div class="form-group">
-                    <label>Cena (EUR)</label>
-                    <input type="number" step="0.01" name="cena" placeholder="1.50" min="0" required>
-                </div>
-                <div class="form-group" style="display: flex; align-items: flex-end;">
-                    <button type="submit" name="add_product" class="btn-success" style="width: 100%;">
-                        <i class="fas fa-plus"></i> Dodaj
-                    </button>
+                    <label for="cena">Cena (EUR)</label>
+                    <input type="number" id="cena" name="cena" placeholder="0.00" step="0.01" min="0" required>
                 </div>
             </div>
+            
+            <button type="submit" class="btn-primary">
+                <i class="fas fa-plus"></i> Dodaj proizvod
+            </button>
         </form>
     </div>
 
-    <!-- AŽURIRANJE ZALIHA -->
+    <!-- AŽURIRAJ ZALIHE -->
     <div class="section-card">
         <div class="section-header">
-            <i class="fas fa-boxes" style="color: #4facfe;"></i>
+            <i class="fas fa-warehouse"></i>
             <h2>Ažuriraj zalihe</h2>
         </div>
-        <form method="post">
+        
+        <form method="post" action="{% url 'sank' %}">
             {% csrf_token %}
+            <input type="hidden" name="update_stock">
+            
             <div class="form-grid">
                 <div class="form-group">
-                    <label>Izaberi proizvod</label>
-                    <select name="stock_id" required>
-                        <option value="">-- Izaberi --</option>
-                        {% for stock in stocks %}
-                        <option value="{{ stock.id }}">{{ stock.naziv }} ({{ stock.kolicina }} kom)</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Dodatna količina</label>
-                    <input type="number" name="dodatna_kolicina" placeholder="10" min="1" required>
-                </div>
-                <div class="form-group" style="display: flex; align-items: flex-end;">
-                    <button type="submit" name="update_stock" class="btn-primary" style="width: 100%;">
-                        <i class="fas fa-sync-alt"></i> Ažuriraj
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
-
-    <!-- NOVA PRODAJA -->
-    <div class="section-card">
-        <div class="section-header">
-            <i class="fas fa-cash-register" style="color: #f093fb;"></i>
-            <h2>Nova prodaja</h2>
-        </div>
-        <form method="post" id="sale-form">
-            {% csrf_token %}
-            {{ sale_form.non_field_errors }}
-            <div class="form-grid">
-                <div class="form-group" style="position: relative;">
-                    <label>Pretraži klijenta</label>
-                    <input type="text" id="clan-search" placeholder="Počni kucati ime..." autocomplete="off">
-                    <input type="hidden" name="clan" id="clan-id" required>
-                    <div id="autocomplete-list"></div>
-                </div>
-                <div class="form-group">
-                    <label>Proizvod</label>
-                    <select name="stock" id="stock-select" required>
+                    <label for="izaberi_proizvod">Izaberi proizvod</label>
+                    <select id="izaberi_proizvod" name="stock_id" required>
                         <option value="">-- Izaberi proizvod --</option>
                         {% for stock in stocks %}
-                        <option value="{{ stock.id }}" data-price="{{ stock.cena }}">
-                            {{ stock.naziv }} ({{ stock.kolicina }} kom @ {{ stock.cena }}€)
+                        <option value="{{ stock.id }}">
+                            {{ stock.naziv }} (Trenutno: {{ stock.kolicina }})
                         </option>
                         {% endfor %}
                     </select>
                 </div>
+                
                 <div class="form-group">
-                    <label>Količina</label>
-                    <input type="number" name="kolicina" id="quantity-input" placeholder="1" min="1" value="1" required>
-                </div>
-                <div class="form-group">
-                    <label>Ukupna cena</label>
-                    <input type="text" id="total-price" readonly style="font-weight: bold; font-size: 1.2em; color: #00bfff;">
+                    <label for="dodatna_kolicina">Dodatna količina</label>
+                    <input type="number" id="dodatna_kolicina" name="dodatna_kolicina" placeholder="0" step="1" required>
                 </div>
             </div>
-            <div style="margin-top: 20px;">
-                <button type="submit" class="btn-success" style="width: 100%; font-size: 1.1em; padding: 15px;">
-                    <i class="fas fa-check-circle"></i> POTVRDI PRODAJU
-                </button>
-            </div>
+            
+            <button type="submit" class="btn-secondary">
+                <i class="fas fa-sync"></i> Ažuriraj zalihe
+            </button>
         </form>
     </div>
 
-    <!-- ========================================
-         TRENUTNE ZALIHE SA LOW STOCK HIGHLIGHT
-         ======================================== -->
+    <!-- NOVA PRODAJA - KORISTI POSTOJEĆI AUTOCOMPLETE I MODAL -->
     <div class="section-card">
         <div class="section-header">
-            <i class="fas fa-warehouse" style="color: #667eea;"></i>
-            <h2>Trenutne zalihe</h2>
-            <span style="margin-left: auto; font-size: 0.9em; opacity: 0.7;">
-                <span class="low-stock-critical" style="padding: 5px 10px; margin: 0 5px;">🔴 < 5</span>
-                <span class="low-stock-warning" style="padding: 5px 10px; margin: 0 5px;">🟡 < 10</span>
-                <span class="low-stock-ok" style="padding: 5px 10px; margin: 0 5px;">🟢 OK</span>
-            </span>
+            <i class="fas fa-cash-register"></i>
+            <h2>Nova prodaja</h2>
         </div>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Proizvod</th>
-                        <th>Količina</th>
-                        <th>Cena</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for stock in stocks %}
-                    <tr {% if stock.kolicina < 5 %}class="stock-critical"{% elif stock.kolicina < 10 %}class="stock-warning"{% endif %}>
-                        <td>
-                            <strong>{{ stock.naziv }}</strong>
-                            {% if stock.kolicina < 5 %}
-                                <span class="low-stock-badge low-stock-critical">🔴 KRITIČNO!</span>
-                            {% elif stock.kolicina < 10 %}
-                                <span class="low-stock-badge low-stock-warning">🟡 NISKO</span>
-                            {% endif %}
-                        </td>
-                        <td style="font-size: 1.2em; font-weight: bold;">
-                            {{ stock.kolicina }} kom
-                        </td>
-                        <td>{{ stock.cena }} €</td>
-                        <td>
-                            {% if stock.kolicina < 5 %}
-                                <span class="low-stock-badge low-stock-critical">NARUČI!</span>
-                            {% elif stock.kolicina < 10 %}
-                                <span class="low-stock-badge low-stock-warning">PAZI</span>
-                            {% else %}
-                                <span class="low-stock-badge low-stock-ok">OK</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        
+        <form method="post" id="saleForm">
+            {% csrf_token %}
+            
+            <div class="form-grid">
+                <div class="form-group" style="position: relative;">
+                    <label for="clanSearchInput">Klijent</label>
+                    <input type="text" 
+                           id="clanSearchInput" 
+                           placeholder="🔍 Pretraži klijente..." 
+                           autocomplete="off">
+                    <input type="hidden" name="clan" id="clanIdInput" required>
+                    <button type="button" id="clearClan" style="display: none; position: absolute; right: 10px; top: 38px; border: none; background: none; cursor: pointer; font-size: 18px; color: #999;">✕</button>
+                    <div id="autocompleteResults" class="autocomplete-results"></div>
+                    <div id="selectedClan" style="display: none; margin-top: 10px;">
+                        <div class="alert alert-info mb-0" style="background: rgba(0,191,255,0.1); border: 1px solid rgba(0,191,255,0.3); padding: 10px; border-radius: 10px;">
+                            <strong id="selectedClanName" style="color: #00bfff;"></strong>
+                            <br>
+                            <small>Krediti: <span id="selectedClanKrediti" class="fw-bold" style="color: #00bfff;"></span> €</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="stockSelect">Proizvod</label>
+                    <select id="stockSelect" name="stock" required>
+                        <option value="">-- Izaberi proizvod --</option>
+                        {% for stock in stocks %}
+                        <option value="{{ stock.id }}" data-cena="{{ stock.cena }}">
+                            {{ stock.naziv }} - {{ stock.cena }} EUR ({{ stock.kolicina }} kom)
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="kolicinaInput">Količina</label>
+                    <input type="number" id="kolicinaInput" name="kolicina" placeholder="1" step="1" min="1" value="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Ukupna cena</label>
+                    <div style="display: flex; align-items: center;">
+                        <input type="text" id="ukupnaCenaDisplay" style="flex: 1; font-weight: bold; font-size: 1.1em;" readonly value="0.00">
+                        <span style="margin-left: 10px; font-weight: bold;">€</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-primary" style="width: 100%;">
+                <i class="fas fa-shopping-cart"></i> Završi prodaju
+            </button>
+        </form>
     </div>
 
     <!-- ISTORIJA PRODAJE -->
     <div class="section-card">
         <div class="section-header">
-            <i class="fas fa-history" style="color: #43e97b;"></i>
-            <h2>Istorija prodaje (poslednje)</h2>
+            <i class="fas fa-history"></i>
+            <h2>Istorija prodaje</h2>
         </div>
+        
         <div class="table-container">
             <table>
                 <thead>
@@ -634,20 +686,35 @@ body.dark-theme .autocomplete-item {
                         <th>Klijent</th>
                         <th>Proizvod</th>
                         <th>Količina</th>
-                        <th>Cena</th>
-                        <th>Datum/Vreme</th>
+                        <th>Ukupna cena</th>
+                        <th>Datum i vreme</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for sale in sales|slice:":20" %}
+                    {% for sale in sales %}
                     <tr>
-                        <td><strong style="color: #00bfff;">{{ sale.clan.ime_prezime }}</strong></td>
-                        <td>{{ sale.stock.naziv }}</td>
-                        <td>{{ sale.kolicina }} kom</td>
-                        <td style="font-weight: bold;">{{ sale.price }} €</td>
-                        <td style="font-size: 0.9em;">
+                        <td>
+                            <strong style="color: #00bfff;">{{ sale.clan.ime_prezime }}</strong>
+                        </td>
+                        <td>
+                            <span class="product-badge">{{ sale.stock.naziv }}</span>
+                        </td>
+                        <td style="text-align: center;">
+                            <strong>{{ sale.kolicina }}</strong>
+                        </td>
+                        <td>
+                            <strong style="color: #43e97b; font-size: 1.1em;">{{ sale.price|floatformat:2 }} EUR</strong>
+                        </td>
+                        <td style="font-size: 0.9em; opacity: 0.8;">
                             {{ sale.datum|date:"d.m.Y" }}<br>
                             <strong>{{ sale.datum|time:"H:i" }}</strong>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 30px;">
+                            <i class="fas fa-inbox" style="font-size: 3em; opacity: 0.3;"></i>
+                            <p style="margin-top: 15px; opacity: 0.6;">Nema prodaje za prikaz</p>
                         </td>
                     </tr>
                     {% endfor %}
@@ -658,145 +725,255 @@ body.dark-theme .autocomplete-item {
 
 </div>
 
-<!-- MODAL ZA MINUS UPOZORENJE -->
-<div class="modal fade" id="minusModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content" style="background: #1a1a1a; color: white; border: 2px solid #ff4444;">
-            <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-                <h5 class="modal-title">
-                    <i class="fas fa-exclamation-triangle" style="color: #ff4444;"></i>
-                    UPOZORENJE: Minus!
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+<!-- POPUP ZA MINUS - POSTOJEĆI MODAL -->
+<div class="modal fade" id="minusModal" tabindex="-1" style="display: none;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white; border-radius: 15px 15px 0 0;">
+                <h5 class="modal-title">⚠️ UPOZORENJE: MINUS KREDITA!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <p id="modal-message" style="font-size: 1.1em;"></p>
+            <div class="modal-body text-center" style="padding: 30px;">
+                <h4 id="minusAmount" style="color: #f5576c; margin-bottom: 20px;"></h4>
+                <p style="font-size: 1.1em;">Klijent će ući u minus. Da li želite da nastavite?</p>
             </div>
-            <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1);">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Odustani</button>
-                <button type="button" class="btn btn-danger" id="confirm-sale">Potvrdi prodaju</button>
+            <div class="modal-footer" style="border-top: none; justify-content: center; padding-bottom: 20px;">
+                <button type="button" class="btn-secondary" data-bs-dismiss="modal">Otkaži</button>
+                <button type="button" class="btn-primary" id="confirmMinus">Nastavi</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Bootstrap 5 JS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+<!-- JAVASCRIPT -->
 <script>
-// STOCK PRICES OBJEKAT
-const stockPrices = {{ stocks_json|safe }};
+    const stocksData = {{ stocks_json|safe }};
+    let currentKrediti = 0;
+    let selectedClanId = null;
+    let selectedClanName = '';
+    let minusConfirmed = false;
+    let searchTimeout = null;
+    let minusModal = null;
 
-// AUTOCOMPLETE SA DEBOUNCE
-let debounceTimer;
-const searchInput = document.getElementById('clan-search');
-const autocompleteList = document.getElementById('autocomplete-list');
-const clanIdInput = document.getElementById('clan-id');
+    // Autocomplete funkcionalnost
+    const searchInput = document.getElementById('clanSearchInput');
+    const resultsDiv = document.getElementById('autocompleteResults');
+    const clanIdInput = document.getElementById('clanIdInput');
+    const selectedClanDiv = document.getElementById('selectedClan');
+    const clearBtn = document.getElementById('clearClan');
 
-searchInput.addEventListener('input', function() {
-    clearTimeout(debounceTimer);
-    const query = this.value.trim();
-    
-    if (query.length < 2) {
-        autocompleteList.innerHTML = '';
-        autocompleteList.style.display = 'none';
-        return;
-    }
-    
-    debounceTimer = setTimeout(() => {
-        fetch(`/sank/json/clanovi/?q=${encodeURIComponent(query)}`)
-            .then(response => response.json())
-            .then(data => {
-                autocompleteList.innerHTML = '';
-                if (data.length === 0) {
-                    autocompleteList.innerHTML = '<div class="autocomplete-item">Nema rezultata</div>';
-                } else {
-                    data.forEach(clan => {
-                        const div = document.createElement('div');
-                        div.className = 'autocomplete-item';
-                        div.textContent = clan.ime_prezime;
-                        div.onclick = function() {
-                            searchInput.value = clan.ime_prezime;
-                            clanIdInput.value = clan.id;
-                            autocompleteList.style.display = 'none';
-                            
-                            // Učitaj kredite
-                            fetch(`/krediti/json/${clan.id}/`)
-                                .then(r => r.json())
-                                .then(d => {
-                                    console.log(`${d.ime_prezime} ima ${d.krediti_voda}€ kredita`);
-                                });
-                        };
-                        autocompleteList.appendChild(div);
-                    });
-                }
-                autocompleteList.style.display = 'block';
-            });
-    }, 300);
-});
-
-// IZRAČUNAJ UKUPNU CENU
-const stockSelect = document.getElementById('stock-select');
-const quantityInput = document.getElementById('quantity-input');
-const totalPriceInput = document.getElementById('total-price');
-
-function calculateTotal() {
-    const selectedOption = stockSelect.options[stockSelect.selectedIndex];
-    const price = parseFloat(selectedOption.dataset.price) || 0;
-    const quantity = parseInt(quantityInput.value) || 0;
-    const total = (price * quantity).toFixed(2);
-    totalPriceInput.value = total + ' €';
-}
-
-stockSelect.addEventListener('change', calculateTotal);
-quantityInput.addEventListener('input', calculateTotal);
-
-// PROVERA MINUS I MODAL
-const saleForm = document.getElementById('sale-form');
-const minusModal = new bootstrap.Modal(document.getElementById('minusModal'));
-let formSubmitted = false;
-
-saleForm.addEventListener('submit', function(e) {
-    if (formSubmitted) return;
-    
-    e.preventDefault();
-    
-    const clanId = clanIdInput.value;
-    const stockId = stockSelect.value;
-    const quantity = parseInt(quantityInput.value);
-    
-    if (!clanId || !stockId || !quantity) {
-        toastr.error('Popunite sva polja!');
-        return;
-    }
-    
-    const selectedOption = stockSelect.options[stockSelect.selectedIndex];
-    const price = parseFloat(selectedOption.dataset.price);
-    const totalCost = price * quantity;
-    
-    fetch(`/krediti/json/${clanId}/`)
-        .then(response => response.json())
-        .then(data => {
-            const krediti = parseFloat(data.krediti_voda);
-            const noviKrediti = krediti - totalCost;
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim();
             
-            if (noviKrediti < 0) {
-                document.getElementById('modal-message').innerHTML = 
-                    `<strong>${data.ime_prezime}</strong> će nakon ove kupovine imati <strong style="color: #ff4444;">${noviKrediti.toFixed(2)}€</strong> kredita (MINUS!). <br><br>Da li želite da nastavite?`;
-                minusModal.show();
-            } else {
-                formSubmitted = true;
-                saleForm.submit();
+            // Sakrij clear dugme ako je prazan input
+            if (query === '') {
+                clearBtn.style.display = 'none';
+                resultsDiv.classList.remove('show');
+                return;
             }
+            
+            clearBtn.style.display = 'block';
+            
+            // Debounce - čekaj 300ms pre pretrage
+            clearTimeout(searchTimeout);
+            
+            if (query.length < 2) {
+                resultsDiv.innerHTML = '<div class="autocomplete-item no-results">Ukucaj minimum 2 slova...</div>';
+                resultsDiv.classList.add('show');
+                return;
+            }
+            
+            searchTimeout = setTimeout(() => {
+                // Prikaži loading
+                resultsDiv.innerHTML = '<div class="autocomplete-loading">Pretraga...</div>';
+                resultsDiv.classList.add('show');
+                
+                // AJAX pretraga
+                fetch(`/sank/json/clanovi/?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length === 0) {
+                            resultsDiv.innerHTML = '<div class="autocomplete-item no-results">Nema rezultata</div>';
+                        } else {
+                            resultsDiv.innerHTML = data.map(clan => `
+                                <div class="autocomplete-item" data-id="${clan.id}" data-name="${clan.ime_prezime}">
+                                    <strong>${clan.ime_prezime}</strong>
+                                </div>
+                            `).join('');
+                            
+                            // Dodaj event listener na svaki rezultat
+                            resultsDiv.querySelectorAll('.autocomplete-item').forEach(item => {
+                                item.addEventListener('click', function() {
+                                    selectClan(this.dataset.id, this.dataset.name);
+                                });
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Greška pri pretrazi:', error);
+                        resultsDiv.innerHTML = '<div class="autocomplete-item no-results">Greška pri pretrazi</div>';
+                    });
+            }, 300);
         });
-});
+    }
 
-document.getElementById('confirm-sale').addEventListener('click', function() {
-    formSubmitted = true;
-    minusModal.hide();
-    saleForm.submit();
-});
+    // Funkcija za izbor klijenta
+    function selectClan(clanId, clanName) {
+        selectedClanId = clanId;
+        selectedClanName = clanName;
+        
+        // Postavi vrednosti
+        clanIdInput.value = clanId;
+        searchInput.value = clanName;
+        
+        // Sakrij rezultate
+        resultsDiv.classList.remove('show');
+        
+        // Učitaj kredite
+        fetch(`/krediti/json/${clanId}/`)
+            .then(r => r.json())
+            .then(data => {
+                currentKrediti = parseFloat(data.krediti_voda) || 0;
+                
+                // Prikaži info o klijentu
+                document.getElementById('selectedClanName').textContent = clanName;
+                document.getElementById('selectedClanKrediti').textContent = currentKrediti.toFixed(2);
+                
+                // Promeni boju ako je minus
+                const alertDiv = selectedClanDiv.querySelector('.alert');
+                if (currentKrediti < 0) {
+                    alertDiv.style.background = 'rgba(255, 68, 68, 0.1)';
+                    alertDiv.style.borderColor = 'rgba(255, 68, 68, 0.3)';
+                } else {
+                    alertDiv.style.background = 'rgba(0, 191, 255, 0.1)';
+                    alertDiv.style.borderColor = 'rgba(0, 191, 255, 0.3)';
+                }
+                
+                selectedClanDiv.style.display = 'block';
+            })
+            .catch(err => {
+                console.error('Greška pri učitavanju kredita:', err);
+            });
+    }
+
+    // Clear dugme
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            clanIdInput.value = '';
+            selectedClanId = null;
+            selectedClanName = '';
+            currentKrediti = 0;
+            resultsDiv.classList.remove('show');
+            selectedClanDiv.style.display = 'none';
+            clearBtn.style.display = 'none';
+            searchInput.focus();
+        });
+    }
+
+    // Zatvori rezultate ako se klikne van
+    document.addEventListener('click', function(e) {
+        if (searchInput && !searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
+            resultsDiv.classList.remove('show');
+        }
+    });
+
+    // Automatsko računanje ukupne cene
+    function updatePrice() {
+        const stockSelect = document.getElementById('stockSelect');
+        const kolicinaInput = document.getElementById('kolicinaInput');
+        const ukupnaCenaDisplay = document.getElementById('ukupnaCenaDisplay');
+        
+        if (stockSelect && kolicinaInput) {
+            const selectedOption = stockSelect.options[stockSelect.selectedIndex];
+            const cena = parseFloat(selectedOption.dataset.cena) || 0;
+            const kolicina = parseInt(kolicinaInput.value) || 0;
+            const ukupnaCena = cena * kolicina;
+            
+            ukupnaCenaDisplay.value = ukupnaCena.toFixed(2);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Event listeners za automatsko računanje
+        const stockSelect = document.getElementById('stockSelect');
+        const kolicinaInput = document.getElementById('kolicinaInput');
+        
+        if (stockSelect) stockSelect.addEventListener('change', updatePrice);
+        if (kolicinaInput) kolicinaInput.addEventListener('input', updatePrice);
+
+        // Inicijalizuj modal - koristi Bootstrap 5
+        const minusModalElement = document.getElementById('minusModal');
+        if (minusModalElement && typeof bootstrap !== 'undefined') {
+            minusModal = new bootstrap.Modal(minusModalElement);
+            
+            // Reset flag kada se modal zatvori
+            minusModalElement.addEventListener('hidden.bs.modal', function () {
+                minusConfirmed = false;
+            });
+        }
+
+        // Submit forma sa proverom minusa
+        const form = document.getElementById('saleForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (minusConfirmed) {
+                    // Dozvoli submit i resetuj flag
+                    minusConfirmed = false;
+                    return true;
+                }
+
+                e.preventDefault(); // Zaustavi submit
+                
+                if (!selectedClanId) {
+                    alert('Molimo izaberite klijenta!');
+                    if (searchInput) searchInput.focus();
+                    return;
+                }
+                
+                const selectedOption = stockSelect.options[stockSelect.selectedIndex];
+                const cena = parseFloat(selectedOption.dataset.cena) || 0;
+                const kolicina = parseInt(kolicinaInput.value) || 0;
+                const ukupnaCena = cena * kolicina;
+                
+                if (ukupnaCena <= 0) {
+                    alert('Molimo popunite sva polja!');
+                    return;
+                }
+
+                // Provera da li će ući u minus
+                const noviKrediti = currentKrediti - ukupnaCena;
+                
+                if (noviKrediti < 0 && minusModal) {
+                    const minusAmount = Math.abs(noviKrediti).toFixed(2);
+                    
+                    document.getElementById('minusAmount').innerHTML = 
+                        `<strong>${selectedClanName}</strong> će ući u minus: <span style="color: #f5576c;">-${minusAmount} EUR</span>`;
+                    
+                    // Prikaži modal
+                    minusModal.show();
+                } else {
+                    // Direktan submit ako ne ide u minus
+                    form.submit();
+                }
+            });
+        }
+        
+        // Dugme "Nastavi" u modalu
+        const confirmMinusBtn = document.getElementById('confirmMinus');
+        if (confirmMinusBtn) {
+            confirmMinusBtn.addEventListener('click', function() {
+                minusConfirmed = true;
+                if (minusModal) minusModal.hide();
+                
+                // Sacekaj da se modal zatvori, pa submituj formu
+                setTimeout(() => {
+                    const form = document.getElementById('saleForm');
+                    if (form) form.submit();
+                }, 300);
+            });
+        }
+    });
 </script>
-
 {% endblock %}
