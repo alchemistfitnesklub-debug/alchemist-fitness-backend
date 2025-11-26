@@ -6,7 +6,7 @@
 {% block extra_head %}
 <style>
 /* ========================================
-   PROFIL - MODERAN TAB SISTEM
+   PROFIL - MODERAN TAB SISTEM (FIXED)
    ======================================== */
 
 /* KARTICE STATISTIKE */
@@ -245,6 +245,18 @@ body.dark-theme .form-group label {
     transition: all 0.3s;
 }
 
+/* IMPORTANT FIX za datum rođenja */
+.form-group input[type="date"] {
+    padding: 12px 15px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    font-size: 1em;
+    transition: all 0.3s;
+    width: 100%;
+}
+
 body.dark-theme .form-group input,
 body.dark-theme .form-group select,
 body.dark-theme .form-group textarea {
@@ -418,9 +430,9 @@ body.dark-theme .table-container tr:hover {
         <div class="stat-card blue">
             <i class="fas fa-calendar-check"></i>
             <h3>
-                {% with last_uplata=clan.uplate.all.last %}
-                    {% if last_uplata %}
-                        {{ last_uplata.do_datum|date:"d.m.Y" }}
+                {% with uplata=clan.uplata_set.all|dictsortreversed:"do_datum"|first %}
+                    {% if uplata %}
+                        {{ uplata.do_datum|date:"d.m.Y" }}
                     {% else %}
                         N/A
                     {% endif %}
@@ -493,23 +505,32 @@ body.dark-theme .table-container tr:hover {
                     
                     <div class="form-grid">
                         <div class="form-group">
-                            <label>Ime i prezime</label>
-                            {{ clan_form.ime_prezime }}
+                            <label>Ime i prezime *</label>
+                            <input type="text" 
+                                   name="ime_prezime" 
+                                   value="{{ clan.ime_prezime }}" 
+                                   required>
                         </div>
                         
                         <div class="form-group">
                             <label>Telefon</label>
-                            {{ clan_form.telefon }}
+                            <input type="text" 
+                                   name="telefon" 
+                                   value="{{ clan.telefon|default:'' }}">
                         </div>
                         
                         <div class="form-group">
                             <label>Email</label>
-                            {{ clan_form.email }}
+                            <input type="email" 
+                                   name="email" 
+                                   value="{{ clan.email|default:'' }}">
                         </div>
                         
                         <div class="form-group">
                             <label>Datum rođenja</label>
-                            {{ clan_form.datum_rodjenja }}
+                            <input type="date" 
+                                   name="datum_rodjenja" 
+                                   value="{% if clan.datum_rodjenja %}{{ clan.datum_rodjenja|date:'Y-m-d' }}{% endif %}">
                         </div>
                     </div>
                     
