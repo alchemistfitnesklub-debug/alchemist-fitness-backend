@@ -433,6 +433,430 @@ body.dark-theme .client-card {
         width: 100%;
     }
 }
+
+/* ============================================
+   MOBILNA OPTIMIZACIJA - RESPONSIVE DESIGN
+   ============================================ */
+
+# KLIJENTI - MOBILNA OPTIMIZACIJA PATCH
+# Dodaj ove CSS stilove NA KRAJ postojećeg <style> bloka u klijenti.html
+
+/* ============================================
+   MOBILNA OPTIMIZACIJA - RESPONSIVE DESIGN
+   ============================================ */
+
+/* Tablet (1024px i manje) */
+@media (max-width: 1024px) {
+    .clients-container {
+        padding: 20px;
+    }
+    
+    .page-header {
+        padding: 20px;
+    }
+    
+    .page-header h1 {
+        font-size: 28px;
+    }
+    
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .clients-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    
+    .search-section {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .search-bar {
+        width: 100%;
+    }
+    
+    .action-buttons {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
+/* Mobile Landscape (768px i manje) */
+@media (max-width: 768px) {
+    .clients-container {
+        padding: 15px;
+    }
+    
+    .page-header {
+        padding: 15px;
+    }
+    
+    .page-header h1 {
+        font-size: 24px;
+    }
+    
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    
+    .stat-card {
+        padding: 15px;
+    }
+    
+    .stat-card h3 {
+        font-size: 24px;
+    }
+    
+    .stat-card p {
+        font-size: 11px;
+    }
+    
+    .filter-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE/Edge */
+    }
+    
+    .filter-tabs::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
+    }
+    
+    .tab-btn {
+        white-space: nowrap;
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+    
+    .clients-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .client-card {
+        padding: 15px;
+    }
+    
+    .client-avatar {
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+    }
+    
+    .client-name {
+        font-size: 16px;
+    }
+    
+    .client-email,
+    .client-phone {
+        font-size: 12px;
+    }
+    
+    .status-badge {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+    
+    .client-details {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .detail-item {
+        flex-direction: row;
+        justify-content: space-between;
+        width: 100%;
+    }
+    
+    .client-actions {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .action-btn {
+        flex: 1;
+        min-width: calc(50% - 4px);
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+    
+    .search-bar input {
+        font-size: 14px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .action-buttons .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* Modal adjustments */
+    .modal-container {
+        width: 95%;
+        max-width: none;
+        max-height: 90vh;
+    }
+    
+    .modal-header {
+        padding: 15px;
+    }
+    
+    .modal-header h2 {
+        font-size: 18px;
+    }
+    
+    .modal-body {
+        padding: 15px;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+}
+
+/* Mobile Portrait (480px i manje) */
+@media (max-width: 480px) {
+    .clients-container {
+        padding: 10px;
+    }
+    
+    .page-header {
+        padding: 12px;
+    }
+    
+    .page-header h1 {
+        font-size: 20px;
+    }
+    
+    .stats-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .stat-card {
+        padding: 12px;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .stat-card i {
+        font-size: 28px;
+        margin-bottom: 0;
+    }
+    
+    .stat-card-text {
+        text-align: right;
+    }
+    
+    .stat-card h3 {
+        font-size: 24px;
+        margin: 0;
+    }
+    
+    .stat-card p {
+        font-size: 11px;
+        margin: 0;
+    }
+    
+    .filter-tabs {
+        padding: 0 5px;
+    }
+    
+    .tab-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+    
+    .badge {
+        font-size: 10px;
+        padding: 2px 6px;
+        min-width: 18px;
+        height: 18px;
+    }
+    
+    .clients-grid {
+        gap: 12px;
+    }
+    
+    .client-card {
+        padding: 12px;
+    }
+    
+    .client-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .client-info {
+        width: 100%;
+    }
+    
+    .client-avatar {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+    
+    .client-name {
+        font-size: 15px;
+    }
+    
+    .client-email,
+    .client-phone {
+        font-size: 11px;
+    }
+    
+    .client-actions {
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    .action-btn {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    
+    .search-section {
+        padding: 12px;
+    }
+    
+    .search-bar input {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+    
+    /* Hide certain details on very small screens */
+    .client-email {
+        display: none;
+    }
+    
+    .detail-item {
+        font-size: 11px;
+    }
+    
+    /* Simplify modal on mobile */
+    .modal-container {
+        width: 100%;
+        height: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+    
+    .modal-header {
+        padding: 12px;
+    }
+    
+    .modal-body {
+        padding: 12px;
+        max-height: calc(100vh - 120px);
+    }
+    
+    .modal-close {
+        width: 35px;
+        height: 35px;
+        font-size: 20px;
+    }
+}
+
+/* Landscape orientation fix */
+@media (max-height: 600px) and (orientation: landscape) {
+    .modal-container {
+        max-height: 95vh;
+    }
+    
+    .modal-body {
+        max-height: calc(95vh - 80px);
+    }
+    
+    .clients-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Very small screens (< 360px) */
+@media (max-width: 360px) {
+    .page-header h1 {
+        font-size: 18px;
+    }
+    
+    .stat-card h3 {
+        font-size: 20px;
+    }
+    
+    .stat-card p {
+        font-size: 10px;
+    }
+    
+    .client-name {
+        font-size: 14px;
+    }
+    
+    .client-phone {
+        font-size: 10px;
+    }
+    
+    .tab-btn {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+}
+
+/* Touch improvements */
+@media (hover: none) and (pointer: coarse) {
+    .action-btn,
+    .tab-btn,
+    .btn {
+        min-height: 44px; /* Apple's recommended touch target size */
+    }
+    
+    .client-card {
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    .client-card:active {
+        transform: scale(0.98);
+    }
+    
+    .action-btn:active {
+        transform: scale(0.95);
+    }
+}
+
+/* Print styles (bonus) */
+@media print {
+    .search-section,
+    .action-buttons,
+    .client-actions,
+    .filter-tabs {
+        display: none !important;
+    }
+    
+    .clients-grid {
+        display: block;
+    }
+    
+    .client-card {
+        page-break-inside: avoid;
+        margin-bottom: 20px;
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+}
+
+/* ============================================
+   END OF MOBILE OPTIMIZATION
+   ============================================ */
 </style>
 {% endblock %}
 
