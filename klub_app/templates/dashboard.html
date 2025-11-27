@@ -1,458 +1,601 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block content %}
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_head %}
 <style>
-    /* [Existing styles remain the same...] */
-    
-    /* Novo: Button za uplate */
-    .payments-button-container {
-        margin: 30px 0;
-        text-align: center;
+/* ========================================
+   DASHBOARD - MODERNIZOVAN DIZAJN
+   ======================================== */
+
+/* KARTICE STATISTIKE - kao Šank modul */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s, box-shadow 0.3s;
+    text-align: center;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.stat-card i {
+    font-size: 2.5em;
+    margin-bottom: 15px;
+    opacity: 0.9;
+}
+
+.stat-card h3 {
+    font-size: 2em;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+.stat-card p {
+    font-size: 0.95em;
+    opacity: 0.85;
+    margin: 5px 0;
+}
+
+/* BOJE ZA RAZLIČITE KARTICE */
+.stat-card.blue { color: #4facfe; }
+.stat-card.purple { color: #667eea; }
+.stat-card.orange { color: #f093fb; }
+.stat-card.green { color: #43e97b; }
+
+body.dark-theme .stat-card {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* SEKCIJE SA KARTICAMA */
+.section-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    padding: 25px;
+    margin: 20px 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body.dark-theme .section-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.section-header i {
+    font-size: 1.8em;
+    margin-right: 15px;
+    color: #00bfff;
+}
+
+.section-header h2 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+/* FILTER SEKCIJA */
+.filter-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body.dark-theme .filter-card {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: 2fr 2fr 1fr;
+    gap: 15px;
+    align-items: end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-group label {
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 0.95em;
+    color: #e0e0e0;
+}
+
+body.dark-theme .filter-group label {
+    color: #fff;
+}
+
+.filter-group input {
+    padding: 12px 15px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    font-size: 1em;
+    transition: all 0.3s;
+}
+
+body.dark-theme .filter-group input {
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.filter-group input:focus {
+    outline: none;
+    border-color: #00bfff;
+    box-shadow: 0 0 15px rgba(0, 191, 255, 0.3);
+}
+
+/* DUGMIĆI */
+.btn-primary {
+    background: linear-gradient(135deg, #00bfff, #0099cc);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(0, 191, 255, 0.3);
+    font-size: 1em;
+    width: 100%;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 191, 255, 0.4);
+    background: linear-gradient(135deg, #0099cc, #007a99);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #43e97b, #38d278);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(67, 233, 123, 0.3);
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(67, 233, 123, 0.4);
+}
+
+/* TABELA - MODERNIZOVANA */
+.table-container {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+body.dark-theme .table-container {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.table-container table {
+    margin: 0;
+    background: transparent;
+}
+
+.table-container th {
+    background: linear-gradient(135deg, #2a5298, #1e3c72);
+    color: #fff;
+    padding: 15px 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9em;
+    letter-spacing: 0.5px;
+}
+
+body.dark-theme .table-container th {
+    background: linear-gradient(135deg, #4a5568, #2c3e50);
+}
+
+.table-container td {
+    padding: 12px;
+    vertical-align: middle;
+}
+
+.table-container tr:hover {
+    background: rgba(0, 191, 255, 0.1) !important;
+}
+
+body.dark-theme .table-container tr:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* BADGE-OVI */
+.badge-success {
+    background: linear-gradient(135deg, #43e97b, #38d278);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+.badge-warning {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+.badge-danger {
+    background: linear-gradient(135deg, #ff4444, #cc0000);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+.badge-info {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .stats-row {
+        grid-template-columns: 1fr;
     }
     
-    .payments-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        padding: 15px 40px;
-        font-size: 18px;
-        font-weight: 600;
-        border-radius: 12px;
-        cursor: pointer;
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
+    .filter-grid {
+        grid-template-columns: 1fr;
     }
     
-    .payments-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
-    }
-    
-    .payments-btn i {
-        font-size: 20px;
-    }
-    
-    /* Modal styles */
-    .modal-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.7);
-        backdrop-filter: blur(5px);
-        z-index: 9998;
-        animation: fadeIn 0.3s ease;
-    }
-    
-    .modal-container {
-        display: none;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        z-index: 9999;
-        max-width: 1200px;
-        width: 90%;
-        max-height: 90vh;
-        overflow: hidden;
-        animation: slideIn 0.3s ease;
-    }
-    
-    .modal-container.active {
-        display: block;
-    }
-    
-    .modal-overlay.active {
-        display: block;
-    }
-    
-    .modal-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 25px 30px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    .modal-header h2 {
-        margin: 0;
-        font-size: 24px;
-        font-weight: 700;
-    }
-    
-    .modal-close {
-        background: rgba(255, 255, 255, 0.2);
-        border: none;
-        color: white;
-        font-size: 24px;
-        cursor: pointer;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-    }
-    
-    .modal-close:hover {
-        background: rgba(255, 255, 255, 0.3);
-        transform: rotate(90deg);
-    }
-    
-    .modal-body {
-        padding: 30px;
-        overflow-y: auto;
-        max-height: calc(90vh - 150px);
-    }
-    
-    .filter-section {
-        background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
-        backdrop-filter: blur(10px);
-        padding: 25px;
-        border-radius: 15px;
-        margin-bottom: 25px;
-        border: 1px solid rgba(0,0,0,0.1);
-    }
-    
-    .filter-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr auto;
-        gap: 15px;
-        align-items: end;
-    }
-    
-    .form-group {
-        margin: 0;
-    }
-    
-    .form-group label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 8px;
-        color: #333;
-        font-size: 14px;
-    }
-    
-    .form-group input {
-        width: 100%;
-        padding: 12px 15px;
-        border: 2px solid rgba(0,0,0,0.1);
-        border-radius: 10px;
-        font-size: 14px;
-        transition: all 0.3s ease;
-    }
-    
-    .form-group input:focus {
-        outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-    
-    .filter-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        padding: 12px 30px;
-        border-radius: 10px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-    
-    .filter-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-    }
-    
-    .stats-summary {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        margin-bottom: 25px;
-    }
-    
-    .summary-card {
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-        padding: 20px;
-        border-radius: 12px;
-        border-left: 4px solid #667eea;
-    }
-    
-    .summary-card h4 {
-        margin: 0 0 10px 0;
-        font-size: 14px;
-        color: #666;
-        font-weight: 600;
-    }
-    
-    .summary-card .value {
-        font-size: 28px;
-        font-weight: 700;
-        color: #333;
-    }
-    
-    .payments-table-container {
-        overflow-x: auto;
-    }
-    
-    .payments-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-    }
-    
-    .payments-table thead {
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-    }
-    
-    .payments-table th {
+    .section-card {
         padding: 15px;
-        text-align: left;
-        font-weight: 600;
-        color: #333;
-        font-size: 14px;
-        border-bottom: 2px solid rgba(0,0,0,0.1);
     }
-    
-    .payments-table td {
-        padding: 15px;
-        border-bottom: 1px solid rgba(0,0,0,0.05);
-        font-size: 14px;
+}
+
+/* ANIMACIJE */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
     }
-    
-    .payments-table tbody tr:hover {
-        background: rgba(102, 126, 234, 0.05);
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
-    
-    .amount {
-        font-weight: 700;
-        color: #27ae60;
-    }
-    
-    .no-data {
-        text-align: center;
-        padding: 40px;
-        color: #999;
-        font-size: 16px;
-    }
-    
-    @keyframes slideIn {
-        from {
-            opacity: 0;
-            transform: translate(-50%, -60%);
-        }
-        to {
-            opacity: 1;
-            transform: translate(-50%, -50%);
-        }
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-    
-    @media (max-width: 768px) {
-        .modal-container {
-            width: 95%;
-            max-height: 95vh;
-        }
-        
-        .filter-row {
-            grid-template-columns: 1fr;
-        }
-        
-        .stats-summary {
-            grid-template-columns: 1fr;
-        }
-        
-        .payments-table {
-            font-size: 12px;
-        }
-        
-        .payments-table th,
-        .payments-table td {
-            padding: 10px;
-        }
-    }
+}
+
+.section-card {
+    animation: slideIn 0.5s ease-out;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.1s; }
+.stat-card:nth-child(2) { animation-delay: 0.2s; }
+.stat-card:nth-child(3) { animation-delay: 0.3s; }
+.stat-card:nth-child(4) { animation-delay: 0.4s; }
+
+/* EMPTY STATE */
+.empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    opacity: 0.7;
+}
+
+.empty-state i {
+    font-size: 4em;
+    margin-bottom: 20px;
+    opacity: 0.3;
+}
+
+.empty-state p {
+    font-size: 1.2em;
+    margin: 10px 0;
+}
 </style>
+{% endblock %}
 
-<div class="dashboard-container">
-    <!-- [Existing dashboard content...] -->
+{% block content %}
+<div style="max-width: 1400px; margin: 0 auto;">
     
-    <!-- NOVO: Dugme za pregled uplata -->
-    <div class="payments-button-container">
-        <button class="payments-btn" onclick="openPaymentsModal()">
-            <i class="fas fa-money-bill-wave"></i>
-            <span>Pregled Uplata</span>
-        </button>
+    <!-- NASLOV -->
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="font-size: 2.5em; margin-bottom: 10px;">
+            <i class="fas fa-tachometer-alt"></i> DASHBOARD - PREGLED KLUBA
+        </h1>
+        <p style="opacity: 0.8; font-size: 1.1em;">Poslednje ažuriranje: {% now "d.m.Y H:i" %}</p>
     </div>
-</div>
 
-<!-- NOVO: Modal za uplate -->
-<div class="modal-overlay" id="paymentsOverlay" onclick="closePaymentsModal()"></div>
-<div class="modal-container" id="paymentsModal">
-    <div class="modal-header">
-        <h2><i class="fas fa-money-bill-wave"></i> Pregled Uplata</h2>
-        <button class="modal-close" onclick="closePaymentsModal()">×</button>
-    </div>
-    <div class="modal-body">
-        <!-- Filter -->
-        <div class="filter-section">
-            <div class="filter-row">
-                <div class="form-group">
-                    <label for="fromDate">Od datuma:</label>
-                    <input type="date" id="fromDate" />
-                </div>
-                <div class="form-group">
-                    <label for="toDate">Do datuma:</label>
-                    <input type="date" id="toDate" />
-                </div>
-                <button class="filter-btn" onclick="filterPayments()">
-                    <i class="fas fa-filter"></i> Filtriraj
+    <!-- FILTER PERIOD -->
+    <div class="filter-card">
+        <form method="get" class="filter-grid">
+            <div class="filter-group">
+                <label>Od datuma</label>
+                <input type="date" name="from_date" value="{{ from_date }}" required>
+            </div>
+            <div class="filter-group">
+                <label>Do datuma</label>
+                <input type="date" name="to_date" value="{{ to_date }}" required>
+            </div>
+            <div class="filter-group">
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-search"></i> Prikaži
                 </button>
             </div>
+        </form>
+    </div>
+
+    <!-- STATISTIKA - DASHBOARD KARTICE -->
+    <div class="stats-row">
+        <div class="stat-card blue">
+            <i class="fas fa-euro-sign"></i>
+            <h3>{{ total_payments_in_period|floatformat:2 }} €</h3>
+            <p>Članarine u periodu</p>
         </div>
         
-        <!-- Summary Stats -->
-        <div class="stats-summary">
-            <div class="summary-card">
-                <h4>Ukupno Uplata</h4>
-                <div class="value" id="totalPayments">0</div>
-            </div>
-            <div class="summary-card">
-                <h4>Ukupna Zarada</h4>
-                <div class="value" id="totalRevenue">0 RSD</div>
-            </div>
-            <div class="summary-card">
-                <h4>Prosečna Uplata</h4>
-                <div class="value" id="avgPayment">0 RSD</div>
-            </div>
+        <div class="stat-card purple">
+            <i class="fas fa-users"></i>
+            <h3>{{ active_memberships }}/{{ total_members }}</h3>
+            <p>Aktivnih članarina</p>
         </div>
         
-        <!-- Payments Table -->
-        <div class="payments-table-container">
-            <table class="payments-table">
-                <thead>
-                    <tr>
-                        <th>Datum</th>
-                        <th>Član</th>
-                        <th>Paket</th>
-                        <th>Iznos</th>
-                        <th>Važeće Od</th>
-                        <th>Važeće Do</th>
-                    </tr>
-                </thead>
-                <tbody id="paymentsTableBody">
-                    <tr>
-                        <td colspan="6" class="no-data">Učitavanje...</td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="stat-card orange">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>{{ expirations_in_period|length }}</h3>
+            <p>Članarine ističu</p>
+        </div>
+        
+        <div class="stat-card green">
+            <i class="fas fa-coffee"></i>
+            <h3>{{ total_bar_revenue|floatformat:2 }} €</h3>
+            <p>Krediti za vodu</p>
         </div>
     </div>
+
+    <!-- DUGME ZA AUTOMATSKA OBAVEŠTENJA -->
+    <div class="section-card" style="border-left: 5px solid #28a745 !important;">
+        <div class="section-header">
+            <i class="fas fa-bell"></i>
+            <h2>Automatska Obaveštenja</h2>
+        </div>
+        <p style="margin-bottom: 15px; opacity: 0.9;">
+            <i class="fas fa-info-circle" style="color: #43e97b;"></i>
+            Kliknite dugme ispod da ručno pokrenete slanje automatskih obaveštenja:
+        </p>
+        <ul style="margin-bottom: 20px; opacity: 0.85;">
+            <li><strong>Članarine</strong> koje ističu za <span class="badge-warning">7 dana</span></li>
+            <li><strong>Rođendanske čestitke</strong> za <span class="badge-info">danas</span></li>
+        </ul>
+        
+        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            <a href="{% url 'test_notifications' %}" class="btn-success">
+                <i class="fas fa-paper-plane"></i> Pošalji Obaveštenja Sada
+            </a>
+            
+            <a href="{% url 'obavestenja' %}" class="btn-primary" style="width: auto;">
+                <i class="fas fa-list"></i> Vidi Istoriju
+            </a>
+        </div>
+    </div>
+
+    <!-- GRAFIKON ZARADE -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-chart-line"></i>
+            <h2>Zarada po mesecima</h2>
+        </div>
+        <canvas id="monthlyChart" height="100"></canvas>
+    </div>
+
+    <!-- DVE KOLONE -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+        
+        <!-- ČLANARINE ISTIČU -->
+        <div class="section-card" style="{% if expirations_in_period %}border-left: 5px solid #ff4444 !important;{% endif %}">
+            <div class="section-header">
+                <i class="fas fa-exclamation-circle"></i>
+                <h2>Članarine ističu</h2>
+                {% if expirations_in_period %}
+                <span class="badge-danger" style="margin-left: auto;">{{ expirations_in_period|length }}</span>
+                {% endif %}
+            </div>
+            
+            {% if expirations_in_period %}
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Klijent</th>
+                            <th>Iznos</th>
+                            <th>Ističe</th>
+                            <th>Preostalo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in expirations_in_period %}
+                        <tr style="{% if u.do_datum|date:'Y-m-d' < today %}background: rgba(255, 68, 68, 0.2);{% else %}background: rgba(255, 193, 7, 0.1);{% endif %}">
+                            <td><strong>{{ u.clan.ime_prezime }}</strong></td>
+                            <td>{{ u.iznos }} €</td>
+                            <td>{{ u.do_datum|date:"d.m.Y" }}</td>
+                            <td style="font-weight: bold;">
+                                {% with days=u.do_datum|timeuntil|cut:" days"|cut:" day"|cut:", 0 days"|cut:", 1 day"|cut:" "|cut:"," %}
+                                    {% if days == "0" %}<span style="color: #ff4444;">DANAS!</span>{% else %}{{ days }} dana{% endif %}
+                                {% endwith %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-check-circle" style="color: #43e97b;"></i>
+                <p style="color: #43e97b; font-weight: bold;">SVE ČLANARINE SU AKTIVNE!</p>
+                <small style="opacity: 0.6;">Nema isteka u izabranom periodu</small>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- POSLEDNJA OBAVEŠTENJA -->
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fas fa-bell"></i>
+                <h2>Poslednja obaveštenja</h2>
+                {% if recent_obavestenja %}
+                <span class="badge-success" style="margin-left: auto;">{{ recent_obavestenja|length }}</span>
+                {% endif %}
+            </div>
+            
+            {% if recent_obavestenja %}
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Klijent</th>
+                            <th>Tip</th>
+                            <th>Status</th>
+                            <th>Poslato</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for o in recent_obavestenja %}
+                        <tr style="{% if o.status == 'failed' %}background: rgba(255, 68, 68, 0.1);{% endif %}">
+                            <td><strong style="color: #00bfff;">{{ o.clan.ime_prezime }}</strong></td>
+                            <td>
+                                {% if o.tip == 'sms' %}
+                                <span class="badge-info">SMS</span>
+                                {% else %}
+                                <span class="badge-success">Email</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if o.status == 'delivered' %}
+                                    <span class="badge-success">Dostavljeno</span>
+                                {% elif o.status == 'sent' or o.status == 'queued' %}
+                                    <span class="badge-warning">Poslato</span>
+                                {% else %}
+                                    <span class="badge-danger">Greška</span>
+                                {% endif %}
+                            </td>
+                            <td style="font-size: 0.85em;">
+                                {{ o.datum_slanja|date:"d.m." }}<br>
+                                <strong>{{ o.datum_slanja|time:"H:i" }}</strong>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-bell-slash"></i>
+                <p style="font-weight: bold;">TIŠINA JE ZLATO</p>
+                <small style="opacity: 0.6;">Nema poslatih obaveštenja</small>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
 </div>
 
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Set default dates (last 30 days)
 document.addEventListener('DOMContentLoaded', function() {
-    const today = new Date();
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(today.getDate() - 30);
-    
-    document.getElementById('toDate').valueAsDate = today;
-    document.getElementById('fromDate').valueAsDate = thirtyDaysAgo;
-});
-
-function openPaymentsModal() {
-    document.getElementById('paymentsModal').classList.add('active');
-    document.getElementById('paymentsOverlay').classList.add('active');
-    document.body.style.overflow = 'hidden';
-    
-    // Load payments
-    filterPayments();
-}
-
-function closePaymentsModal() {
-    document.getElementById('paymentsModal').classList.remove('active');
-    document.getElementById('paymentsOverlay').classList.remove('active');
-    document.body.style.overflow = '';
-}
-
-function filterPayments() {
-    const fromDate = document.getElementById('fromDate').value;
-    const toDate = document.getElementById('toDate').value;
-    
-    if (!fromDate || !toDate) {
-        toastr.error('Molimo unesite oba datuma');
-        return;
-    }
-    
-    // Fetch payments
-    fetch(`/uplate/json/?from_date=${fromDate}&to_date=${toDate}`)
-        .then(response => response.json())
-        .then(data => {
-            // Update summary stats
-            document.getElementById('totalPayments').textContent = data.total_count;
-            document.getElementById('totalRevenue').textContent = 
-                parseFloat(data.total_revenue).toLocaleString('sr-RS') + ' RSD';
-            document.getElementById('avgPayment').textContent = 
-                parseFloat(data.avg_payment).toLocaleString('sr-RS') + ' RSD';
-            
-            // Update table
-            const tbody = document.getElementById('paymentsTableBody');
-            tbody.innerHTML = '';
-            
-            if (data.payments.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="no-data">Nema uplata u ovom periodu</td></tr>';
-                return;
+    const ctx = document.getElementById('monthlyChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ labels|safe }},
+            datasets: [
+                {
+                    label: 'Članarine (€)',
+                    data: {{ data|safe }},
+                    backgroundColor: 'rgba(102, 126, 234, 0.85)',
+                    borderColor: '#667eea',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                },
+                {
+                    label: 'Krediti za vodu (€)',
+                    data: {{ bar_data|safe }},
+                    backgroundColor: 'rgba(245, 87, 108, 0.85)',
+                    borderColor: '#f5576c',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { 
+                    position: 'top', 
+                    labels: { 
+                        font: { size: 14 },
+                        color: '#fff'
+                    } 
+                },
+                tooltip: { 
+                    callbacks: { 
+                        label: function(context) { 
+                            return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + ' €'; 
+                        } 
+                    } 
+                }
+            },
+            scales: {
+                y: { 
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    ticks: { color: '#fff' }
+                },
+                x: { 
+                    grid: { display: false },
+                    ticks: { color: '#fff' }
+                }
             }
-            
-            data.payments.forEach(payment => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${formatDate(payment.datum_uplate)}</td>
-                    <td><strong>${payment.clan_ime}</strong></td>
-                    <td>${payment.paket_naziv}</td>
-                    <td class="amount">${parseFloat(payment.iznos).toLocaleString('sr-RS')} RSD</td>
-                    <td>${formatDate(payment.od_datum)}</td>
-                    <td>${formatDate(payment.do_datum)}</td>
-                `;
-                tbody.appendChild(row);
-            });
-        })
-        .catch(error => {
-            console.error('Error fetching payments:', error);
-            toastr.error('Greška pri učitavanju uplata');
-        });
-}
-
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('sr-RS', { 
-        day: '2-digit', 
-        month: '2-digit', 
-        year: 'numeric' 
+        }
     });
-}
-
-// Close modal on Escape key
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closePaymentsModal();
-    }
 });
 </script>
-
 {% endblock %}
