@@ -1,12 +1,23 @@
 import firebase_admin
 from firebase_admin import credentials, messaging
 import os
+import json
 from django.conf import settings
 
 # Inicijalizuj Firebase samo jednom
 if not firebase_admin._apps:
-    cred_path = os.path.join(settings.BASE_DIR, 'credentials', 'firebase-key.json')
-    cred = credentials.Certificate(cred_path)
+    # Pokušaj učitati iz environment variable prvo
+    firebase_creds = os.environ.get('FIREBASE_CREDENTIALS')
+    
+    if firebase_creds:
+        # Production (Render) - iz environment variable
+        cred_dict = json.loads(firebase_creds)
+        cred = credentials.Certificate(cred_dict)
+    else:
+        # Local development - iz fajla
+        cred_path = os.path.join(settings.BASE_DIR, 'credentials', 'firebase-key.json')
+        cred = credentials.Certificate(cred_path)
+    
     firebase_admin.initialize_app(cred)
 
 def send_push_notification(fcm_token, title, body, data=None):
