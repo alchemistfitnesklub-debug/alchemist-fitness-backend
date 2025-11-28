@@ -2,12 +2,16 @@
 from django.urls import path
 from . import views
 from . import api_views
+from .fcm_views import save_fcm_token, delete_fcm_token
 
 urlpatterns = [
     # POSTOJEĆE WEB RUTE
     path('dashboard/', views.dashboard, name='dashboard'),
     path('rezervacije/', views.rezervacije, name='rezervacije'),
     path('klijenti/', views.klijenti, name='klijenti'),
+    # FCM Token endpoints
+    path('api/fcm-token/', save_fcm_token, name='save_fcm_token'),
+    path('api/fcm-token/delete/', delete_fcm_token, name='delete_fcm_token'),
     
     # ========== DODATO ZA AUTOCOMPLETE ==========
     path('klijenti/json/clanovi/', views.klijenti_json_clanovi, name='klijenti_json_clanovi'),
