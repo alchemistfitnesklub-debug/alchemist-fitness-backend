@@ -83,3 +83,23 @@ class Obavestenje(models.Model):
 
     def __str__(self):
         return f"{self.tip.upper()} za {self.clan.ime_prezime}"
+    
+    # FCM Token Model za Push Notifikacije
+class FCMToken(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fcm_tokens')
+    token = models.CharField(max_length=255, unique=True)
+    device_type = models.CharField(max_length=20, choices=[
+        ('android', 'Android'),
+        ('ios', 'iOS'),
+    ], default='android')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
+    
+    class Meta:
+        verbose_name = 'FCM Token'
+        verbose_name_plural = 'FCM Tokens'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.device_type} - {self.token[:20]}..."
