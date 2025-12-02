@@ -23,17 +23,11 @@ import os
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.views.decorators.csrf import csrf_exempt
-import firebase_admin
-from firebase_admin import credentials, messaging
 from django.core.files.storage import default_storage
+from .services.firebase_service import send_push_notification
 from .models import Clan, Uplata, Rezervacija, Stock, Sale, Obavestenje, UserProfile
 from .forms import ClanForm, UplataForm, SaleForm
 
-
-def init_firebase():
-    if not firebase_admin._apps:
-        cred = credentials.Certificate('/Users/dusansamardzic/fitnes_klub_app/firebase_service_account.json')
-        firebase_admin.initialize_app(cred)
 
 
 def admin_only(view_func):
@@ -1228,16 +1222,16 @@ def test_push(request):
             if not clan.fcm_token:
                 messages.error(request, 'Član nema registrovan FCM token')
                 return redirect('test_push')
-            init_firebase()
-            message = messaging.Message(
-                notification=messaging.Notification(
-                    title=title,
-                    body=body,
-                ),
-                token=clan.fcm_token,
+            response = send_push_notification(
+                fcm_token=clan.fcm_token,
+                title=title,
+                body=body
             )
-            response = messaging.send(message)
-            messages.success(request, f'Notifikacija poslata! Response: {response}')
+            
+            if response:
+                messages.success(request, f'Notifikacija poslata! Response: {response}')
+            else:
+                raise Exception("Failed to send notification")
         except Exception as e:
             messages.error(request, f'Greška: {str(e)}')
         return redirect('test_push')
