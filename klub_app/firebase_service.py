@@ -6,19 +6,21 @@ from django.conf import settings
 
 # Inicijalizuj Firebase samo jednom
 if not firebase_admin._apps:
-    # Pokušaj učitati iz environment variable prvo
+    # Pokušaj prvo da učitaš iz environment variable (Render)
     firebase_creds = os.environ.get('FIREBASE_CREDENTIALS')
     
     if firebase_creds:
-        # Production (Render) - iz environment variable
+        # Production (Render) - čitaj iz environment variable
         cred_dict = json.loads(firebase_creds)
         cred = credentials.Certificate(cred_dict)
+        firebase_admin.initialize_app(cred)
+        print('✅ Firebase initialized from environment variable')
     else:
-        # Local development - iz fajla
+        # Development (lokalno) - čitaj iz fajla
         cred_path = os.path.join(settings.BASE_DIR, 'credentials', 'firebase-key.json')
         cred = credentials.Certificate(cred_path)
-    
-    firebase_admin.initialize_app(cred)
+        firebase_admin.initialize_app(cred)
+        print('✅ Firebase initialized from file')
 
 def send_push_notification(fcm_token, title, body, data=None):
     """
