@@ -6,7 +6,6 @@ admin.site.register(Clan)
 admin.site.register(Uplata)
 admin.site.register(Rezervacija)
 # FCM Token Admin
-@admin.register(FCMToken)
 # FCM Token Admin
 @admin.register(FCMToken)
 class FCMTokenAdmin(admin.ModelAdmin):
