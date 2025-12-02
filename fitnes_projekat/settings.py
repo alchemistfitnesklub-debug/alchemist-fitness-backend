@@ -15,7 +15,7 @@ CLOUDINARY_STORAGE = {
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-9x4k2z3v6q8y7w0t1r5e3p9o2u8i4a6s7d8f0g1h2j3k4l5m6n7')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True  # ← PRIVREMENO UKLJUČENO - da vidimo grešku!
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else []
 
