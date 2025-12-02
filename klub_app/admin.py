@@ -14,7 +14,5 @@ class FCMTokenAdmin(admin.ModelAdmin):
     readonly_fields = ['created_at', 'updated_at']
     
     def token_preview(self, obj):
-    if obj.token:
         return f"{obj.token[:30]}..."
-    return "token"
     token_preview.short_description = 'Token'
