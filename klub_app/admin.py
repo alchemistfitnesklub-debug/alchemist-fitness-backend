@@ -17,4 +17,3 @@ def token_preview(self, obj):
     if obj.token:
         return f"{obj.token[:30]}..."
     return "No token"
-      
