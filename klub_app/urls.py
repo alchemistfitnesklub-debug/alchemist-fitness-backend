@@ -9,8 +9,9 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('rezervacije/', views.rezervacije, name='rezervacije'),
     path('klijenti/', views.klijenti, name='klijenti'),
-    # FCM Token endpoints
-    path('api/fcm-token/', save_fcm_token, name='save_fcm_token'),
+    
+    # 🔥 PROMENJENO - Dodato /save/ da ne kolidira sa api_views.azuriraj_fcm_token
+    path('api/fcm-token/save/', save_fcm_token, name='save_fcm_token'),
     path('api/fcm-token/delete/', delete_fcm_token, name='delete_fcm_token'),
     
     # ========== DODATO ZA AUTOCOMPLETE ==========
@@ -52,7 +53,7 @@ urlpatterns = [
     path('api/obavestenja/', api_views.moja_obavestenja, name='api_obavestenja'),
     path('api/promeni-lozinku/', api_views.promeni_lozinku, name='api_promeni_lozinku'),
     path('api/promeni-username/', api_views.promeni_username, name='api_promeni_username'),
-    path('api/fcm-token/', api_views.azuriraj_fcm_token, name='api_fcm_token'),
+    path('api/fcm-token/', api_views.azuriraj_fcm_token, name='api_fcm_token'),  # ← OVO OSTAJE
     path('api/kontaktiraj-klub/', api_views.kontaktiraj_klub, name='api_kontaktiraj_klub'),
     path('trener/', views.trener_home, name='trener_home'),
 ]
