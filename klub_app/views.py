@@ -1246,9 +1246,40 @@ def test_calendar(request):
 
 
 @login_required
-def logout_view(request):
-    if request.method == 'POST':
-        auth_logout(request)
-        messages.success(request, 'Uspešno ste se odjavili.')
+def send_test_notification(request, user_id):
+    """Pošalji test push notifikaciju korisniku preko FCMToken modela"""
+    try:
+        profile = request.user.userprofile
+        if not (profile.is_admin or profile.is_trener):
+            messages.error(request, 'Nemate dozvolu.')
+            return redirect('dashboard')
+    except (AttributeError, UserProfile.DoesNotExist):
+        messages.error(request, 'Nemate pristup.')
         return redirect('login')
+    
+    try:
+        from .models import FCMToken
+        
+        # Uzmi aktivan token za tog korisnika
+        token_obj = FCMToken.objects.filter(user_id=user_id, is_active=True).first()
+        
+        if not token_obj:
+            messages.error(request, f'Nema aktivnog FCM tokena za user_id={user_id}')
+            return redirect('dashboard')
+        
+        # Pošalji test push
+        response = send_push_notification(
+            fcm_token=token_obj.token,
+            title="Test Push 🔥",
+            body="Ovo je test notifikacija sa backend-a!"
+        )
+        
+        if response:
+            messages.success(request, f'✅ Test push poslat korisniku {token_obj.user.username}!')
+        else:
+            messages.error(request, '❌ Greška pri slanju push notifikacije')
+            
+    except Exception as e:
+        messages.error(request, f'❌ Greška: {str(e)}')
+    
     return redirect('dashboard')
