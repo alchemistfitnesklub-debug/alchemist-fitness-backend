@@ -1270,16 +1270,16 @@ def send_test_notification(request, user_id):
         # Pošalji test push
         response = send_push_notification(
             fcm_token=token_obj.token,
-            title="Test Push 🔥",
+            title="Test Push",
             body="Ovo je test notifikacija sa backend-a!"
         )
         
         if response:
-            messages.success(request, f'✅ Test push poslat korisniku {token_obj.user.username}!')
+            messages.success(request, f'Test push poslat korisniku {token_obj.user.username}!')
         else:
-            messages.error(request, '❌ Greška pri slanju push notifikacije')
+            messages.error(request, 'Greska pri slanju push notifikacije')
             
     except Exception as e:
-        messages.error(request, f'❌ Greška: {str(e)}')
+        messages.error(request, f'Greska: {str(e)}')
     
     return redirect('dashboard')
