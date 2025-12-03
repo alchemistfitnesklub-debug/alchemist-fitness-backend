@@ -1283,3 +1283,4 @@ def send_test_notification(request, user_id):
         messages.error(request, f'Greska: {str(e)}')
     
     return redirect('dashboard')
+    
