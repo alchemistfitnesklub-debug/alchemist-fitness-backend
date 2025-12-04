@@ -35,6 +35,7 @@ urlpatterns = [
     path('save-push-token/', views.save_push_token, name='save_push_token'),
     path('test-push/', views.test_push, name='test_push'),
     path('send-test-notification/<int:user_id>/', views.send_test_notification, name='send_test_notification'),
+    path('send-training-reminders/', views.send_training_reminders_view, name='send_training_reminders'),
     path('sank/json/clanovi/', views.sank_json_clanovi, name='sank_json_clanovi'),
     path('brisi_rezervaciju/<int:rezervacija_id>/', views.brisi_rezervaciju, name='brisi_rezervaciju'),
     
