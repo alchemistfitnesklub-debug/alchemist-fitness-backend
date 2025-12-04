@@ -66,4 +66,10 @@ urlpatterns = [
     path('api/promeni-username/', api_views.promeni_username, name='api_promeni_username'),
     path('api/kontaktiraj-klub/', api_views.kontaktiraj_klub, name='api_kontaktiraj_klub'),
     path('api/azuriraj-fcm-token/', api_views.azuriraj_fcm_token, name='api_azuriraj_fcm_token'),
+    
+    # ========== API aliases za Flutter mobile app (stari endpoint-i) ==========
+    path('api/profil/', api_views.moj_profil, name='api_profil_alias'),
+    path('api/rezervacije/', api_views.moje_rezervacije, name='api_rezervacije_alias'),
+    path('api/clanarina/', api_views.moja_clanarina, name='api_clanarina_alias'),
+    path('api/termini/', api_views.dostupni_termini, name='api_termini_alias'),
 ]
