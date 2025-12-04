@@ -1,7 +1,6 @@
 # klub_app/urls.py
 from django.urls import path
 from . import views
-from . import api_views
 from .fcm_views import save_fcm_token, delete_fcm_token
 
 urlpatterns = [
@@ -47,13 +46,6 @@ urlpatterns = [
     
     # ========== Krediti ==========
     path('krediti/<int:clan_id>/', views.krediti_json, name='krediti_json'),
-    
-    # ========== API endpoints (za mobilnu aplikaciju) ==========
-    path('api/login/', api_views.api_login, name='api_login'),
-    path('api/member-info/', api_views.api_member_info, name='api_member_info'),
-    path('api/reservations/', api_views.api_reservations, name='api_reservations'),
-    path('api/create-reservation/', api_views.api_create_reservation, name='api_create_reservation'),
-    path('api/bar-credits/', api_views.api_bar_credits, name='api_bar_credits'),
     
     # ========== FCM Token Management ==========
     path('api/fcm-token/save/', save_fcm_token, name='save_fcm_token_api'),
