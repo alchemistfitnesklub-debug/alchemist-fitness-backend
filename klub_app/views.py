@@ -28,6 +28,7 @@ from firebase_admin import credentials, messaging
 from django.core.files.storage import default_storage
 from .models import Clan, Uplata, Rezervacija, Stock, Sale, Obavestenje, UserProfile
 from .forms import ClanForm, UplataForm, SaleForm
+from .services.firebase_service import send_push_notification
 
 
 def init_firebase():
@@ -452,14 +453,10 @@ def klijenti(request):
     return render(request, 'klijenti.html', context)
 
 
-# ═══════════════════════════════════════════════════════════════
-# NOVA FUNKCIJA - MODERNIZOVAN ŠANK SA STATISTIKAMA
-# ═══════════════════════════════════════════════════════════════
 @trener_or_admin_required
 def sank(request):
     """Šank modul sa statistikama i upravljanjem"""
     
-    # POSTOJEĆA LOGIKA ZA POST - NE DIRAM JE!
     if request.method == 'POST':
         if 'add_product' in request.POST:
             naziv = request.POST.get('naziv')
@@ -496,7 +493,6 @@ def sank(request):
             return redirect('sank')
         
         else:
-            # POSTOJEĆA LOGIKA ZA PRODAJU
             form = SaleForm(request.POST)
             if form.is_valid():
                 sale = form.save(commit=False)
@@ -509,7 +505,6 @@ def sank(request):
                     messages.error(request, 'Nedovoljno zaliha!')
                     return redirect('sank')
                 
-                # Konvertuj u float pre oduzimanja
                 clan.krediti_voda -= float(ukupna_cena)
                 clan.save()
                 
@@ -528,37 +523,12 @@ def sank(request):
             else:
                 messages.error(request, f'Greška pri prodaji: {form.errors.as_text()}')
     
-    # ============================================================
-    # NOVO - STATISTIKA ZA DASHBOARD KARTICE
-    # ============================================================
-    
     danas = date.today()
-    
-    # STATISTIKA 1: Zarada danas
-    danas_zarada = Sale.objects.filter(
-        datum__date=danas
-    ).aggregate(total=Sum('price'))['total'] or 0
-    
-    # STATISTIKA 2: Broj prodatih proizvoda danas
-    danas_prodato = Sale.objects.filter(
-        datum__date=danas
-    ).aggregate(total=Sum('kolicina'))['total'] or 0
-    
-    # STATISTIKA 3: Ukupan broj proizvoda u bazi
+    danas_zarada = Sale.objects.filter(datum__date=danas).aggregate(total=Sum('price'))['total'] or 0
+    danas_prodato = Sale.objects.filter(datum__date=danas).aggregate(total=Sum('kolicina'))['total'] or 0
     ukupno_proizvoda = Stock.objects.count()
-    
-    # STATISTIKA 4: Najprodavaniji proizvod danas
-    najprodavaniji_query = Sale.objects.filter(
-        datum__date=danas
-    ).values('stock__naziv').annotate(
-        ukupno=Sum('kolicina')
-    ).order_by('-ukupno').first()
-    
+    najprodavaniji_query = Sale.objects.filter(datum__date=danas).values('stock__naziv').annotate(ukupno=Sum('kolicina')).order_by('-ukupno').first()
     najprodavaniji = najprodavaniji_query['stock__naziv'] if najprodavaniji_query else None
-    
-    # ============================================================
-    # POSTOJEĆI CONTEXT - DODAJEM STATISTIKU
-    # ============================================================
     
     stocks = Stock.objects.all()
     
@@ -568,8 +538,6 @@ def sank(request):
         'sales': Sale.objects.all().order_by('-datum').select_related('clan', 'stock'),
         'sale_form': SaleForm(),
         'stocks_json': json.dumps([{'id': s.id, 'cena': float(s.cena)} for s in stocks]),
-        
-        # NOVO - Statistika
         'danas_zarada': float(danas_zarada),
         'danas_prodato': int(danas_prodato),
         'ukupno_proizvoda': ukupno_proizvoda,
@@ -577,7 +545,6 @@ def sank(request):
     }
     
     return render(request, 'sank.html', context)
-# ═══════════════════════════════════════════════════════════════
 
 
 @trener_or_admin_required
@@ -715,7 +682,6 @@ def profil(request, clan_id):
                 uplata.datum = form.cleaned_data['od_datum']
                 uplata.do_datum = form.cleaned_data['do_datum']
                 uplata.save()
-                # Članarina NE dodaje automatski kredit za vodu
                 messages.success(request, f'Članarina uspešno dodata! Iznos: {uplata.iznos} EUR. Važi do: {uplata.do_datum.strftime("%d.%m.%Y")}')
             else:
                 messages.error(request, f'Greška: {form.errors.as_text()}')
@@ -738,14 +704,12 @@ def profil(request, clan_id):
                     messages.error(request, 'Molimo unesite iznos.')
                     return redirect('profil', clan_id=clan_id)
                 
-                # Zameni zarez sa tačkom ako korisnik unese zarez
                 kredit_iznos_str = kredit_iznos_str.replace(',', '.')
                 iznos = float(kredit_iznos_str)
                 
                 if iznos <= 0:
                     messages.error(request, 'Iznos mora biti veći od 0.')
                 else:
-                    # Jednostavno dodaj float vrednost
                     clan.krediti_voda += iznos
                     clan.save()
                     messages.success(request, f'Uspešno dodato {iznos:.2f} € kredita za vodu! Trenutni kredit: {clan.krediti_voda:.2f} €')
@@ -831,7 +795,6 @@ def profil(request, clan_id):
 
             message = f"Vaši podaci za logovanje: Username: {username}, Password: default123"
 
-            # Šalji samo EMAIL (bez SMS-a)
             if clan.email:
                 send_mail(
                     'Podaci za logovanje',
@@ -881,11 +844,9 @@ def trener_home(request):
     today = timezone.now().date()
     rezervacije_danas = Rezervacija.objects.filter(datum=today).select_related('clan').order_by('sat')
     
-    # POPRAVKA: Dodate varijable koje nedostaju
     ukupno_clanova = Clan.objects.count()
     aktivnih_clanova = Uplata.objects.filter(do_datum__gte=today).count()
     
-    # Prihod ovog meseca
     prvi_dan_meseca = today.replace(day=1)
     prihod_meseca = Uplata.objects.filter(datum__gte=prvi_dan_meseca).aggregate(Sum('iznos'))['iznos__sum'] or 0
     
@@ -923,24 +884,28 @@ def klijent_dashboard(request):
 
 
 def send_expiration_notifications():
+    """Šalje notifikacije (Email + SMS + Push) 7 dana pre isteka članarine"""
+    from .models import FCMToken
+    
+    sedam_dana = timezone.now().date() + timedelta(days=7)
     expirations_7_days = Uplata.objects.filter(
-        do_datum__lte=timezone.now() + timedelta(days=7),
-        do_datum__gte=timezone.now().date(),
+        do_datum=sedam_dana,
         notification_sent=False
     ).select_related('clan')
+    
     client = Client(settings.TWILIO_SID, settings.TWILIO_AUTH_TOKEN)
+    
     for uplata in expirations_7_days:
-        # Poruka prema specifikaciji
         message = f"Poštovani/a, Vaš paket ({uplata.meseci} meseci) ističe {uplata.do_datum.strftime('%d.%m.%Y')}. Podsećamo Vas da produžite paket. Sportski pozdrav, Vaš Alchemist!"
-        from_email = settings.EMAIL_HOST_USER
-        recipient_list = [uplata.clan.email] if uplata.clan.email else []
-        if recipient_list:
+        
+        # EMAIL
+        if uplata.clan.email:
             send_mail(
                 'Obaveštenje o isteku članarine',
                 message,
-                from_email,
-                recipient_list,
-                fail_silently=True,
+                settings.EMAIL_HOST_USER,
+                [uplata.clan.email],
+                fail_silently=True
             )
             Obavestenje.objects.create(
                 clan=uplata.clan,
@@ -948,6 +913,8 @@ def send_expiration_notifications():
                 poruka=message,
                 status='sent'
             )
+        
+        # SMS
         if uplata.clan.telefon:
             try:
                 telefon = str(uplata.clan.telefon).replace('.0', '').replace(' ', '')
@@ -960,39 +927,58 @@ def send_expiration_notifications():
                         from_=settings.TWILIO_PHONE_NUMBER,
                         to=phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)
                     )
-                    status = sms_obj.status
-                    display_status = 'delivered' if status in ['delivered', 'sent', 'queued'] else 'failed'
+                    status = 'delivered' if sms_obj.status in ['delivered', 'sent', 'queued'] else 'failed'
                     Obavestenje.objects.create(
                         clan=uplata.clan,
                         tip='sms',
                         poruka=message,
-                        status=display_status
+                        status=status
                     )
-                else:
-                    Obavestenje.objects.create(
-                        clan=uplata.clan,
-                        tip='sms',
-                        poruka=message,
-                        status='failed'
-                    )
-            except Exception as e:
+            except Exception:
                 Obavestenje.objects.create(
                     clan=uplata.clan,
                     tip='sms',
                     poruka=message,
                     status='failed'
                 )
+        
+        # PUSH NOTIFIKACIJA
+        if uplata.clan.user:
+            try:
+                token_obj = FCMToken.objects.filter(
+                    user=uplata.clan.user,
+                    is_active=True
+                ).first()
+                
+                if token_obj:
+                    send_push_notification(
+                        fcm_token=token_obj.token,
+                        title="Članarina ističe za 7 dana",
+                        body=message
+                    )
+            except Exception as e:
+                print(f"Push greška: {e}")
+        
         uplata.notification_sent = True
         uplata.save()
 
 
 def send_birthday_notifications():
+    """Šalje rođendanske čestitke (Email + SMS + Push)"""
+    from .models import FCMToken
+    
     today = timezone.now().date()
-    birthdays = Clan.objects.filter(datum_rodjenja__month=today.month, datum_rodjenja__day=today.day)
+    birthdays = Clan.objects.filter(
+        datum_rodjenja__month=today.month,
+        datum_rodjenja__day=today.day
+    )
+    
     client = Client(settings.TWILIO_SID, settings.TWILIO_AUTH_TOKEN)
+    
     for clan in birthdays:
-        # Poruka prema specifikaciji
         message = "Neko misli na Vas, srećan rođendan!!! Vaš Alchemist"
+        
+        # EMAIL
         if clan.email:
             send_mail(
                 'Srećan rođendan!',
@@ -1007,6 +993,8 @@ def send_birthday_notifications():
                 poruka=message,
                 status='sent'
             )
+        
+        # SMS
         if clan.telefon:
             try:
                 telefon = str(clan.telefon).replace('.0', '').replace(' ', '')
@@ -1019,28 +1007,102 @@ def send_birthday_notifications():
                         from_=settings.TWILIO_PHONE_NUMBER,
                         to=phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)
                     )
-                    status = sms_obj.status
-                    display_status = 'delivered' if status in ['delivered', 'sent', 'queued'] else 'failed'
+                    status = 'delivered' if sms_obj.status in ['delivered', 'sent', 'queued'] else 'failed'
                     Obavestenje.objects.create(
                         clan=clan,
                         tip='sms',
                         poruka=message,
-                        status=display_status
+                        status=status
                     )
-                else:
-                    Obavestenje.objects.create(
-                        clan=clan,
-                        tip='sms',
-                        poruka=message,
-                        status='failed'
-                    )
-            except Exception as e:
+            except Exception:
                 Obavestenje.objects.create(
                     clan=clan,
                     tip='sms',
                     poruka=message,
                     status='failed'
                 )
+        
+        # PUSH NOTIFIKACIJA
+        if clan.user:
+            try:
+                token_obj = FCMToken.objects.filter(
+                    user=clan.user,
+                    is_active=True
+                ).first()
+                
+                if token_obj:
+                    send_push_notification(
+                        fcm_token=token_obj.token,
+                        title="Srećan rođendan!",
+                        body=message
+                    )
+            except Exception as e:
+                print(f"Push greška: {e}")
+
+
+def send_training_reminders():
+    """Šalje push notifikacije 2 sata pre treninga"""
+    from .models import FCMToken
+    
+    now = timezone.now()
+    two_hours_later = now + timedelta(hours=2)
+    target_date = two_hours_later.date()
+    target_hour = two_hours_later.hour
+    
+    rezervacije = Rezervacija.objects.filter(
+        datum=target_date,
+        sat=target_hour
+    ).select_related('clan', 'clan__user')
+    
+    sent_count = 0
+    
+    for rezervacija in rezervacije:
+        if not rezervacija.clan.user:
+            continue
+        
+        try:
+            token_obj = FCMToken.objects.filter(
+                user=rezervacija.clan.user,
+                is_active=True
+            ).first()
+            
+            if token_obj:
+                message = f"Podsetnik: Za 2 sata imate zakazan trening u {rezervacija.sat}:00!"
+                response = send_push_notification(
+                    fcm_token=token_obj.token,
+                    title="Podsetnik za trening",
+                    body=message
+                )
+                if response:
+                    sent_count += 1
+        except Exception as e:
+            print(f"Greška: {e}")
+    
+    return sent_count
+
+
+@trener_or_admin_required
+def send_training_reminders_view(request):
+    """View za ručno pokretanje podsетnika"""
+    try:
+        profile = request.user.userprofile
+        if not profile.is_admin:
+            messages.error(request, 'Samo administrator može pokrenuti podsetnik.')
+            return redirect('dashboard')
+    except (AttributeError, UserProfile.DoesNotExist):
+        messages.error(request, 'Nemate pristup.')
+        return redirect('login')
+    
+    try:
+        sent_count = send_training_reminders()
+        if sent_count > 0:
+            messages.success(request, f'Poslato {sent_count} podsетnika!')
+        else:
+            messages.info(request, 'Nema treninga za sledeca 2 sata.')
+    except Exception as e:
+        messages.error(request, f'Greska: {str(e)}')
+    
+    return redirect('dashboard')
 
 
 @trener_or_admin_required
@@ -1051,17 +1113,15 @@ def test_notifications(request):
     try:
         profile = request.user.userprofile
         
-        # VAŽNO: Samo admin može pokrenuti obaveštenja
         if not profile.is_admin:
             messages.error(request, 'Samo administrator može pokrenuti obaveštenja.')
-            return redirect('rezervacije')  # Treneri idu nazad na rezervacije
+            return redirect('rezervacije')
         
     except (AttributeError, UserProfile.DoesNotExist):
         messages.error(request, 'Nemate pristup ovoj stranici.')
         return redirect('login')
     
     try:
-        # Brojanje pre slanja
         today = timezone.now().date()
         sedam_dana = today + timedelta(days=7)
         
@@ -1075,11 +1135,9 @@ def test_notifications(request):
             datum_rodjenja__day=today.day
         ).count()
         
-        # Pokretanje obaveštenja
         send_expiration_notifications()
         send_birthday_notifications()
         
-        # Uspešna poruka sa detaljima
         if clanarinske_count > 0 or rodjendanske_count > 0:
             messages.success(
                 request, 
@@ -1089,10 +1147,8 @@ def test_notifications(request):
             messages.info(request, 'ℹ️ Nema novih obaveštenja za slanje danas.')
         
     except Exception as e:
-        # Greška pri slanju
         messages.error(request, f'❌ Greška pri slanju obaveštenja: {str(e)}')
     
-    # Vrati se na Dashboard
     return redirect('dashboard')
 
 
@@ -1228,16 +1284,16 @@ def test_push(request):
             if not clan.fcm_token:
                 messages.error(request, 'Član nema registrovan FCM token')
                 return redirect('test_push')
-            init_firebase()
-            message = messaging.Message(
-                notification=messaging.Notification(
-                    title=title,
-                    body=body,
-                ),
-                token=clan.fcm_token,
+            response = send_push_notification(
+                fcm_token=clan.fcm_token,
+                title=title,
+                body=body
             )
-            response = messaging.send(message)
-            messages.success(request, f'Notifikacija poslata! Response: {response}')
+            
+            if response:
+                messages.success(request, f'Notifikacija poslata! Response: {response}')
+            else:
+                raise Exception("Failed to send notification")
         except Exception as e:
             messages.error(request, f'Greška: {str(e)}')
         return redirect('test_push')
