@@ -1,6 +1,7 @@
 # klub_app/urls.py
 from django.urls import path
 from . import views
+from . import api_views
 from .fcm_views import save_fcm_token, delete_fcm_token
 
 urlpatterns = [
@@ -13,7 +14,7 @@ urlpatterns = [
     path('klijenti/', views.klijenti, name='klijenti'),
     path('klijenti/json/', views.klijenti_json_clanovi, name='klijenti_json_clanovi'),
     path('profil/<int:clan_id>/', views.profil, name='profil'),
-    path('brisi-clana/<int:clan_id>/', views.brisi_clana, name='brisi_clana'),
+    path('brisi_clana/<int:clan_id>/', views.brisi_clana, name='brisi_clana'),
     
     # ========== Šank ==========
     path('sank/', views.sank, name='sank'),
@@ -50,4 +51,19 @@ urlpatterns = [
     # ========== FCM Token Management ==========
     path('api/fcm-token/save/', save_fcm_token, name='save_fcm_token_api'),
     path('api/fcm-token/delete/', delete_fcm_token, name='delete_fcm_token_api'),
+    
+    # ========== API endpoints za mobilnu aplikaciju ==========
+    path('api/login/', api_views.api_login, name='api_login'),
+    path('api/logout/', api_views.api_logout, name='api_logout'),
+    path('api/moj-profil/', api_views.moj_profil, name='api_moj_profil'),
+    path('api/moja-clanarina/', api_views.moja_clanarina, name='api_moja_clanarina'),
+    path('api/moje-rezervacije/', api_views.moje_rezervacije, name='api_moje_rezervacije'),
+    path('api/kreiraj-rezervaciju/', api_views.kreiraj_rezervaciju, name='api_kreiraj_rezervaciju'),
+    path('api/otkazi-rezervaciju/<int:pk>/', api_views.otkazi_rezervaciju, name='api_otkazi_rezervaciju'),
+    path('api/dostupni-termini/', api_views.dostupni_termini, name='api_dostupni_termini'),
+    path('api/moja-obavestenja/', api_views.moja_obavestenja, name='api_moja_obavestenja'),
+    path('api/promeni-lozinku/', api_views.promeni_lozinku, name='api_promeni_lozinku'),
+    path('api/promeni-username/', api_views.promeni_username, name='api_promeni_username'),
+    path('api/kontaktiraj-klub/', api_views.kontaktiraj_klub, name='api_kontaktiraj_klub'),
+    path('api/azuriraj-fcm-token/', api_views.azuriraj_fcm_token, name='api_azuriraj_fcm_token'),
 ]
