@@ -38,6 +38,7 @@ urlpatterns = [
     
     # ========== NOVO - Automatska obaveštenja ==========
     path('test-notifications/', views.test_notifications, name='test_notifications'),
+    path('send-training-reminders/', views.send_training_reminders_view, name='send_training_reminders'),
     # ===================================================
     
     # API RUTE ZA MOBILNU APLIKACIJU
