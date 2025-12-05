@@ -75,4 +75,5 @@ urlpatterns = [
     path('api/termini/', api_views.dostupni_termini, name='api_termini_alias'),
     path('api/rezervacije/kreiraj/', api_views.kreiraj_rezervaciju, name='api_kreiraj_rezervaciju_alias'),
     path('api/rezervacije/<int:pk>/otkazi/', api_views.otkazi_rezervaciju, name='api_otkazi_rezervaciju_alias'),
+    path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
 ]
