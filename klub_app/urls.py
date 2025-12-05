@@ -59,6 +59,7 @@ urlpatterns = [
     path('api/moja-clanarina/', api_views.moja_clanarina, name='api_moja_clanarina'),
     path('api/moje-rezervacije/', api_views.moje_rezervacije, name='api_moje_rezervacije'),
     path('api/kreiraj-rezervaciju/', api_views.kreiraj_rezervaciju, name='api_kreiraj_rezervaciju'),
+    path('api/rezervacije/kreiraj/', api_views.kreiraj_rezervaciju, name='api_kreiraj_rezervaciju_alias'),
     path('api/otkazi-rezervaciju/<int:pk>/', api_views.otkazi_rezervaciju, name='api_otkazi_rezervaciju'),
     path('api/dostupni-termini/', api_views.dostupni_termini, name='api_dostupni_termini'),
     path('api/moja-obavestenja/', api_views.moja_obavestenja, name='api_moja_obavestenja'),
