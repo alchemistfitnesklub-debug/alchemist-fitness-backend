@@ -73,4 +73,5 @@ urlpatterns = [
     path('api/rezervacije/', api_views.moje_rezervacije, name='api_rezervacije_alias'),
     path('api/clanarina/', api_views.moja_clanarina, name='api_clanarina_alias'),
     path('api/termini/', api_views.dostupni_termini, name='api_termini_alias'),
+    path('api/rezervacije/kreiraj/', api_views.kreiraj_rezervaciju, name='api_kreiraj_rezervaciju_alias'),
 ]
