@@ -1307,10 +1307,11 @@ def test_calendar(request):
     return render(request, 'test_calendar.html')
 
 
-@login_required
+def privacy_policy(request):
+    """Privacy Policy stranica za Google Play Store"""
+    return render(request, 'klub_app/privacy_policy.html')
+
 def logout_view(request):
-    if request.method == 'POST':
-        auth_logout(request)
-        messages.success(request, 'Uspešno ste se odjavili.')
-        return redirect('login')
-    return redirect('dashboard')
+    logout(request)
+    messages.success(request, 'Uspešno ste se odjavili.')
+    return redirect('klub_app:login')
