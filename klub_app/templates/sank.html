@@ -1,22 +1,15 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Klijenti - Fitness Klub{% endblock %}
+{% block title %}Šank - Upravljanje{% endblock %}
 
 {% block extra_head %}
-<!-- ========================================
-   SPREČAVA KEŠIRANJE STRANICE I PODATAKA
-   ======================================== -->
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-
 <style>
 /* ========================================
-   KLIJENTI - MODERNIZOVAN DIZAJN (FIXED)
+   ŠANK MODUL - MODERNIZOVAN DIZAJN
    ======================================== */
 
-/* KARTICE STATISTIKE */
+/* KARTICE STATISTIKE - kao na Dashboard-u */
 .stats-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -58,9 +51,10 @@
     margin: 5px 0;
 }
 
+/* BOJE ZA RAZLIČITE KARTICE */
 .stat-card.blue { color: #4facfe; }
 .stat-card.purple { color: #667eea; }
-.stat-card.orange { color: #f093fb; }
+.stat-card.pink { color: #f093fb; }
 .stat-card.green { color: #43e97b; }
 
 body.dark-theme .stat-card {
@@ -68,7 +62,7 @@ body.dark-theme .stat-card {
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* SECTION KARTICE */
+/* SEKCIJE SA KARTICAMA */
 .section-card {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 15px;
@@ -103,16 +97,34 @@ body.dark-theme .section-card {
     font-size: 1.5em;
 }
 
-/* PRETRAGA SA AUTOCOMPLETE */
-.search-container {
-    margin-bottom: 30px;
-    position: relative;
+/* FORME - MODERNE I ORGANIZOVANE */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
 }
 
-.search-container input {
-    width: 100%;
-    padding: 15px 20px;
-    border-radius: 12px;
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 0.95em;
+    color: #e0e0e0;
+}
+
+body.dark-theme .form-group label {
+    color: #fff;
+}
+
+.form-group input,
+.form-group select {
+    padding: 12px 15px;
+    border-radius: 10px;
     border: 2px solid rgba(255, 255, 255, 0.2);
     background: rgba(255, 255, 255, 0.9);
     color: #333;
@@ -120,16 +132,18 @@ body.dark-theme .section-card {
     transition: all 0.3s;
 }
 
-body.dark-theme .search-container input {
+body.dark-theme .form-group input,
+body.dark-theme .form-group select {
     background: rgba(0, 0, 0, 0.5);
     color: #fff;
     border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
-.search-container input:focus {
+.form-group input:focus,
+.form-group select:focus {
     outline: none;
     border-color: #00bfff;
-    box-shadow: 0 0 20px rgba(0, 191, 255, 0.3);
+    box-shadow: 0 0 15px rgba(0, 191, 255, 0.3);
 }
 
 /* AUTOCOMPLETE REZULTATI */
@@ -138,36 +152,27 @@ body.dark-theme .search-container input {
     top: 100%;
     left: 0;
     right: 0;
-    max-height: 400px;
+    max-height: 300px;
     overflow-y: auto;
     background: white;
     border: 2px solid #00bfff;
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     z-index: 1000;
     display: none;
-    margin-top: 5px;
-}
-
-body.dark-theme #autocomplete-results {
-    background: #1a1a1a;
-    border-color: #00bfff;
 }
 
 .autocomplete-item {
-    padding: 15px 20px;
+    padding: 12px 15px;
     cursor: pointer;
-    transition: all 0.2s;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-body.dark-theme .autocomplete-item {
-    border-bottom-color: rgba(255, 255, 255, 0.1);
+    transition: background 0.2s;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
 }
 
 .autocomplete-item:hover {
-    background: linear-gradient(135deg, #00bfff, #0099cc);
-    color: white !important;
+    background: #f0f8ff;
 }
 
 .autocomplete-item:last-child {
@@ -176,27 +181,7 @@ body.dark-theme .autocomplete-item {
 
 .autocomplete-name {
     font-weight: bold;
-    font-size: 1.1em;
     margin-bottom: 5px;
-    color: #333; /* Tamno za light theme */
-}
-
-body.dark-theme .autocomplete-name {
-    color: #fff; /* Belo za dark theme */
-}
-
-.autocomplete-details {
-    font-size: 0.9em;
-    opacity: 0.8;
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-    color: #333; /* Tamno za light theme */
-}
-
-body.dark-theme .autocomplete-details {
-    color: #fff; /* Belo za dark theme */
 }
 
 .autocomplete-krediti {
@@ -204,19 +189,8 @@ body.dark-theme .autocomplete-details {
     font-weight: 600;
 }
 
-body.dark-theme .autocomplete-item:hover .autocomplete-krediti {
-    color: white;
-}
-
-/* AKCIONI DUGMIĆI */
-.actions-row {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 30px;
-    flex-wrap: wrap;
-}
-
-.btn-primary, .btn-success, .btn-warning {
+/* DUGMIĆI */
+.btn-primary {
     background: linear-gradient(135deg, #00bfff, #0099cc);
     color: white;
     border: none;
@@ -227,177 +201,99 @@ body.dark-theme .autocomplete-item:hover .autocomplete-krediti {
     transition: all 0.3s;
     box-shadow: 0 4px 15px rgba(0, 191, 255, 0.3);
     font-size: 1em;
-    text-decoration: none;
-    display: inline-block;
 }
 
-.btn-success {
-    background: linear-gradient(135deg, #43e97b, #38d278);
-    box-shadow: 0 4px 15px rgba(67, 233, 123, 0.3);
-}
-
-.btn-warning {
-    background: linear-gradient(135deg, #f093fb, #f5576c);
-    box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
-}
-
-.btn-primary:hover, .btn-success:hover, .btn-warning:hover {
+.btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 191, 255, 0.4);
+    background: linear-gradient(135deg, #0099cc, #007a99);
 }
 
-/* FORME (skrivene) */
-.hidden-form {
-    display: none;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    margin-bottom: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-body.dark-theme .hidden-form {
-    background: rgba(0, 0, 0, 0.3);
-}
-
-.hidden-form input[type="text"],
-.hidden-form input[type="email"],
-.hidden-form input[type="date"],
-.hidden-form input[type="file"],
-.hidden-form select {
-    width: 100%;
-    padding: 10px 15px;
-    margin: 8px 0;
-    border-radius: 8px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.9);
-    color: #333;
-}
-
-body.dark-theme .hidden-form input,
-body.dark-theme .hidden-form select {
-    background: rgba(0, 0, 0, 0.5);
-    color: #fff;
-}
-
-/* GRID PRIKAZ KLIJENATA */
-.clients-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
-}
-
-.client-card {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.3s;
-    text-align: center;
-    cursor: pointer;
-}
-
-body.dark-theme .client-card {
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2));
-}
-
-.client-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 40px rgba(0, 191, 255, 0.4);
-    border-color: #00bfff;
-}
-
-.client-avatar {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    margin: 0 auto 15px;
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    object-fit: cover;
-    background: linear-gradient(135deg, #4facfe, #00f2fe);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3em;
+.btn-secondary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
-}
-
-.client-name {
-    font-size: 1.2em;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
     font-weight: bold;
-    margin: 10px 0;
-    color: #00bfff;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
-.client-info {
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* TABELA - MODERNIZOVANA */
+.table-container {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+body.dark-theme .table-container {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.table-container table {
+    margin: 0;
+    background: transparent;
+}
+
+.table-container th {
+    background: linear-gradient(135deg, #2a5298, #1e3c72);
+    color: #fff;
+    padding: 15px 12px;
+    font-weight: 600;
+    text-transform: uppercase;
     font-size: 0.9em;
-    opacity: 0.8;
-    margin: 5px 0;
+    letter-spacing: 0.5px;
 }
 
-.client-status {
+body.dark-theme .table-container th {
+    background: linear-gradient(135deg, #4a5568, #2c3e50);
+}
+
+.table-container td {
+    padding: 12px;
+    vertical-align: middle;
+}
+
+.table-container tr:hover {
+    background: rgba(0, 191, 255, 0.1) !important;
+}
+
+body.dark-theme .table-container tr:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* BADGE ZA PROIZVODE */
+.product-badge {
     display: inline-block;
-    padding: 6px 12px;
+    padding: 5px 12px;
     border-radius: 20px;
     font-size: 0.85em;
     font-weight: 600;
-    margin-top: 10px;
-}
-
-.status-active {
-    background: linear-gradient(135deg, #43e97b, #38d278);
+    background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
 }
 
-.status-expiring {
-    background: linear-gradient(135deg, #ffa500, #ff8c00);
-    color: white;
-}
-
-.status-expired {
-    background: linear-gradient(135deg, #ff4444, #cc0000);
-    color: white;
-}
-
-.client-credits {
-    margin-top: 15px;
-    padding: 10px;
-    background: rgba(0, 191, 255, 0.1);
-    border-radius: 10px;
-    border: 1px solid rgba(0, 191, 255, 0.3);
-}
-
-.client-credits strong {
-    color: #00bfff;
-    font-size: 1.2em;
-}
-
-/* FILTER TABS */
-.filter-tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-}
-
-.filter-tab {
-    padding: 10px 20px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-weight: 600;
-}
-
-.filter-tab:hover,
-.filter-tab.active {
-    background: linear-gradient(135deg, #00bfff, #0099cc);
-    border-color: #00bfff;
-    color: white;
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .stats-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .section-card {
+        padding: 15px;
+    }
 }
 
 /* ANIMACIJE */
@@ -412,452 +308,199 @@ body.dark-theme .client-card {
     }
 }
 
-.client-card {
+.section-card {
     animation: slideIn 0.5s ease-out;
 }
 
-.client-card:nth-child(1) { animation-delay: 0.05s; }
-.client-card:nth-child(2) { animation-delay: 0.1s; }
-.client-card:nth-child(3) { animation-delay: 0.15s; }
-.client-card:nth-child(4) { animation-delay: 0.2s; }
+.stat-card:nth-child(1) { animation-delay: 0.1s; }
+.stat-card:nth-child(2) { animation-delay: 0.2s; }
+.stat-card:nth-child(3) { animation-delay: 0.3s; }
+.stat-card:nth-child(4) { animation-delay: 0.4s; }
 
-/* RESPONSIVE */
-@media (max-width: 768px) {
-    .stats-row {
-        grid-template-columns: 1fr;
-    }
-    
-    .clients-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .actions-row {
-        flex-direction: column;
-    }
-    
-    .actions-row button,
-    .actions-row a {
-        width: 100%;
-    }
+/* AUTOCOMPLETE DODATNI STILOVI */
+.autocomplete-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 2px solid #00bfff;
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    margin-top: 5px;
+    display: none;
 }
 
-/* ============================================
-   MOBILNA OPTIMIZACIJA - RESPONSIVE DESIGN
-   ============================================ */
-
-/* Tablet (1024px i manje) */
-@media (max-width: 1024px) {
-    .clients-container {
-        padding: 20px;
-    }
-    
-    .page-header {
-        padding: 20px;
-    }
-    
-    .page-header h1 {
-        font-size: 28px;
-    }
-    
-    .stats-row {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-    }
-    
-    .clients-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-    }
-    
-    .search-section {
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .search-bar {
-        width: 100%;
-    }
-    
-    .action-buttons {
-        width: 100%;
-        justify-content: space-between;
-    }
+.autocomplete-results.show {
+    display: block;
 }
 
-/* Mobile Landscape (768px i manje) */
-@media (max-width: 768px) {
-    .clients-container {
-        padding: 15px;
-    }
-    
-    .page-header {
-        padding: 15px;
-    }
-    
-    .page-header h1 {
-        font-size: 24px;
-    }
-    
-    .stats-row {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-    }
-    
-    .stat-card {
-        padding: 15px;
-    }
-    
-    .stat-card h3 {
-        font-size: 24px;
-    }
-    
-    .stat-card p {
-        font-size: 11px;
-    }
-    
-    .filter-tabs {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* IE/Edge */
-    }
-    
-    .filter-tabs::-webkit-scrollbar {
-        display: none; /* Chrome/Safari */
-    }
-    
-    .tab-btn {
-        white-space: nowrap;
-        padding: 10px 15px;
-        font-size: 13px;
-    }
-    
-    .clients-grid {
-        grid-template-columns: 1fr;
-        gap: 15px;
-    }
-    
-    .client-card {
-        padding: 15px;
-    }
-    
-    .client-avatar {
-        width: 60px;
-        height: 60px;
-        font-size: 24px;
-    }
-    
-    .client-name {
-        font-size: 16px;
-    }
-    
-    .client-email,
-    .client-phone {
-        font-size: 12px;
-    }
-    
-    .status-badge {
-        font-size: 10px;
-        padding: 4px 8px;
-    }
-    
-    .client-details {
-        flex-direction: column;
-        gap: 8px;
-    }
-    
-    .detail-item {
-        flex-direction: row;
-        justify-content: space-between;
-        width: 100%;
-    }
-    
-    .client-actions {
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-    
-    .action-btn {
-        flex: 1;
-        min-width: calc(50% - 4px);
-        padding: 8px 12px;
-        font-size: 12px;
-    }
-    
-    .search-bar input {
-        font-size: 14px;
-    }
-    
-    .action-buttons {
-        flex-direction: column;
-        width: 100%;
-    }
-    
-    .action-buttons .btn {
-        width: 100%;
-        justify-content: center;
-    }
-    
-    /* Modal adjustments */
-    .modal-container {
-        width: 95%;
-        max-width: none;
-        max-height: 90vh;
-    }
-    
-    .modal-header {
-        padding: 15px;
-    }
-    
-    .modal-header h2 {
-        font-size: 18px;
-    }
-    
-    .modal-body {
-        padding: 15px;
-    }
-    
-    .form-grid {
-        grid-template-columns: 1fr;
-        gap: 15px;
-    }
+.autocomplete-item {
+    padding: 12px 15px;
+    cursor: pointer;
+    transition: background 0.2s;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
 }
 
-/* Mobile Portrait (480px i manje) */
-@media (max-width: 480px) {
-    .clients-container {
-        padding: 10px;
-    }
-    
-    .page-header {
-        padding: 12px;
-    }
-    
-    .page-header h1 {
-        font-size: 20px;
-    }
-    
-    .stats-row {
-        grid-template-columns: 1fr;
-        gap: 10px;
-    }
-    
-    .stat-card {
-        padding: 12px;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    .stat-card i {
-        font-size: 28px;
-        margin-bottom: 0;
-    }
-    
-    .stat-card-text {
-        text-align: right;
-    }
-    
-    .stat-card h3 {
-        font-size: 24px;
-        margin: 0;
-    }
-    
-    .stat-card p {
-        font-size: 11px;
-        margin: 0;
-    }
-    
-    .filter-tabs {
-        padding: 0 5px;
-    }
-    
-    .tab-btn {
-        padding: 8px 12px;
-        font-size: 12px;
-    }
-    
-    .badge {
-        font-size: 10px;
-        padding: 2px 6px;
-        min-width: 18px;
-        height: 18px;
-    }
-    
-    .clients-grid {
-        gap: 12px;
-    }
-    
-    .client-card {
-        padding: 12px;
-    }
-    
-    .client-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-    
-    .client-info {
-        width: 100%;
-    }
-    
-    .client-avatar {
-        width: 50px;
-        height: 50px;
-        font-size: 20px;
-    }
-    
-    .client-name {
-        font-size: 15px;
-    }
-    
-    .client-email,
-    .client-phone {
-        font-size: 11px;
-    }
-    
-    .client-actions {
-        width: 100%;
-        margin-top: 10px;
-    }
-    
-    .action-btn {
-        width: 100%;
-        margin-bottom: 5px;
-    }
-    
-    .search-section {
-        padding: 12px;
-    }
-    
-    .search-bar input {
-        padding: 10px 12px;
-        font-size: 13px;
-    }
-    
-    /* Hide certain details on very small screens */
-    .client-email {
-        display: none;
-    }
-    
-    .detail-item {
-        font-size: 11px;
-    }
-    
-    /* Simplify modal on mobile */
-    .modal-container {
-        width: 100%;
-        height: 100%;
-        max-height: 100vh;
-        border-radius: 0;
-    }
-    
-    .modal-header {
-        padding: 12px;
-    }
-    
-    .modal-body {
-        padding: 12px;
-        max-height: calc(100vh - 120px);
-    }
-    
-    .modal-close {
-        width: 35px;
-        height: 35px;
-        font-size: 20px;
-    }
+.autocomplete-item:hover {
+    background: #f8f9fa;
 }
 
-/* Landscape orientation fix */
-@media (max-height: 600px) and (orientation: landscape) {
-    .modal-container {
-        max-height: 95vh;
-    }
-    
-    .modal-body {
-        max-height: calc(95vh - 80px);
-    }
-    
-    .clients-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+.autocomplete-item:last-child {
+    border-bottom: none;
 }
 
-/* Very small screens (< 360px) */
-@media (max-width: 360px) {
-    .page-header h1 {
-        font-size: 18px;
-    }
-    
-    .stat-card h3 {
-        font-size: 20px;
-    }
-    
-    .stat-card p {
-        font-size: 10px;
-    }
-    
-    .client-name {
-        font-size: 14px;
-    }
-    
-    .client-phone {
-        font-size: 10px;
-    }
-    
-    .tab-btn {
-        padding: 6px 10px;
-        font-size: 11px;
-    }
+.autocomplete-item strong {
+    color: #333;
+    display: block;
+    margin-bottom: 3px;
 }
 
-/* Touch improvements */
-@media (hover: none) and (pointer: coarse) {
-    .action-btn,
-    .tab-btn,
-    .btn {
-        min-height: 44px; /* Apple's recommended touch target size */
-    }
-    
-    .client-card {
-        -webkit-tap-highlight-color: transparent;
-    }
-    
-    .client-card:active {
-        transform: scale(0.98);
-    }
-    
-    .action-btn:active {
-        transform: scale(0.95);
-    }
+.autocomplete-item.no-results {
+    text-align: center;
+    color: #999;
+    cursor: default;
 }
 
-/* Print styles (bonus) */
-@media print {
-    .search-section,
-    .action-buttons,
-    .client-actions,
-    .filter-tabs {
-        display: none !important;
-    }
-    
-    .clients-grid {
-        display: block;
-    }
-    
-    .client-card {
-        page-break-inside: avoid;
-        margin-bottom: 20px;
-        box-shadow: none;
-        border: 1px solid #ddd;
-    }
+.autocomplete-item.no-results:hover {
+    background: white;
 }
 
-/* ============================================
-   END OF MOBILE OPTIMIZATION
-   ============================================ */
+.autocomplete-loading {
+    text-align: center;
+    padding: 15px;
+    color: #666;
+}
+
+/* ALERT STILOVI */
+.alert {
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 0;
+}
+
+.alert-info {
+    background: rgba(0, 191, 255, 0.1);
+    border: 1px solid rgba(0, 191, 255, 0.3);
+    color: #00bfff;
+}
+
+body.dark-theme .alert-info {
+    background: rgba(0, 191, 255, 0.15);
+    border-color: rgba(0, 191, 255, 0.4);
+}
+
+/* MODAL STILOVI */
+.modal {
+    background: rgba(0, 0, 0, 0.5);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+}
+
+.modal-dialog {
+    position: relative;
+    width: auto;
+    margin: 1.75rem auto;
+    max-width: 500px;
+}
+
+.modal-dialog-centered {
+    display: flex;
+    align-items: center;
+    min-height: calc(100% - 3.5rem);
+}
+
+.modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    pointer-events: auto;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid rgba(0,0,0,.2);
+    border-radius: 15px;
+    outline: 0;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-title {
+    margin: 0;
+    line-height: 1.5;
+}
+
+.modal-body {
+    position: relative;
+    flex: 1 1 auto;
+    padding: 1rem;
+}
+
+.modal-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0.75rem;
+    border-top: 1px solid #dee2e6;
+}
+
+.btn-close {
+    background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 01-1.414-1.414L6.586 8 .293 1.707a1 1 0 010-1.414z'/%3e%3c/svg%3e") center/1em auto no-repeat;
+    border: 0;
+    width: 1em;
+    height: 1em;
+    padding: 0.25em;
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+.btn-close:hover {
+    opacity: 0.75;
+}
+
+.modal.fade {
+    opacity: 0;
+}
+
+.modal.show {
+    opacity: 1;
+}
+
+body.dark-theme .modal-content {
+    background: rgba(30, 30, 30, 0.98);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-theme .modal-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-theme .modal-footer {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
 </style>
+
+<!-- Bootstrap 5 CDN za Modal funkcionalnost -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 {% endblock %}
 
 {% block content %}
@@ -866,342 +509,471 @@ body.dark-theme .client-card {
     <!-- NASLOV -->
     <div style="text-align: center; margin-bottom: 30px;">
         <h1 style="font-size: 2.5em; margin-bottom: 10px;">
-            <i class="fas fa-users"></i> KLIJENTI - UPRAVLJANJE
+            <i class="fas fa-coffee"></i> ŠANK - UPRAVLJANJE
         </h1>
-        <p style="opacity: 0.8; font-size: 1.1em;">Trenutno stanje: {% now "d.m.Y H:i" %}</p>
+        <p style="opacity: 0.8; font-size: 1.1em;">Upravljanje proizvodima, zalihama i prodajom</p>
     </div>
 
-    <!-- STATISTIKA DASHBOARD -->
+    <!-- STATISTIKA - DASHBOARD KARTICE -->
     <div class="stats-row">
         <div class="stat-card blue">
-            <i class="fas fa-users"></i>
-            <h3>{{ clanovi|length }}</h3>
-            <p>Ukupno klijenata</p>
-        </div>
-        
-        <div class="stat-card green">
-            <i class="fas fa-check-circle"></i>
-            <h3 id="active-count">0</h3>
-            <p>Aktivnih članarina</p>
-        </div>
-        
-        <div class="stat-card orange">
-            <i class="fas fa-exclamation-triangle"></i>
-            <h3 id="expiring-count">0</h3>
-            <p>Ističe uskoro (7 dana)</p>
+            <i class="fas fa-euro-sign"></i>
+            <h3>{{ danas_zarada|floatformat:2 }} €</h3>
+            <p>Zarada danas</p>
         </div>
         
         <div class="stat-card purple">
-            <i class="fas fa-user-plus"></i>
-            <h3 id="new-count">0</h3>
-            <p>Neaktivnih</p>
+            <i class="fas fa-shopping-cart"></i>
+            <h3>{{ danas_prodato }}</h3>
+            <p>Proizvoda prodato danas</p>
+        </div>
+        
+        <div class="stat-card pink">
+            <i class="fas fa-box"></i>
+            <h3>{{ ukupno_proizvoda }}</h3>
+            <p>Ukupno proizvoda</p>
+        </div>
+        
+        <div class="stat-card green">
+            <i class="fas fa-star"></i>
+            <h3>{{ najprodavaniji|default:"N/A" }}</h3>
+            <p>Najprodavaniji danas</p>
         </div>
     </div>
 
-    <!-- PRETRAGA SA AUTOCOMPLETE -->
+    <!-- DODAJ NOVI PROIZVOD -->
     <div class="section-card">
         <div class="section-header">
-            <i class="fas fa-search"></i>
-            <h2>Pretraga klijenata</h2>
+            <i class="fas fa-plus-circle"></i>
+            <h2>Dodaj novi proizvod</h2>
         </div>
-        <div class="search-container">
-            <input type="text" 
-                   id="clanSearch" 
-                   placeholder="🔍 Počni kucati ime, prezime, telefon ili email..." 
-                   autocomplete="off">
-            <div id="autocomplete-results"></div>
-        </div>
-    </div>
-
-    <!-- AKCIONI DUGMIĆI -->
-    <div class="actions-row">
-        <a href="{% url 'klijenti' %}?export=excel" class="btn-primary">
-            <i class="fas fa-file-excel"></i> Eksportuj u Excel
-        </a>
-        <button class="btn-success" onclick="toggleForm('add-client-form')">
-            <i class="fas fa-user-plus"></i> Dodaj novog klijenta
-        </button>
-        <button class="btn-warning" onclick="toggleForm('import-excel-form')">
-            <i class="fas fa-file-upload"></i> Uvezi iz Excel-a
-        </button>
-    </div>
-
-    <!-- FORMA ZA DODAVANJE KLIJENTA -->
-    <div id="add-client-form" class="hidden-form">
-        <h3 style="margin-bottom: 15px;">
-            <i class="fas fa-user-plus"></i> Dodaj novog klijenta
-        </h3>
-        <form method="post" enctype="multipart/form-data">
+        
+        <form method="post" action="{% url 'sank' %}">
             {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="btn-success">
-                <i class="fas fa-check"></i> Dodaj klijenta
+            <input type="hidden" name="add_product">
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="naziv_proizvoda">Naziv proizvoda</label>
+                    <input type="text" id="naziv_proizvoda" name="naziv" placeholder="Npr. ROSA - Voda 0.5" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="kolicina">Količina</label>
+                    <input type="number" id="kolicina" name="kolicina" placeholder="0" step="1" min="0" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cena">Cena (EUR)</label>
+                    <input type="number" id="cena" name="cena" placeholder="0.00" step="0.01" min="0" required>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-primary">
+                <i class="fas fa-plus"></i> Dodaj proizvod
             </button>
         </form>
     </div>
 
-    <!-- FORMA ZA UVOZ EXCEL-A -->
-    <div id="import-excel-form" class="hidden-form">
-        <h3 style="margin-bottom: 15px;">
-            <i class="fas fa-file-upload"></i> Uvezi klijente iz Excel-a
-        </h3>
-        <form method="post" enctype="multipart/form-data">
+    <!-- AŽURIRAJ ZALIHE -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-warehouse"></i>
+            <h2>Ažuriraj zalihe</h2>
+        </div>
+        
+        <form method="post" action="{% url 'sank' %}">
             {% csrf_token %}
-            <input type="file" 
-                   name="excel_file" 
-                   accept=".xlsx,.xls" 
-                   required
-                   style="margin-bottom: 15px;">
-            <button type="submit" class="btn-warning">
-                <i class="fas fa-upload"></i> Uvezi
+            <input type="hidden" name="update_stock">
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="izaberi_proizvod">Izaberi proizvod</label>
+                    <select id="izaberi_proizvod" name="stock_id" required>
+                        <option value="">-- Izaberi proizvod --</option>
+                        {% for stock in stocks %}
+                        <option value="{{ stock.id }}">
+                            {{ stock.naziv }} (Trenutno: {{ stock.kolicina }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="dodatna_kolicina">Dodatna količina</label>
+                    <input type="number" id="dodatna_kolicina" name="dodatna_kolicina" placeholder="0" step="1" required>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-secondary">
+                <i class="fas fa-sync"></i> Ažuriraj zalihe
             </button>
         </form>
     </div>
 
-    <!-- FILTER TABS -->
-    <div class="filter-tabs">
-        <div class="filter-tab active" onclick="filterClients('all')">
-            <i class="fas fa-users"></i> Svi klijenti
+    <!-- NOVA PRODAJA - KORISTI POSTOJEĆI AUTOCOMPLETE I MODAL -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-cash-register"></i>
+            <h2>Nova prodaja</h2>
         </div>
-        <div class="filter-tab" onclick="filterClients('active')">
-            <i class="fas fa-check-circle"></i> Aktivni
-        </div>
-        <div class="filter-tab" onclick="filterClients('expiring')">
-            <i class="fas fa-exclamation-triangle"></i> Ističu uskoro
-        </div>
-        <div class="filter-tab" onclick="filterClients('expired')">
-            <i class="fas fa-times-circle"></i> Neaktivni
-        </div>
+        
+        <form method="post" id="saleForm">
+            {% csrf_token %}
+            
+            <div class="form-grid">
+                <div class="form-group" style="position: relative;">
+                    <label for="clanSearchInput">Klijent</label>
+                    <input type="text" 
+                           id="clanSearchInput" 
+                           placeholder="🔍 Pretraži klijente..." 
+                           autocomplete="off">
+                    <input type="hidden" name="clan" id="clanIdInput" required>
+                    <button type="button" id="clearClan" style="display: none; position: absolute; right: 10px; top: 38px; border: none; background: none; cursor: pointer; font-size: 18px; color: #999;">✕</button>
+                    <div id="autocompleteResults" class="autocomplete-results"></div>
+                    <div id="selectedClan" style="display: none; margin-top: 10px;">
+                        <div class="alert alert-info mb-0" style="background: rgba(0,191,255,0.1); border: 1px solid rgba(0,191,255,0.3); padding: 10px; border-radius: 10px;">
+                            <strong id="selectedClanName" style="color: #00bfff;"></strong>
+                            <br>
+                            <small>Krediti: <span id="selectedClanKrediti" class="fw-bold" style="color: #00bfff;"></span> €</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="stockSelect">Proizvod</label>
+                    <select id="stockSelect" name="stock" required>
+                        <option value="">-- Izaberi proizvod --</option>
+                        {% for stock in stocks %}
+                        <option value="{{ stock.id }}" data-cena="{{ stock.cena }}">
+                            {{ stock.naziv }} - {{ stock.cena }} EUR ({{ stock.kolicina }} kom)
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="kolicinaInput">Količina</label>
+                    <input type="number" id="kolicinaInput" name="kolicina" placeholder="1" step="1" min="1" value="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Ukupna cena</label>
+                    <div style="display: flex; align-items: center;">
+                        <input type="text" id="ukupnaCenaDisplay" style="flex: 1; font-weight: bold; font-size: 1.1em;" readonly value="0.00">
+                        <span style="margin-left: 10px; font-weight: bold;">€</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-primary" style="width: 100%;">
+                <i class="fas fa-shopping-cart"></i> Završi prodaju
+            </button>
+        </form>
     </div>
 
-    <!-- GRID PRIKAZ KLIJENATA -->
-    <div class="clients-grid" id="clients-grid">
-        {% for clan in clanovi %}
-        {% with uplata=clan.uplata_set.all|dictsortreversed:"do_datum"|first %}
-        <div class="client-card" 
-             onclick="window.location.href='{% url 'profil' clan.id %}'" 
-             data-status="{% if uplata %}{% now 'Y-m-d' as danas %}{% if uplata.do_datum|date:'Y-m-d' >= danas %}active{% else %}expired{% endif %}{% else %}expired{% endif %}"
-             data-expiry="{% if uplata %}{{ uplata.do_datum|date:'Y-m-d' }}{% endif %}">
-            
-            <div class="client-avatar">
-                {% if clan.slika %}
-                    <img src="{{ clan.slika.url }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
-                {% else %}
-                    <i class="fas fa-user"></i>
-                {% endif %}
-            </div>
-            
-            <div class="client-name">{{ clan.ime_prezime }}</div>
-            
-            <div class="client-info">
-                <i class="fas fa-phone"></i> {{ clan.telefon|default:"N/A" }}
-            </div>
-            
-            <div class="client-info">
-                <i class="fas fa-envelope"></i> {{ clan.email|default:"N/A" }}
-            </div>
-            
-            <div class="client-info">
-                <i class="fas fa-birthday-cake"></i> 
-                {% if clan.datum_rodjenja %}
-                    {{ clan.datum_rodjenja|date:"d.m.Y" }}
-                {% else %}
-                    N/A
-                {% endif %}
-            </div>
-            
-            <!-- STATUS ČLANARINE -->
-            {% if uplata %}
-                {% now "Y-m-d" as danas %}
-                {% if uplata.do_datum|date:"Y-m-d" >= danas %}
-                    <span class="client-status status-active">
-                        <i class="fas fa-check-circle"></i> Aktivna do {{ uplata.do_datum|date:"d.m.Y" }}
-                    </span>
-                {% else %}
-                    <span class="client-status status-expired">
-                        <i class="fas fa-times-circle"></i> Istekla
-                    </span>
-                {% endif %}
-            {% else %}
-                <span class="client-status status-expired">
-                    <i class="fas fa-info-circle"></i> Nema članarine
-                </span>
-            {% endif %}
-            
-            <!-- KREDITI -->
-            <div class="client-credits">
-                <strong>{{ clan.krediti_voda|floatformat:2 }} €</strong>
-                <div style="font-size: 0.85em; opacity: 0.7; margin-top: 5px;">Krediti za vodu</div>
-            </div>
+    <!-- ISTORIJA PRODAJE -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-history"></i>
+            <h2>Istorija prodaje</h2>
         </div>
-        {% endwith %}
-        {% empty %}
-        <div style="text-align: center; padding: 50px; grid-column: 1 / -1;">
-            <i class="fas fa-users" style="font-size: 4em; opacity: 0.3; margin-bottom: 20px;"></i>
-            <p style="font-size: 1.2em; opacity: 0.7;">Nema klijenata.</p>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Klijent</th>
+                        <th>Proizvod</th>
+                        <th>Količina</th>
+                        <th>Ukupna cena</th>
+                        <th>Datum i vreme</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sale in sales %}
+                    <tr>
+                        <td>
+                            <strong style="color: #00bfff;">{{ sale.clan.ime_prezime }}</strong>
+                        </td>
+                        <td>
+                            <span class="product-badge">{{ sale.stock.naziv }}</span>
+                        </td>
+                        <td style="text-align: center;">
+                            <strong>{{ sale.kolicina }}</strong>
+                        </td>
+                        <td>
+                            <strong style="color: #43e97b; font-size: 1.1em;">{{ sale.price|floatformat:2 }} EUR</strong>
+                        </td>
+                        <td style="font-size: 0.9em; opacity: 0.8;">
+                            {{ sale.datum|date:"d.m.Y" }}<br>
+                            <strong>{{ sale.datum|time:"H:i" }}</strong>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 30px;">
+                            <i class="fas fa-inbox" style="font-size: 3em; opacity: 0.3;"></i>
+                            <p style="margin-top: 15px; opacity: 0.6;">Nema prodaje za prikaz</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        {% endfor %}
     </div>
 
 </div>
 
+<!-- POPUP ZA MINUS - POSTOJEĆI MODAL -->
+<div class="modal fade" id="minusModal" tabindex="-1" style="display: none;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white; border-radius: 15px 15px 0 0;">
+                <h5 class="modal-title">⚠️ UPOZORENJE: MINUS KREDITA!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center" style="padding: 30px;">
+                <h4 id="minusAmount" style="color: #f5576c; margin-bottom: 20px;"></h4>
+                <p style="font-size: 1.1em;">Klijent će ući u minus. Da li želite da nastavite?</p>
+            </div>
+            <div class="modal-footer" style="border-top: none; justify-content: center; padding-bottom: 20px;">
+                <button type="button" class="btn-secondary" data-bs-dismiss="modal">Otkaži</button>
+                <button type="button" class="btn-primary" id="confirmMinus">Nastavi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JAVASCRIPT -->
 <script>
-// ========================================
-// AUTOCOMPLETE PRETRAGA - SA CACHE BUSTING
-// ========================================
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('clanSearch');
-    const resultsDiv = document.getElementById('autocomplete-results');
-    let debounceTimer;
+    const stocksData = {{ stocks_json|safe }};
+    let currentKrediti = 0;
+    let selectedClanId = null;
+    let selectedClanName = '';
+    let minusConfirmed = false;
+    let searchTimeout = null;
+    let minusModal = null;
 
-    searchInput.addEventListener('input', function() {
-        clearTimeout(debounceTimer);
-        const q = this.value.trim();
-        
-        if (q.length < 2) {
-            resultsDiv.innerHTML = '';
-            resultsDiv.style.display = 'none';
-            return;
-        }
+    // Autocomplete funkcionalnost
+    const searchInput = document.getElementById('clanSearchInput');
+    const resultsDiv = document.getElementById('autocompleteResults');
+    const clanIdInput = document.getElementById('clanIdInput');
+    const selectedClanDiv = document.getElementById('selectedClan');
+    const clearBtn = document.getElementById('clearClan');
 
-        debounceTimer = setTimeout(() => {
-            // ✅ FIX 1: Promenjen endpoint sa /klijenti/json/clanovi/ na /klijenti/json/
-            // ✅ FIX 2: Dodat cache-busting sa &_=${Date.now()} za uvek fresh podatke
-            fetch(`/klijenti/json/?q=${encodeURIComponent(q)}&_=${Date.now()}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    resultsDiv.innerHTML = '';
-                    
-                    if (data.length === 0) {
-                        resultsDiv.innerHTML = '<div class="autocomplete-item" style="text-align: center; cursor: default;">Nema rezultata</div>';
-                        resultsDiv.style.display = 'block';
-                        return;
-                    }
-
-                    data.forEach(item => {
-                        const div = document.createElement('div');
-                        div.className = 'autocomplete-item';
-                        
-                        div.innerHTML = `
-                            <div class="autocomplete-name">${item.ime_prezime}</div>
-                            <div class="autocomplete-details">
-                                <span>📞 ${item.telefon || 'N/A'}</span>
-                                <span>📧 ${item.email || 'N/A'}</span>
-                                <span class="autocomplete-krediti">💰 ${parseFloat(item.krediti_voda).toFixed(2)} €</span>
-                            </div>
-                        `;
-                        
-                        div.onclick = () => {
-                            window.location.href = `/profil/${item.id}/`;
-                        };
-                        
-                        resultsDiv.appendChild(div);
-                    });
-                    
-                    resultsDiv.style.display = 'block';
-                })
-                .catch(error => {
-                    console.error('Greška pri pretrazi:', error);
-                    resultsDiv.innerHTML = '<div class="autocomplete-item" style="text-align: center; cursor: default; color: #ff4444;">Greška pri učitavanju podataka</div>';
-                    resultsDiv.style.display = 'block';
-                });
-        }, 300);
-    });
-
-    // Zatvori rezultate kada klikneš van
-    document.addEventListener('click', function(e) {
-        if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
-            resultsDiv.style.display = 'none';
-        }
-    });
-    
-    // Izračunaj statistiku
-    calculateStats();
-});
-
-// TOGGLE FORME
-function toggleForm(formId) {
-    const form = document.getElementById(formId);
-    form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
-}
-
-// FILTER KLIJENATA
-function filterClients(filter) {
-    const cards = document.querySelectorAll('.client-card');
-    const tabs = document.querySelectorAll('.filter-tab');
-    
-    // Update active tab
-    tabs.forEach(tab => tab.classList.remove('active'));
-    event.target.closest('.filter-tab').classList.add('active');
-    
-    const danas = new Date();
-    const za7Dana = new Date();
-    za7Dana.setDate(za7Dana.getDate() + 7);
-    
-    cards.forEach(card => {
-        const status = card.dataset.status;
-        const expiryDateStr = card.dataset.expiry;
-        
-        let show = false;
-        
-        if (filter === 'all') {
-            show = true;
-        } else if (filter === 'active' && status === 'active') {
-            show = true;
-        } else if (filter === 'expiring') {
-            if (status === 'active' && expiryDateStr) {
-                const expiryDate = new Date(expiryDateStr);
-                if (expiryDate >= danas && expiryDate <= za7Dana) {
-                    show = true;
-                }
-            }
-        } else if (filter === 'expired' && status === 'expired') {
-            show = true;
-        }
-        
-        card.style.display = show ? 'block' : 'none';
-    });
-}
-
-// IZRAČUNAJ STATISTIKU
-function calculateStats() {
-    const cards = document.querySelectorAll('.client-card');
-    let activeCount = 0;
-    let expiringCount = 0;
-    let expiredCount = 0;
-    
-    const danas = new Date();
-    const za7Dana = new Date();
-    za7Dana.setDate(za7Dana.getDate() + 7);
-    
-    cards.forEach(card => {
-        const status = card.dataset.status;
-        const expiryDateStr = card.dataset.expiry;
-        
-        if (status === 'active') {
-            activeCount++;
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim();
             
-            // Proveri da li ističe uskoro (7 dana)
-            if (expiryDateStr) {
-                const expiryDate = new Date(expiryDateStr);
-                if (expiryDate >= danas && expiryDate <= za7Dana) {
-                    expiringCount++;
-                }
+            // Sakrij clear dugme ako je prazan input
+            if (query === '') {
+                clearBtn.style.display = 'none';
+                resultsDiv.classList.remove('show');
+                return;
             }
-        } else if (status === 'expired') {
-            expiredCount++;
+            
+            clearBtn.style.display = 'block';
+            
+            // Debounce - čekaj 300ms pre pretrage
+            clearTimeout(searchTimeout);
+            
+            if (query.length < 2) {
+                resultsDiv.innerHTML = '<div class="autocomplete-item no-results">Ukucaj minimum 2 slova...</div>';
+                resultsDiv.classList.add('show');
+                return;
+            }
+            
+            searchTimeout = setTimeout(() => {
+                // Prikaži loading
+                resultsDiv.innerHTML = '<div class="autocomplete-loading">Pretraga...</div>';
+                resultsDiv.classList.add('show');
+                
+                // AJAX pretraga
+                fetch(`/sank/json/clanovi/?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length === 0) {
+                            resultsDiv.innerHTML = '<div class="autocomplete-item no-results">Nema rezultata</div>';
+                        } else {
+                            resultsDiv.innerHTML = data.map(clan => `
+                                <div class="autocomplete-item" data-id="${clan.id}" data-name="${clan.ime_prezime}">
+                                    <strong>${clan.ime_prezime}</strong>
+                                </div>
+                            `).join('');
+                            
+                            // Dodaj event listener na svaki rezultat
+                            resultsDiv.querySelectorAll('.autocomplete-item').forEach(item => {
+                                item.addEventListener('click', function() {
+                                    selectClan(this.dataset.id, this.dataset.name);
+                                });
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Greška pri pretrazi:', error);
+                        resultsDiv.innerHTML = '<div class="autocomplete-item no-results">Greška pri pretrazi</div>';
+                    });
+            }, 300);
+        });
+    }
+
+    // Funkcija za izbor klijenta
+    function selectClan(clanId, clanName) {
+        selectedClanId = clanId;
+        selectedClanName = clanName;
+        
+        // Postavi vrednosti
+        clanIdInput.value = clanId;
+        searchInput.value = clanName;
+        
+        // Sakrij rezultate
+        resultsDiv.classList.remove('show');
+        
+        // Učitaj kredite
+        fetch(`/krediti/json/${clanId}/`)
+            .then(r => r.json())
+            .then(data => {
+                currentKrediti = parseFloat(data.krediti_voda) || 0;
+                
+                // Prikaži info o klijentu
+                document.getElementById('selectedClanName').textContent = clanName;
+                document.getElementById('selectedClanKrediti').textContent = currentKrediti.toFixed(2);
+                
+                // Promeni boju ako je minus
+                const alertDiv = selectedClanDiv.querySelector('.alert');
+                if (currentKrediti < 0) {
+                    alertDiv.style.background = 'rgba(255, 68, 68, 0.1)';
+                    alertDiv.style.borderColor = 'rgba(255, 68, 68, 0.3)';
+                } else {
+                    alertDiv.style.background = 'rgba(0, 191, 255, 0.1)';
+                    alertDiv.style.borderColor = 'rgba(0, 191, 255, 0.3)';
+                }
+                
+                selectedClanDiv.style.display = 'block';
+            })
+            .catch(err => {
+                console.error('Greška pri učitavanju kredita:', err);
+            });
+    }
+
+    // Clear dugme
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            clanIdInput.value = '';
+            selectedClanId = null;
+            selectedClanName = '';
+            currentKrediti = 0;
+            resultsDiv.classList.remove('show');
+            selectedClanDiv.style.display = 'none';
+            clearBtn.style.display = 'none';
+            searchInput.focus();
+        });
+    }
+
+    // Zatvori rezultate ako se klikne van
+    document.addEventListener('click', function(e) {
+        if (searchInput && !searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
+            resultsDiv.classList.remove('show');
         }
     });
-    
-    document.getElementById('active-count').textContent = activeCount;
-    document.getElementById('expiring-count').textContent = expiringCount;
-    document.getElementById('new-count').textContent = expiredCount;
-}
-</script>
 
-{% endblock %}
+    // Automatsko računanje ukupne cene
+    function updatePrice() {
+        const stockSelect = document.getElementById('stockSelect');
+        const kolicinaInput = document.getElementById('kolicinaInput');
+        const ukupnaCenaDisplay = document.getElementById('ukupnaCenaDisplay');
+        
+        if (stockSelect && kolicinaInput) {
+            const selectedOption = stockSelect.options[stockSelect.selectedIndex];
+            const cena = parseFloat(selectedOption.dataset.cena) || 0;
+            const kolicina = parseInt(kolicinaInput.value) || 0;
+            const ukupnaCena = cena * kolicina;
+            
+            ukupnaCenaDisplay.value = ukupnaCena.toFixed(2);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Event listeners za automatsko računanje
+        const stockSelect = document.getElementById('stockSelect');
+        const kolicinaInput = document.getElementById('kolicinaInput');
+        
+        if (stockSelect) stockSelect.addEventListener('change', updatePrice);
+        if (kolicinaInput) kolicinaInput.addEventListener('input', updatePrice);
+
+        // Inicijalizuj modal - koristi Bootstrap 5
+        const minusModalElement = document.getElementById('minusModal');
+        if (minusModalElement && typeof bootstrap !== 'undefined') {
+            minusModal = new bootstrap.Modal(minusModalElement);
+            
+            // Reset flag kada se modal zatvori
+            minusModalElement.addEventListener('hidden.bs.modal', function () {
+                minusConfirmed = false;
+            });
+        }
+
+        // Submit forma sa proverom minusa
+        const form = document.getElementById('saleForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (minusConfirmed) {
+                    // Dozvoli submit i resetuj flag
+                    minusConfirmed = false;
+                    return true;
+                }
+
+                e.preventDefault(); // Zaustavi submit
+                
+                if (!selectedClanId) {
+                    alert('Molimo izaberite klijenta!');
+                    if (searchInput) searchInput.focus();
+                    return;
+                }
+                
+                const selectedOption = stockSelect.options[stockSelect.selectedIndex];
+                const cena = parseFloat(selectedOption.dataset.cena) || 0;
+                const kolicina = parseInt(kolicinaInput.value) || 0;
+                const ukupnaCena = cena * kolicina;
+                
+                if (ukupnaCena <= 0) {
+                    alert('Molimo popunite sva polja!');
+                    return;
+                }
+
+                // Provera da li će ući u minus
+                const noviKrediti = currentKrediti - ukupnaCena;
+                
+                if (noviKrediti < 0 && minusModal) {
+                    const minusAmount = Math.abs(noviKrediti).toFixed(2);
+                    
+                    document.getElementById('minusAmount').innerHTML = 
+                        `<strong>${selectedClanName}</strong> će ući u minus: <span style="color: #f5576c;">-${minusAmount} EUR</span>`;
+                    
+                    // Prikaži modal
+                    minusModal.show();
+                } else {
+                    // Direktan submit ako ne ide u minus
+                    form.submit();
+                }
+            });
+        }
+        
+        // Dugme "Nastavi" u modalu
+        const confirmMinusBtn = document.getElementById('confirmMinus');
+        if (confirmMinusBtn) {
+            confirmMinusBtn.addEventListener('click', function() {
+                minusConfirmed = true;
+                if (minusModal) minusModal.hide();
+                
+                // Sacekaj da se modal zatvori, pa submituj formu
+                setTimeout(() => {
+                    const form = document.getElementById('saleForm');
+                    if (form) form.submit();
+                }, 300);
+            });
+        }
+    });
+</script>
+{% endblock %}}
