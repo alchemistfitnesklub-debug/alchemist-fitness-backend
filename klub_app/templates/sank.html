@@ -502,6 +502,46 @@ body.dark-theme .modal-header {
 body.dark-theme .modal-footer {
     border-top-color: rgba(255, 255, 255, 0.1);
 }
+
+/* ========================================
+   SMOOTH MODAL ANIMACIJE I LOADING STATE
+   ======================================== */
+
+/* Brže modal animacije (150ms umesto 300ms) */
+.modal.fade .modal-dialog {
+    transition: transform 0.15s ease-out;
+}
+
+.modal.show .modal-dialog {
+    transform: none;
+}
+
+/* Loading spinner animacija */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+/* Disable pointer events tokom submit-a */
+form.submitting {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+/* Button disabled state */
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Smooth transitions */
+* {
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
 </style>
 
 <!-- Bootstrap 5 CDN za Modal funkcionalnost -->
@@ -752,7 +792,7 @@ body.dark-theme .modal-footer {
     </div>
 </div>
 
-<!-- JAVASCRIPT -->
+<!-- JAVASCRIPT - OPTIMIZOVANA VERZIJA -->
 <script>
     const stocksData = {{ stocks_json|safe }};
     let currentKrediti = 0;
@@ -761,6 +801,7 @@ body.dark-theme .modal-footer {
     let minusConfirmed = false;
     let searchTimeout = null;
     let minusModal = null;
+    let isSubmitting = false; // ✅ Sprečava double submit
 
     // Autocomplete funkcionalnost
     const searchInput = document.getElementById('clanSearchInput');
@@ -773,7 +814,6 @@ body.dark-theme .modal-footer {
         searchInput.addEventListener('input', function() {
             const query = this.value.trim();
             
-            // Sakrij clear dugme ako je prazan input
             if (query === '') {
                 clearBtn.style.display = 'none';
                 resultsDiv.classList.remove('show');
@@ -781,8 +821,6 @@ body.dark-theme .modal-footer {
             }
             
             clearBtn.style.display = 'block';
-            
-            // Debounce - čekaj 300ms pre pretrage
             clearTimeout(searchTimeout);
             
             if (query.length < 2) {
@@ -792,11 +830,10 @@ body.dark-theme .modal-footer {
             }
             
             searchTimeout = setTimeout(() => {
-                // Prikaži loading
                 resultsDiv.innerHTML = '<div class="autocomplete-loading">Pretraga...</div>';
                 resultsDiv.classList.add('show');
                 
-                // ✅ FIX: AJAX pretraga sa cache-busting
+                // ✅ Cache-busting
                 fetch(`/sank/json/clanovi/?q=${encodeURIComponent(query)}&_=${Date.now()}`)
                     .then(response => response.json())
                     .then(data => {
@@ -809,7 +846,6 @@ body.dark-theme .modal-footer {
                                 </div>
                             `).join('');
                             
-                            // Dodaj event listener na svaki rezultat
                             resultsDiv.querySelectorAll('.autocomplete-item').forEach(item => {
                                 item.addEventListener('click', function() {
                                     selectClan(this.dataset.id, this.dataset.name);
@@ -824,44 +860,40 @@ body.dark-theme .modal-footer {
             }, 300);
         });
     }
-// Funkcija za izbor klijenta
-function selectClan(clanId, clanName) {
-    selectedClanId = clanId;
-    selectedClanName = clanName;
-    
-    // Postavi vrednosti
-    clanIdInput.value = clanId;
-    searchInput.value = clanName;
-    
-    // Sakrij rezultate
-    resultsDiv.classList.remove('show');
-    
-    // ✅ FIX: Ispravan URL - bez /json/ dela
-    fetch(`/krediti/${clanId}/?_=${Date.now()}`)
-        .then(r => r.json())
-        .then(data => {
-            currentKrediti = parseFloat(data.krediti_voda) || 0;
-            
-            // Prikaži info o klijentu
-            document.getElementById('selectedClanName').textContent = clanName;
-            document.getElementById('selectedClanKrediti').textContent = currentKrediti.toFixed(2);
-            
-            // Promeni boju ako je minus
-            const alertDiv = selectedClanDiv.querySelector('.alert');
-            if (currentKrediti < 0) {
-                alertDiv.style.background = 'rgba(255, 68, 68, 0.1)';
-                alertDiv.style.borderColor = 'rgba(255, 68, 68, 0.3)';
-            } else {
-                alertDiv.style.background = 'rgba(0, 191, 255, 0.1)';
-                alertDiv.style.borderColor = 'rgba(0, 191, 255, 0.3)';
-            }
-            
-            selectedClanDiv.style.display = 'block';
-        })
-        .catch(err => {
-            console.error('Greška pri učitavanju kredita:', err);
-        });
-}
+
+    // Funkcija za izbor klijenta
+    function selectClan(clanId, clanName) {
+        selectedClanId = clanId;
+        selectedClanName = clanName;
+        
+        clanIdInput.value = clanId;
+        searchInput.value = clanName;
+        resultsDiv.classList.remove('show');
+        
+        // ✅ FIX: Ispravan URL endpoint + cache-busting
+        fetch(`/krediti/${clanId}/?_=${Date.now()}`)
+            .then(r => r.json())
+            .then(data => {
+                currentKrediti = parseFloat(data.krediti_voda) || 0;
+                
+                document.getElementById('selectedClanName').textContent = clanName;
+                document.getElementById('selectedClanKrediti').textContent = currentKrediti.toFixed(2);
+                
+                const alertDiv = selectedClanDiv.querySelector('.alert');
+                if (currentKrediti < 0) {
+                    alertDiv.style.background = 'rgba(255, 68, 68, 0.1)';
+                    alertDiv.style.borderColor = 'rgba(255, 68, 68, 0.3)';
+                } else {
+                    alertDiv.style.background = 'rgba(0, 191, 255, 0.1)';
+                    alertDiv.style.borderColor = 'rgba(0, 191, 255, 0.3)';
+                }
+                
+                selectedClanDiv.style.display = 'block';
+            })
+            .catch(err => {
+                console.error('Greška pri učitavanju kredita:', err);
+            });
+    }
 
     // Clear dugme
     if (clearBtn) {
@@ -901,41 +933,75 @@ function selectClan(clanId, clanName) {
         }
     }
 
+    // ✅ NOVA FUNKCIJA: Show loading state
+    function showLoading(button) {
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Obrađujem...';
+    }
+
+    // ✅ NOVA FUNKCIJA: Direktan submit bez čekanja
+    function submitFormDirectly() {
+        const form = document.getElementById('saleForm');
+        if (form && !isSubmitting) {
+            isSubmitting = true;
+            
+            // Prikaži loading
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                showLoading(submitBtn);
+            }
+            
+            // Submit odmah
+            form.submit();
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
-        // Event listeners za automatsko računanje
         const stockSelect = document.getElementById('stockSelect');
         const kolicinaInput = document.getElementById('kolicinaInput');
         
         if (stockSelect) stockSelect.addEventListener('change', updatePrice);
         if (kolicinaInput) kolicinaInput.addEventListener('input', updatePrice);
 
-        // Inicijalizuj modal - koristi Bootstrap 5
+        // ✅ OPTIMIZOVANO: Inicijalizuj modal bez animacija (brže)
         const minusModalElement = document.getElementById('minusModal');
         if (minusModalElement && typeof bootstrap !== 'undefined') {
-            minusModal = new bootstrap.Modal(minusModalElement);
+            minusModal = new bootstrap.Modal(minusModalElement, {
+                backdrop: 'static',  // Ne zatvara se klikom van
+                keyboard: false      // Ne zatvara se ESC tasterom
+            });
             
-            // Reset flag kada se modal zatvori
             minusModalElement.addEventListener('hidden.bs.modal', function () {
                 minusConfirmed = false;
             });
         }
 
-        // Submit forma sa proverom minusa
+        // ✅ OPTIMIZOVANO: Submit forma
         const form = document.getElementById('saleForm');
         if (form) {
             form.addEventListener('submit', function(e) {
+                // ✅ Ako je već potvrđen minus, submit odmah
                 if (minusConfirmed) {
-                    // Dozvoli submit i resetuj flag
                     minusConfirmed = false;
-                    return true;
+                    isSubmitting = true;
+                    
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) showLoading(submitBtn);
+                    
+                    return true; // Dozvoli submit
                 }
 
-                e.preventDefault(); // Zaustavi submit
+                e.preventDefault(); // Zaustavi default submit
+                
+                // ✅ Provera da li je već u procesu
+                if (isSubmitting) {
+                    return false;
+                }
                 
                 if (!selectedClanId) {
                     alert('Molimo izaberite klijenta!');
                     if (searchInput) searchInput.focus();
-                    return;
+                    return false;
                 }
                 
                 const selectedOption = stockSelect.options[stockSelect.selectedIndex];
@@ -945,39 +1011,44 @@ function selectClan(clanId, clanName) {
                 
                 if (ukupnaCena <= 0) {
                     alert('Molimo popunite sva polja!');
-                    return;
+                    return false;
                 }
 
-                // Provera da li će ući u minus
                 const noviKrediti = currentKrediti - ukupnaCena;
                 
+                // ✅ MINUS DETEKCIJA
                 if (noviKrediti < 0 && minusModal) {
                     const minusAmount = Math.abs(noviKrediti).toFixed(2);
                     
                     document.getElementById('minusAmount').innerHTML = 
                         `<strong>${selectedClanName}</strong> će ući u minus: <span style="color: #f5576c;">-${minusAmount} EUR</span>`;
                     
-                    // Prikaži modal
                     minusModal.show();
                 } else {
-                    // Direktan submit ako ne ide u minus
-                    form.submit();
+                    // ✅ Direktan submit ako nema minusa
+                    submitFormDirectly();
                 }
+                
+                return false;
             });
         }
         
-        // Dugme "Nastavi" u modalu
+        // ✅ OPTIMIZOVANO: "Nastavi" dugme u modalu
         const confirmMinusBtn = document.getElementById('confirmMinus');
         if (confirmMinusBtn) {
             confirmMinusBtn.addEventListener('click', function() {
                 minusConfirmed = true;
-                if (minusModal) minusModal.hide();
                 
-                // Sacekaj da se modal zatvori, pa submituj formu
-                setTimeout(() => {
-                    const form = document.getElementById('saleForm');
-                    if (form) form.submit();
-                }, 300);
+                // ✅ Sakrij modal BEZ animacije (brže)
+                if (minusModal && minusModalElement) {
+                    minusModalElement.style.display = 'none';
+                    document.body.classList.remove('modal-open');
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) backdrop.remove();
+                }
+                
+                // ✅ Submit ODMAH bez timeout-a
+                submitFormDirectly();
             });
         }
     });
