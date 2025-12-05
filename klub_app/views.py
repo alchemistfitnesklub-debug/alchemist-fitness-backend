@@ -1309,7 +1309,7 @@ def test_calendar(request):
 
 def privacy_policy(request):
     """Privacy Policy stranica za Google Play Store"""
-    return render(request, 'klub_app/privacy_policy.html')
+    return render(request, 'privacy_policy.html')
 
 def logout_view(request):
     logout(request)
