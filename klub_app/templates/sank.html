@@ -824,45 +824,44 @@ body.dark-theme .modal-footer {
             }, 300);
         });
     }
-
-    // Funkcija za izbor klijenta
-    function selectClan(clanId, clanName) {
-        selectedClanId = clanId;
-        selectedClanName = clanName;
-        
-        // Postavi vrednosti
-        clanIdInput.value = clanId;
-        searchInput.value = clanName;
-        
-        // Sakrij rezultate
-        resultsDiv.classList.remove('show');
-        
-        // ✅ FIX: Učitaj kredite sa cache-busting
-        fetch(`/krediti/json/${clanId}/?_=${Date.now()}`)
-            .then(r => r.json())
-            .then(data => {
-                currentKrediti = parseFloat(data.krediti_voda) || 0;
-                
-                // Prikaži info o klijentu
-                document.getElementById('selectedClanName').textContent = clanName;
-                document.getElementById('selectedClanKrediti').textContent = currentKrediti.toFixed(2);
-                
-                // Promeni boju ako je minus
-                const alertDiv = selectedClanDiv.querySelector('.alert');
-                if (currentKrediti < 0) {
-                    alertDiv.style.background = 'rgba(255, 68, 68, 0.1)';
-                    alertDiv.style.borderColor = 'rgba(255, 68, 68, 0.3)';
-                } else {
-                    alertDiv.style.background = 'rgba(0, 191, 255, 0.1)';
-                    alertDiv.style.borderColor = 'rgba(0, 191, 255, 0.3)';
-                }
-                
-                selectedClanDiv.style.display = 'block';
-            })
-            .catch(err => {
-                console.error('Greška pri učitavanju kredita:', err);
-            });
-    }
+// Funkcija za izbor klijenta
+function selectClan(clanId, clanName) {
+    selectedClanId = clanId;
+    selectedClanName = clanName;
+    
+    // Postavi vrednosti
+    clanIdInput.value = clanId;
+    searchInput.value = clanName;
+    
+    // Sakrij rezultate
+    resultsDiv.classList.remove('show');
+    
+    // ✅ FIX: Ispravan URL - bez /json/ dela
+    fetch(`/krediti/${clanId}/?_=${Date.now()}`)
+        .then(r => r.json())
+        .then(data => {
+            currentKrediti = parseFloat(data.krediti_voda) || 0;
+            
+            // Prikaži info o klijentu
+            document.getElementById('selectedClanName').textContent = clanName;
+            document.getElementById('selectedClanKrediti').textContent = currentKrediti.toFixed(2);
+            
+            // Promeni boju ako je minus
+            const alertDiv = selectedClanDiv.querySelector('.alert');
+            if (currentKrediti < 0) {
+                alertDiv.style.background = 'rgba(255, 68, 68, 0.1)';
+                alertDiv.style.borderColor = 'rgba(255, 68, 68, 0.3)';
+            } else {
+                alertDiv.style.background = 'rgba(0, 191, 255, 0.1)';
+                alertDiv.style.borderColor = 'rgba(0, 191, 255, 0.3)';
+            }
+            
+            selectedClanDiv.style.display = 'block';
+        })
+        .catch(err => {
+            console.error('Greška pri učitavanju kredita:', err);
+        });
+}
 
     // Clear dugme
     if (clearBtn) {
