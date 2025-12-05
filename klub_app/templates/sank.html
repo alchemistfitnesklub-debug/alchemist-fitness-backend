@@ -4,6 +4,13 @@
 {% block title %}Šank - Upravljanje{% endblock %}
 
 {% block extra_head %}
+<!-- ========================================
+   SPREČAVA KEŠIRANJE STRANICE I PODATAKA
+   ======================================== -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
 <style>
 /* ========================================
    ŠANK MODUL - MODERNIZOVAN DIZAJN
@@ -789,8 +796,8 @@ body.dark-theme .modal-footer {
                 resultsDiv.innerHTML = '<div class="autocomplete-loading">Pretraga...</div>';
                 resultsDiv.classList.add('show');
                 
-                // AJAX pretraga
-                fetch(`/sank/json/clanovi/?q=${encodeURIComponent(query)}`)
+                // ✅ FIX: AJAX pretraga sa cache-busting
+                fetch(`/sank/json/clanovi/?q=${encodeURIComponent(query)}&_=${Date.now()}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.length === 0) {
@@ -830,8 +837,8 @@ body.dark-theme .modal-footer {
         // Sakrij rezultate
         resultsDiv.classList.remove('show');
         
-        // Učitaj kredite
-        fetch(`/krediti/json/${clanId}/`)
+        // ✅ FIX: Učitaj kredite sa cache-busting
+        fetch(`/krediti/json/${clanId}/?_=${Date.now()}`)
             .then(r => r.json())
             .then(data => {
                 currentKrediti = parseFloat(data.krediti_voda) || 0;
@@ -976,4 +983,4 @@ body.dark-theme .modal-footer {
         }
     });
 </script>
-{% endblock %}}
+{% endblock %}
