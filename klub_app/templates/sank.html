@@ -154,20 +154,29 @@ body.dark-theme .form-group select {
 }
 
 /* AUTOCOMPLETE REZULTATI */
-#autocomplete-results {
+.autocomplete-results {
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
-    max-height: 300px;
-    overflow-y: auto;
     background: white;
     border: 2px solid #00bfff;
     border-top: none;
     border-radius: 0 0 10px 10px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    max-height: 300px;
+    overflow-y: auto;
     z-index: 1000;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    margin-top: 5px;
     display: none;
+}
+
+body.dark-theme .autocomplete-results {
+    background: #1a1a1a;
+}
+
+.autocomplete-results.show {
+    display: block;
 }
 
 .autocomplete-item {
@@ -178,22 +187,51 @@ body.dark-theme .form-group select {
     border-bottom: 1px solid #f0f0f0;
 }
 
+body.dark-theme .autocomplete-item {
+    color: #fff;
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
 .autocomplete-item:hover {
-    background: #f0f8ff;
+    background: #f8f9fa;
+}
+
+body.dark-theme .autocomplete-item:hover {
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .autocomplete-item:last-child {
     border-bottom: none;
 }
 
-.autocomplete-name {
-    font-weight: bold;
-    margin-bottom: 5px;
+.autocomplete-item strong {
+    color: #333;
+    display: block;
+    margin-bottom: 3px;
 }
 
-.autocomplete-krediti {
-    color: #00bfff;
-    font-weight: 600;
+body.dark-theme .autocomplete-item strong {
+    color: #fff;
+}
+
+.autocomplete-item.no-results {
+    text-align: center;
+    color: #999;
+    cursor: default;
+}
+
+.autocomplete-item.no-results:hover {
+    background: white;
+}
+
+body.dark-theme .autocomplete-item.no-results:hover {
+    background: #1a1a1a;
+}
+
+.autocomplete-loading {
+    text-align: center;
+    padding: 15px;
+    color: #666;
 }
 
 /* DUGMIĆI */
@@ -214,6 +252,12 @@ body.dark-theme .form-group select {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 191, 255, 0.4);
     background: linear-gradient(135deg, #0099cc, #007a99);
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
 }
 
 .btn-secondary {
@@ -288,6 +332,24 @@ body.dark-theme .table-container tr:hover {
     color: white;
 }
 
+/* ALERT STILOVI */
+.alert {
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 0;
+}
+
+.alert-info {
+    background: rgba(0, 191, 255, 0.1);
+    border: 1px solid rgba(0, 191, 255, 0.3);
+    color: #00bfff;
+}
+
+body.dark-theme .alert-info {
+    background: rgba(0, 191, 255, 0.15);
+    border-color: rgba(0, 191, 255, 0.4);
+}
+
 /* RESPONSIVE */
 @media (max-width: 768px) {
     .stats-row {
@@ -315,6 +377,11 @@ body.dark-theme .table-container tr:hover {
     }
 }
 
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 .section-card {
     animation: slideIn 0.5s ease-out;
 }
@@ -324,230 +391,10 @@ body.dark-theme .table-container tr:hover {
 .stat-card:nth-child(3) { animation-delay: 0.3s; }
 .stat-card:nth-child(4) { animation-delay: 0.4s; }
 
-/* AUTOCOMPLETE DODATNI STILOVI */
-.autocomplete-results {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: white;
-    border: 2px solid #00bfff;
-    border-top: none;
-    border-radius: 0 0 10px 10px;
-    max-height: 300px;
-    overflow-y: auto;
-    z-index: 1000;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-    margin-top: 5px;
-    display: none;
-}
-
-.autocomplete-results.show {
-    display: block;
-}
-
-.autocomplete-item {
-    padding: 12px 15px;
-    cursor: pointer;
-    transition: background 0.2s;
-    color: #333;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.autocomplete-item:hover {
-    background: #f8f9fa;
-}
-
-.autocomplete-item:last-child {
-    border-bottom: none;
-}
-
-.autocomplete-item strong {
-    color: #333;
-    display: block;
-    margin-bottom: 3px;
-}
-
-.autocomplete-item.no-results {
-    text-align: center;
-    color: #999;
-    cursor: default;
-}
-
-.autocomplete-item.no-results:hover {
-    background: white;
-}
-
-.autocomplete-loading {
-    text-align: center;
-    padding: 15px;
-    color: #666;
-}
-
-/* ALERT STILOVI */
-.alert {
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 0;
-}
-
-.alert-info {
-    background: rgba(0, 191, 255, 0.1);
-    border: 1px solid rgba(0, 191, 255, 0.3);
-    color: #00bfff;
-}
-
-body.dark-theme .alert-info {
-    background: rgba(0, 191, 255, 0.15);
-    border-color: rgba(0, 191, 255, 0.4);
-}
-
-/* MODAL STILOVI */
-.modal {
-    background: rgba(0, 0, 0, 0.5);
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 9999;
-}
-
-.modal-dialog {
-    position: relative;
-    width: auto;
-    margin: 1.75rem auto;
-    max-width: 500px;
-}
-
-.modal-dialog-centered {
-    display: flex;
-    align-items: center;
-    min-height: calc(100% - 3.5rem);
-}
-
-.modal-content {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    pointer-events: auto;
-    background-color: #fff;
-    background-clip: padding-box;
-    border: 1px solid rgba(0,0,0,.2);
-    border-radius: 15px;
-    outline: 0;
-}
-
-.modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem;
-    border-bottom: 1px solid #dee2e6;
-}
-
-.modal-title {
-    margin: 0;
-    line-height: 1.5;
-}
-
-.modal-body {
-    position: relative;
-    flex: 1 1 auto;
-    padding: 1rem;
-}
-
-.modal-footer {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: flex-end;
-    padding: 0.75rem;
-    border-top: 1px solid #dee2e6;
-}
-
-.btn-close {
-    background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 01-1.414-1.414L6.586 8 .293 1.707a1 1 0 010-1.414z'/%3e%3c/svg%3e") center/1em auto no-repeat;
-    border: 0;
-    width: 1em;
-    height: 1em;
-    padding: 0.25em;
-    opacity: 0.5;
-    cursor: pointer;
-}
-
-.btn-close:hover {
-    opacity: 0.75;
-}
-
-.modal.fade {
-    opacity: 0;
-}
-
-.modal.show {
-    opacity: 1;
-}
-
-body.dark-theme .modal-content {
-    background: rgba(30, 30, 30, 0.98);
-    color: #fff;
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-body.dark-theme .modal-header {
-    border-bottom-color: rgba(255, 255, 255, 0.1);
-}
-
-body.dark-theme .modal-footer {
-    border-top-color: rgba(255, 255, 255, 0.1);
-}
-
-/* ========================================
-   SMOOTH MODAL ANIMACIJE I LOADING STATE
-   ======================================== */
-
-/* Brže modal animacije (150ms umesto 300ms) */
-.modal.fade .modal-dialog {
-    transition: transform 0.15s ease-out;
-}
-
-.modal.show .modal-dialog {
-    transform: none;
-}
-
-/* Loading spinner animacija */
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
 .fa-spinner {
     animation: spin 1s linear infinite;
 }
-
-/* Disable pointer events tokom submit-a */
-form.submitting {
-    pointer-events: none;
-    opacity: 0.7;
-}
-
-/* Button disabled state */
-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* Smooth transitions */
-* {
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
 </style>
-
-<!-- Bootstrap 5 CDN za Modal funkcionalnost -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 {% endblock %}
 
 {% block content %}
@@ -658,7 +505,7 @@ button:disabled {
         </form>
     </div>
 
-    <!-- NOVA PRODAJA - KORISTI POSTOJEĆI AUTOCOMPLETE I MODAL -->
+    <!-- NOVA PRODAJA -->
     <div class="section-card">
         <div class="section-header">
             <i class="fas fa-cash-register"></i>
@@ -772,36 +619,14 @@ button:disabled {
 
 </div>
 
-<!-- POPUP ZA MINUS - POSTOJEĆI MODAL -->
-<div class="modal fade" id="minusModal" tabindex="-1" style="display: none;">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
-            <div class="modal-header" style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white; border-radius: 15px 15px 0 0;">
-                <h5 class="modal-title">⚠️ UPOZORENJE: MINUS KREDITA!</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body text-center" style="padding: 30px;">
-                <h4 id="minusAmount" style="color: #f5576c; margin-bottom: 20px;"></h4>
-                <p style="font-size: 1.1em;">Klijent će ući u minus. Da li želite da nastavite?</p>
-            </div>
-            <div class="modal-footer" style="border-top: none; justify-content: center; padding-bottom: 20px;">
-                <button type="button" class="btn-secondary" data-bs-dismiss="modal">Otkaži</button>
-                <button type="button" class="btn-primary" id="confirmMinus">Nastavi</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- JAVASCRIPT - OPTIMIZOVANA VERZIJA -->
+<!-- JAVASCRIPT - SAFARI KOMPATIBILNA VERZIJA (NATIVE CONFIRM) -->
 <script>
     const stocksData = {{ stocks_json|safe }};
     let currentKrediti = 0;
     let selectedClanId = null;
     let selectedClanName = '';
-    let minusConfirmed = false;
     let searchTimeout = null;
-    let minusModal = null;
-    let isSubmitting = false; // ✅ Sprečava double submit
+    let isSubmitting = false;
 
     // Autocomplete funkcionalnost
     const searchInput = document.getElementById('clanSearchInput');
@@ -833,7 +658,6 @@ button:disabled {
                 resultsDiv.innerHTML = '<div class="autocomplete-loading">Pretraga...</div>';
                 resultsDiv.classList.add('show');
                 
-                // ✅ Cache-busting
                 fetch(`/sank/json/clanovi/?q=${encodeURIComponent(query)}&_=${Date.now()}`)
                     .then(response => response.json())
                     .then(data => {
@@ -861,7 +685,6 @@ button:disabled {
         });
     }
 
-    // Funkcija za izbor klijenta
     function selectClan(clanId, clanName) {
         selectedClanId = clanId;
         selectedClanName = clanName;
@@ -870,7 +693,6 @@ button:disabled {
         searchInput.value = clanName;
         resultsDiv.classList.remove('show');
         
-        // ✅ FIX: Ispravan URL endpoint + cache-busting
         fetch(`/krediti/${clanId}/?_=${Date.now()}`)
             .then(r => r.json())
             .then(data => {
@@ -895,7 +717,6 @@ button:disabled {
             });
     }
 
-    // Clear dugme
     if (clearBtn) {
         clearBtn.addEventListener('click', function() {
             searchInput.value = '';
@@ -910,14 +731,12 @@ button:disabled {
         });
     }
 
-    // Zatvori rezultate ako se klikne van
     document.addEventListener('click', function(e) {
         if (searchInput && !searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
             resultsDiv.classList.remove('show');
         }
     });
 
-    // Automatsko računanje ukupne cene
     function updatePrice() {
         const stockSelect = document.getElementById('stockSelect');
         const kolicinaInput = document.getElementById('kolicinaInput');
@@ -933,27 +752,9 @@ button:disabled {
         }
     }
 
-    // ✅ NOVA FUNKCIJA: Show loading state
     function showLoading(button) {
         button.disabled = true;
         button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Obrađujem...';
-    }
-
-    // ✅ NOVA FUNKCIJA: Direktan submit bez čekanja
-    function submitFormDirectly() {
-        const form = document.getElementById('saleForm');
-        if (form && !isSubmitting) {
-            isSubmitting = true;
-            
-            // Prikaži loading
-            const submitBtn = form.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                showLoading(submitBtn);
-            }
-            
-            // Submit odmah
-            form.submit();
-        }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -963,38 +764,15 @@ button:disabled {
         if (stockSelect) stockSelect.addEventListener('change', updatePrice);
         if (kolicinaInput) kolicinaInput.addEventListener('input', updatePrice);
 
-        // ✅ OPTIMIZOVANO: Inicijalizuj modal bez animacija (brže)
-        const minusModalElement = document.getElementById('minusModal');
-        if (minusModalElement && typeof bootstrap !== 'undefined') {
-            minusModal = new bootstrap.Modal(minusModalElement, {
-                backdrop: 'static',  // Ne zatvara se klikom van
-                keyboard: false      // Ne zatvara se ESC tasterom
-            });
-            
-            minusModalElement.addEventListener('hidden.bs.modal', function () {
-                minusConfirmed = false;
-            });
-        }
-
-        // ✅ OPTIMIZOVANO: Submit forma
+        // ✅ SAFARI FIX: Jednostavan submit sa native confirm()
         const form = document.getElementById('saleForm');
         if (form) {
             form.addEventListener('submit', function(e) {
-                // ✅ Ako je već potvrđen minus, submit odmah
-                if (minusConfirmed) {
-                    minusConfirmed = false;
-                    isSubmitting = true;
-                    
-                    const submitBtn = form.querySelector('button[type="submit"]');
-                    if (submitBtn) showLoading(submitBtn);
-                    
-                    return true; // Dozvoli submit
-                }
-
-                e.preventDefault(); // Zaustavi default submit
+                e.preventDefault();
                 
-                // ✅ Provera da li je već u procesu
+                // Sprečava double submit
                 if (isSubmitting) {
+                    console.log('Form već u procesu submit-a, ignoriše se...');
                     return false;
                 }
                 
@@ -1016,39 +794,27 @@ button:disabled {
 
                 const noviKrediti = currentKrediti - ukupnaCena;
                 
-                // ✅ MINUS DETEKCIJA
-                if (noviKrediti < 0 && minusModal) {
+                // ✅ MINUS PROVERA - Koristi native confirm() umesto Bootstrap modala
+                if (noviKrediti < 0) {
                     const minusAmount = Math.abs(noviKrediti).toFixed(2);
+                    const poruka = `⚠️ UPOZORENJE!\n\n${selectedClanName} će ući u minus: -${minusAmount} EUR\n\nDa li želite da nastavite?`;
                     
-                    document.getElementById('minusAmount').innerHTML = 
-                        `<strong>${selectedClanName}</strong> će ući u minus: <span style="color: #f5576c;">-${minusAmount} EUR</span>`;
-                    
-                    minusModal.show();
-                } else {
-                    // ✅ Direktan submit ako nema minusa
-                    submitFormDirectly();
+                    // Native browser confirm - radi na SVIM browserima (Safari, Chrome, Firefox)!
+                    if (!confirm(poruka)) {
+                        console.log('Korisnik je otkazao prodaju zbog minusa');
+                        return false; // Korisnik je kliknuo "Otkaži"
+                    }
                 }
                 
+                // ✅ Submit forma
+                console.log('Submitujem formu...');
+                isSubmitting = true;
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) showLoading(submitBtn);
+                
+                // Submit forma
+                form.submit();
                 return false;
-            });
-        }
-        
-        // ✅ OPTIMIZOVANO: "Nastavi" dugme u modalu
-        const confirmMinusBtn = document.getElementById('confirmMinus');
-        if (confirmMinusBtn) {
-            confirmMinusBtn.addEventListener('click', function() {
-                minusConfirmed = true;
-                
-                // ✅ Sakrij modal BEZ animacije (brže)
-                if (minusModal && minusModalElement) {
-                    minusModalElement.style.display = 'none';
-                    document.body.classList.remove('modal-open');
-                    const backdrop = document.querySelector('.modal-backdrop');
-                    if (backdrop) backdrop.remove();
-                }
-                
-                // ✅ Submit ODMAH bez timeout-a
-                submitFormDirectly();
             });
         }
     });
