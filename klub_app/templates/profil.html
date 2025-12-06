@@ -413,48 +413,48 @@ body.dark-theme .table-container tr:hover {
         </div>
     </div>
 
-    <!-- STATISTIKA -->
-    <div class="stats-row">
-        <div class="stat-card blue">
-            <i class="fas fa-calendar-check"></i>
-            <h3>
-                {% with last_uplata=clan.uplate.all.last %}
-                    {% if last_uplata %}
-                        {{ last_uplata.do_datum|date:"d.m.Y" }}
-                    {% else %}
-                        N/A
-                    {% endif %}
-                {% endwith %}
-            </h3>
-            <p>Članarina važi do</p>
-        </div>
-        
-        <div class="stat-card green">
-            <i class="fas fa-euro-sign"></i>
-            <h3>{{ clan.krediti_voda|floatformat:2 }} €</h3>
-            <p>Krediti za vodu</p>
-        </div>
-        
-        <div class="stat-card pink">
-            <i class="fas fa-dumbbell"></i>
-            <h3>{{ clan.rezervacija_set.count }}</h3>
-            <p>Ukupno treninga</p>
-        </div>
-        
-        <div class="stat-card purple">
-            <i class="fas fa-clock"></i>
-            <h3>
-                {% if clan.datum_rodjenja %}
-                    {% now "Y" as current_year %}
-                    {{ current_year|add:"-"|add:clan.datum_rodjenja.year }} god
+   <!-- STATISTIKA -->
+<div class="stats-row">
+    <div class="stat-card blue">
+        <i class="fas fa-calendar-check"></i>
+        <h3>
+            {% with last_uplata=uplate|first %}
+                {% if last_uplata %}
+                    {{ last_uplata.do_datum|date:"d.m.Y" }}
                 {% else %}
                     N/A
                 {% endif %}
-            </h3>
-            <p>Starost</p>
-        </div>
+            {% endwith %}
+        </h3>
+        <p>Članarina važi do</p>
     </div>
-
+    
+    <div class="stat-card green">
+        <i class="fas fa-euro-sign"></i>
+        <h3>{{ clan.krediti_voda|floatformat:2 }} €</h3>
+        <p>Krediti za vodu</p>
+    </div>
+    
+    <div class="stat-card pink">
+        <i class="fas fa-dumbbell"></i>
+        <h3>{{ istorija_rezervacija.count }}</h3>
+        <p>Ukupno treninga</p>
+    </div>
+    
+    <div class="stat-card purple">
+    <i class="fas fa-clock"></i>
+    <h3>
+        {% if clan.datum_rodjenja %}
+            {% now "Y" as current_year_str %}
+            {% widthratio clan.datum_rodjenja.year 1 1 as birth_year %}
+            {{ current_year_str|add:"-"|add:birth_year|add:"" }} god
+        {% else %}
+            N/A
+        {% endif %}
+    </h3>
+    <p>Starost</p>
+</div>
+</div>
     <!-- TAB NAVIGACIJA -->
     <div class="tabs-container">
         <div class="tabs-nav">
