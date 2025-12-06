@@ -959,20 +959,20 @@ body.dark-theme .client-card {
     </div>
 
     <!-- FILTER TABS -->
-    <div class="filter-tabs">
-        <div class="filter-tab active" onclick="filterClients('all')">
-            <i class="fas fa-users"></i> Svi klijenti
-        </div>
-        <div class="filter-tab" onclick="filterClients('active')">
-            <i class="fas fa-check-circle"></i> Aktivni
-        </div>
-        <div class="filter-tab" onclick="filterClients('expiring')">
-            <i class="fas fa-exclamation-triangle"></i> Ističu uskoro
-        </div>
-        <div class="filter-tab" onclick="filterClients('expired')">
-            <i class="fas fa-times-circle"></i> Neaktivni
-        </div>
+<div class="filter-tabs">
+    <div class="filter-tab active" onclick="filterClients('active')">
+        <i class="fas fa-check-circle"></i> Aktivni
     </div>
+    <div class="filter-tab" onclick="filterClients('expiring')">
+        <i class="fas fa-exclamation-triangle"></i> Ističu uskoro
+    </div>
+    <div class="filter-tab" onclick="filterClients('expired')">
+        <i class="fas fa-times-circle"></i> Neaktivni
+    </div>
+    <div class="filter-tab" onclick="filterClients('all')">
+        <i class="fas fa-users"></i> Svi klijenti
+    </div>
+</div>
 
     <!-- GRID PRIKAZ KLIJENATA -->
     <div class="clients-grid" id="clients-grid">
@@ -1110,14 +1110,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Zatvori rezultate kada klikneš van
-    document.addEventListener('click', function(e) {
-        if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
-            resultsDiv.style.display = 'none';
-        }
-    });
+    document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('clanSearch');
+    const resultsDiv = document.getElementById('autocomplete-results');
+    let debounceTimer;
+
+    // ... postojeći kod ...
     
     // Izračunaj statistiku
     calculateStats();
+    
+    // ✅ NOVO: Automatski prikaži samo aktivne klijente na početku
+    filterClients('active');
 });
 
 // TOGGLE FORME
