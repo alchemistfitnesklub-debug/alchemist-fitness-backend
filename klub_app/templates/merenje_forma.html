@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dodaj Merenje - {{ clan.ime_prezime }}{% endblock %}
+
+{% block extra_head %}
+<style>
+.form-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body.dark-theme .header-card {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2));
+}
+
+.section-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    padding: 25px;
+    margin: 20px 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body.dark-theme .section-card {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.section-header i {
+    font-size: 1.5em;
+    margin-right: 15px;
+    color: #00bfff;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #e0e0e0;
+}
+
+.form-group input,
+.form-group textarea {
+    padding: 12px 15px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    font-size: 1em;
+}
+
+body.dark-theme .form-group input,
+body.dark-theme .form-group textarea {
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #00bfff;
+    box-shadow: 0 0 15px rgba(0, 191, 255, 0.3);
+}
+
+.required-field::after {
+    content: " *";
+    color: #ff4444;
+    font-weight: bold;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #00bfff, #0099cc);
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 20px;
+    font-size: 1.1em;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 10px;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 20px;
+}
+
+#bmi-display {
+    background: rgba(0, 191, 255, 0.1);
+    border: 2px solid rgba(0, 191, 255, 0.3);
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    margin-top: 15px;
+}
+
+#bmi-value {
+    font-size: 2em;
+    font-weight: bold;
+    color: #00bfff;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    
+    <a href="{% url 'profil' clan.id %}" class="btn-secondary">
+        <i class="fas fa-arrow-left"></i> Nazad
+    </a>
+    
+    <div class="header-card">
+        <h1><i class="fas fa-weight"></i> Novo Merenje</h1>
+        <p>{{ clan.ime_prezime }}</p>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <!-- OSNOVNI PODACI -->
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fas fa-user"></i>
+                <h3>Osnovni podaci</h3>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="required-field">Težina (kg)</label>
+                    {{ form.tezina }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Visina (cm)</label>
+                    {{ form.visina }}
+                </div>
+            </div>
+            
+            <div id="bmi-display" style="display: none;">
+                <div id="bmi-value">--</div>
+                <div id="bmi-category">--</div>
+            </div>
+        </div>
+        
+        <!-- SASTAV TELA -->
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fas fa-chart-pie"></i>
+                <h3>Sastav tela</h3>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Procenat masti (%)</label>
+                    {{ form.procenat_masti }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Mišićna masa (kg)</label>
+                    {{ form.misicna_masa }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Voda u telu (%)</label>
+                    {{ form.telesna_voda }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Visceralna mast (nivo)</label>
+                    {{ form.visceralna_mast }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Koštana masa (kg)</label>
+                    {{ form.kostana_masa }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Bazalni metabolizam (kcal)</label>
+                    {{ form.bazalni_metabolizam }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- DODATNE INFORMACIJE -->
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fas fa-clipboard"></i>
+                <h3>Dodatne informacije</h3>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Fizičko stanje (1-9)</label>
+                    {{ form.fizicki_status }}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Napomena trenera</label>
+                {{ form.napomena }}
+            </div>
+        </div>
+        
+        <button type="submit" class="btn-primary">
+            <i class="fas fa-save"></i> Sačuvaj merenje
+        </button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tezina = document.querySelector('input[name="tezina"]');
+    const visina = document.querySelector('input[name="visina"]');
+    const bmiDisplay = document.getElementById('bmi-display');
+    const bmiValue = document.getElementById('bmi-value');
+    const bmiCategory = document.getElementById('bmi-category');
+    
+    function calculateBMI() {
+        const t = parseFloat(tezina.value);
+        const v = parseFloat(visina.value);
+        
+        if (t && v && v > 0) {
+            const h = v / 100;
+            const bmi = (t / (h * h)).toFixed(1);
+            
+            bmiDisplay.style.display = 'block';
+            bmiValue.textContent = bmi;
+            
+            let category = '';
+            let color = '';
+            
+            if (bmi < 18.5) {
+                category = 'Pothranjenost';
+                color = '#ffa500';
+            } else if (bmi < 25) {
+                category = 'Normalna težina';
+                color = '#43e97b';
+            } else if (bmi < 30) {
+                category = 'Prekomerna težina';
+                color = '#f093fb';
+            } else {
+                category = 'Gojaznost';
+                color = '#ff4444';
+            }
+            
+            bmiCategory.textContent = category;
+            bmiValue.style.color = color;
+        } else {
+            bmiDisplay.style.display = 'none';
+        }
+    }
+    
+    tezina.addEventListener('input', calculateBMI);
+    visina.addEventListener('input', calculateBMI);
+    calculateBMI();
+});
+</script>
+
+{% endblock %}
