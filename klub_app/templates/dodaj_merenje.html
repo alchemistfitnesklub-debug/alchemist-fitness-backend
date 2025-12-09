@@ -1,0 +1,489 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dodaj Merenje - {{ clan.ime_prezime }}{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ========================================
+   DODAJ MERENJE - MODERNIZOVAN DIZAJN
+   ======================================== */
+
+.form-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body.dark-theme .header-card {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2));
+}
+
+.header-card h1 {
+    font-size: 2.2em;
+    margin-bottom: 10px;
+    color: #00bfff;
+}
+
+.header-card p {
+    opacity: 0.8;
+    font-size: 1.1em;
+}
+
+.section-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    padding: 25px;
+    margin: 20px 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body.dark-theme .section-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.section-header i {
+    font-size: 1.5em;
+    margin-right: 15px;
+    color: #00bfff;
+}
+
+.section-header h3 {
+    margin: 0;
+    font-size: 1.3em;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 0.95em;
+    color: #e0e0e0;
+}
+
+body.dark-theme .form-group label {
+    color: #fff;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 12px 15px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    font-size: 1em;
+    transition: all 0.3s;
+}
+
+body.dark-theme .form-group input,
+body.dark-theme .form-group select,
+body.dark-theme .form-group textarea {
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #00bfff;
+    box-shadow: 0 0 15px rgba(0, 191, 255, 0.3);
+}
+
+.required-field::after {
+    content: " *";
+    color: #ff4444;
+    font-weight: bold;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #00bfff, #0099cc);
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(0, 191, 255, 0.3);
+    font-size: 1.1em;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 191, 255, 0.4);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    font-size: 1em;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 20px;
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.info-box {
+    background: rgba(79, 172, 254, 0.2);
+    border-left: 4px solid #4facfe;
+    padding: 15px;
+    border-radius: 10px;
+    margin: 20px 0;
+}
+
+.info-box i {
+    color: #4facfe;
+    margin-right: 10px;
+}
+
+#bmi-display {
+    background: rgba(0, 191, 255, 0.1);
+    border: 2px solid rgba(0, 191, 255, 0.3);
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    margin-top: 15px;
+}
+
+#bmi-value {
+    font-size: 2em;
+    font-weight: bold;
+    color: #00bfff;
+    margin: 10px 0;
+}
+
+#bmi-category {
+    font-size: 1.1em;
+    opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .header-card h1 {
+        font-size: 1.8em;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    
+    <!-- BACK BUTTON -->
+    <a href="{% url 'profil' clan.id %}" class="btn-secondary">
+        <i class="fas fa-arrow-left"></i> Nazad na profil
+    </a>
+    
+    <!-- HEADER -->
+    <div class="header-card">
+        <h1><i class="fas fa-weight"></i> Novo Merenje</h1>
+        <p>{{ clan.ime_prezime }}</p>
+    </div>
+    
+    <form method="post" id="merenjeForm">
+        {% csrf_token %}
+        
+        <!-- SEKCIJA 1: OSNOVNI PODACI -->
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fas fa-user"></i>
+                <h3>Osnovni podaci</h3>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="required-field">Težina (kg)</label>
+                    {{ form.tezina }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Visina (cm)</label>
+                    {{ form.visina }}
+                </div>
+            </div>
+            
+            <div id="bmi-display" style="display: none;">
+                <div style="opacity: 0.8; font-size: 0.9em;">Body Mass Index (BMI)</div>
+                <div id="bmi-value">--</div>
+                <div id="bmi-category">--</div>
+            </div>
+        </div>
+        
+        <!-- SEKCIJA 2: SASTAV TELA -->
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fas fa-chart-pie"></i>
+                <h3>Sastav tela</h3>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Procenat masti (%)</label>
+                    {{ form.procenat_masti }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Mišićna masa (kg)</label>
+                    {{ form.misicna_masa }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Voda u telu (%)</label>
+                    {{ form.voda_u_telu }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Visceralna mast (nivo)</label>
+                    {{ form.visceralna_mast }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Koštana masa (kg)</label>
+                    {{ form.kostana_masa }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Bazalni metabolizam (kcal)</label>
+                    {{ form.bazalni_metabolizam }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- SEKCIJA 3: KARDIOVASKULARNI PARAMETRI -->
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fas fa-heartbeat"></i>
+                <h3>Kardiovaskularni parametri</h3>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Sistolni pritisak (mmHg)</label>
+                    {{ form.sistolni_pritisak }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Dijastolni pritisak (mmHg)</label>
+                    {{ form.dijastolni_pritisak }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Puls u miru (otkucaji/min)</label>
+                    {{ form.puls_u_miru }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Max puls (otkucaji/min)</label>
+                    {{ form.max_puls }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Zona 70% max pulsa</label>
+                    {{ form.zona_70_procenata }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Zona 80% max pulsa</label>
+                    {{ form.zona_80_procenata }}
+                </div>
+                
+                <div class="form-group">
+                    <label>VO2 Max (ml/kg/min)</label>
+                    {{ form.vo2_max }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- SEKCIJA 4: OBIMI TELA -->
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fas fa-ruler"></i>
+                <h3>Obimi tela (cm)</h3>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Struk (cm)</label>
+                    {{ form.struk }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Grudi (cm)</label>
+                    {{ form.grudi }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Kukovi (cm)</label>
+                    {{ form.kukovi }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Podlaktica (cm)</label>
+                    {{ form.podlaktica }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Potkolenica (cm)</label>
+                    {{ form.potkolenica }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Levi biceps (cm)</label>
+                    {{ form.levi_biceps }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Desni biceps (cm)</label>
+                    {{ form.desni_biceps }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Levi butina (cm)</label>
+                    {{ form.levi_butina }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Desni butina (cm)</label>
+                    {{ form.desni_butina }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- SEKCIJA 5: DODATNE INFORMACIJE -->
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fas fa-clipboard"></i>
+                <h3>Dodatne informacije</h3>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Fizičko stanje (1-9)</label>
+                    {{ form.fizicko_stanje }}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Napomena trenera</label>
+                {{ form.napomena_trenera }}
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <i class="fas fa-info-circle"></i>
+            <strong>Napomena:</strong> Samo težina je obavezna. Sva ostala polja su opciona.
+        </div>
+        
+        <button type="submit" class="btn-primary">
+            <i class="fas fa-save"></i> Sačuvaj merenje
+        </button>
+    </form>
+    
+</div>
+
+<script>
+// AUTO-KALKULACIJA BMI
+document.addEventListener('DOMContentLoaded', function() {
+    const tezina = document.querySelector('input[name="tezina"]');
+    const visina = document.querySelector('input[name="visina"]');
+    const bmiDisplay = document.getElementById('bmi-display');
+    const bmiValue = document.getElementById('bmi-value');
+    const bmiCategory = document.getElementById('bmi-category');
+    
+    function calculateBMI() {
+        const t = parseFloat(tezina.value);
+        const v = parseFloat(visina.value);
+        
+        if (t && v && v > 0) {
+            const h = v / 100; // cm to m
+            const bmi = (t / (h * h)).toFixed(1);
+            
+            bmiDisplay.style.display = 'block';
+            bmiValue.textContent = bmi;
+            
+            // Kategorija
+            let category = '';
+            let color = '';
+            
+            if (bmi < 18.5) {
+                category = 'Pothranjenost';
+                color = '#ffa500';
+            } else if (bmi < 25) {
+                category = 'Normalna težina';
+                color = '#43e97b';
+            } else if (bmi < 30) {
+                category = 'Prekomerna težina';
+                color = '#f093fb';
+            } else {
+                category = 'Gojaznost';
+                color = '#ff4444';
+            }
+            
+            bmiCategory.textContent = category;
+            bmiValue.style.color = color;
+        } else {
+            bmiDisplay.style.display = 'none';
+        }
+    }
+    
+    tezina.addEventListener('input', calculateBMI);
+    visina.addEventListener('input', calculateBMI);
+    
+    // Pozovi na load ako ima vrednosti
+    calculateBMI();
+});
+</script>
+
+{% endblock %}
