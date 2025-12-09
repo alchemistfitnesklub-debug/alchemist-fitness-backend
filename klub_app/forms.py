@@ -30,8 +30,19 @@ class SaleForm(forms.ModelForm):
 class MerenjeForm(forms.ModelForm):
     class Meta:
         model = Merenje
-        # ISKLJUČI polja koja se auto-generišu
-        exclude = ['clan', 'kreirao', 'created_at', 'updated_at', 'datum', 'bmi']
+        # EKSPLICITNO navedi SAMO polja koja želiš (bez kardiovaskularnih i obima)
+        fields = [
+            'tezina',
+            'visina', 
+            'procenat_masti',
+            'misicna_masa',
+            'telesna_voda',
+            'visceralna_mast',
+            'kostana_masa',
+            'bazalni_metabolizam',
+            'fizicki_status',
+            'napomena'
+        ]
         
         widgets = {
             'tezina': forms.NumberInput(attrs={
@@ -89,125 +100,6 @@ class MerenjeForm(forms.ModelForm):
                 'step': '1',
                 'min': '0',
                 'max': '5000'
-            }),
-            'krvni_pritisak_sistolni': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Npr. 120',
-                'step': '1',
-                'min': '50',
-                'max': '250'
-            }),
-            'krvni_pritisak_dijastolni': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Npr. 80',
-                'step': '1',
-                'min': '30',
-                'max': '150'
-            }),
-            'broj_otkucaja_miru': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Npr. 70',
-                'step': '1',
-                'min': '30',
-                'max': '200'
-            }),
-            'max_broj_otkucaja': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Npr. 180',
-                'step': '1',
-                'min': '100',
-                'max': '250'
-            }),
-            'max_otkucaja_70': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Npr. 126',
-                'step': '1',
-                'min': '50',
-                'max': '200'
-            }),
-            'max_otkucaja_80': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Npr. 144',
-                'step': '1',
-                'min': '50',
-                'max': '200'
-            }),
-            'vo2_apsolutni': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Npr. 3.5',
-                'step': '0.1',
-                'min': '0',
-                'max': '10'
-            }),
-            'vo2_relativni': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Npr. 45.0',
-                'step': '0.1',
-                'min': '0',
-                'max': '100'
-            }),
-            'obim_struka': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Npr. 80',
-                'step': '0.1',
-                'min': '30',
-                'max': '200'
-            }),
-            'obim_grudi': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Npr. 95',
-                'step': '0.1',
-                'min': '50',
-                'max': '200'
-            }),
-            'obim_bokova': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Npr. 100',
-                'step': '0.1',
-                'min': '50',
-                'max': '200'
-            }),
-            'obim_podlaktice': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Npr. 26',
-                'step': '0.1',
-                'min': '15',
-                'max': '50'
-            }),
-            'obim_podkolenice': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Npr. 35',
-                'step': '0.1',
-                'min': '20',
-                'max': '70'
-            }),
-            'obim_nadlaktica_leva': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Npr. 32',
-                'step': '0.1',
-                'min': '15',
-                'max': '70'
-            }),
-            'obim_nadlaktica_desna': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Npr. 32',
-                'step': '0.1',
-                'min': '15',
-                'max': '70'
-            }),
-            'obim_butina_leva': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Npr. 55',
-                'step': '0.1',
-                'min': '30',
-                'max': '100'
-            }),
-            'obim_butina_desna': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Npr. 55',
-                'step': '0.1',
-                'min': '30',
-                'max': '100'
             }),
             'fizicki_status': forms.NumberInput(attrs={
                 'class': 'form-control',
