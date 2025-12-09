@@ -1335,7 +1335,10 @@ def dodaj_merenje(request, clan_id):
             messages.success(request, f'✅ Merenje za {clan.ime_prezime} je uspešno sačuvano!')
             return redirect('profil', clan_id=clan.id)
         else:
-            messages.error(request, '❌ Greška pri čuvanju merenja.')
+            # DODAJ OVO - prikaži greške
+            print("❌ FORM ERRORS:", form.errors)
+            print("❌ FORM DATA:", request.POST)
+            messages.error(request, f'❌ Greška: {form.errors}')  # ← IZMENJENO
     else:
         poslednje_merenje = Merenje.objects.filter(clan=clan).first()
         initial_data = {}
