@@ -1346,7 +1346,7 @@ def dodaj_merenje(request, clan_id):
             initial_data['visina'] = poslednje_merenje.visina
         form = MerenjeForm(initial=initial_data)
     
-    return render(request, 'dodaj_merenje.html', {'form': form, 'clan': clan})
+    return render(request, 'merenje_forma.html', {'form': form, 'clan': clan})
 
 
 @login_required
