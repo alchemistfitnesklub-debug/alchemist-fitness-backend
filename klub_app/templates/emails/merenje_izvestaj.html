@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rezultati Merenja</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4;">
+    
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px 0;">
+        <tr>
+            <td align="center">
+                
+                <!-- GLAVNI KONTEJNER -->
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 15px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+                    
+                    <!-- HEADER -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">
+                                📊 REZULTATI MERENJA
+                            </h1>
+                            <p style="margin: 10px 0 0 0; color: #ffffff; opacity: 0.9; font-size: 16px;">
+                                Alchemist Ladies Fitness & Health Club
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- INFO KLIJENTA -->
+                    <tr>
+                        <td style="padding: 30px; background-color: #f8f9fa;">
+                            <h2 style="margin: 0 0 15px 0; color: #333; font-size: 22px;">
+                                {{ clan.ime_prezime }}
+                            </h2>
+                            <p style="margin: 5px 0; color: #666; font-size: 14px;">
+                                <strong>Datum merenja:</strong> {{ merenje.datum|date:"d.m.Y H:i" }}
+                            </p>
+                            {% if merenje.kreirao %}
+                            <p style="margin: 5px 0; color: #666; font-size: 14px;">
+                                <strong>Kreirao:</strong> {{ merenje.kreirao.username }}
+                            </p>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    
+                    <!-- SEKCIJA: OSNOVNI PODACI -->
+                    {% if merenje.tezina or merenje.visina or merenje.bmi %}
+                    <tr>
+                        <td style="padding: 20px 30px;">
+                            <h3 style="margin: 0 0 15px 0; color: #667eea; font-size: 18px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                                📏 Osnovni podaci
+                            </h3>
+                            <table width="100%" cellpadding="8" cellspacing="0">
+                                {% if merenje.tezina %}
+                                <tr>
+                                    <td style="color: #666; font-size: 14px; width: 50%;">Težina:</td>
+                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.tezina }} kg</td>
+                                </tr>
+                                {% endif %}
+                                {% if merenje.visina %}
+                                <tr>
+                                    <td style="color: #666; font-size: 14px;">Visina:</td>
+                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.visina }} cm</td>
+                                </tr>
+                                {% endif %}
+                                {% if merenje.bmi %}
+                                <tr>
+                                    <td style="color: #666; font-size: 14px;">BMI:</td>
+                                    <td style="color: #333; font-weight: bold; font-size: 16px;">
+                                        {{ merenje.bmi|floatformat:1 }}
+                                        <span style="padding: 4px 10px; border-radius: 12px; font-size: 12px; margin-left: 10px;
+                                        {% if merenje.bmi < 18.5 %}
+                                            background-color: #ffc107; color: #000;
+                                        {% elif merenje.bmi < 25 %}
+                                            background-color: #28a745; color: #fff;
+                                        {% elif merenje.bmi < 30 %}
+                                            background-color: #ff9800; color: #fff;
+                                        {% else %}
+                                            background-color: #dc3545; color: #fff;
+                                        {% endif %}
+                                        ">
+                                            {{ merenje.bmi_kategorija }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    
+                    <!-- SEKCIJA: SASTAV TELA -->
+                    {% if merenje.procenat_masti or merenje.misicna_masa or merenje.voda_u_telu or merenje.visceralna_mast or merenje.kostana_masa or merenje.bazalni_metabolizam %}
+                    <tr>
+                        <td style="padding: 20px 30px; background-color: #f8f9fa;">
+                            <h3 style="margin: 0 0 15px 0; color: #667eea; font-size: 18px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                                🔬 Sastav tela
+                            </h3>
+                            <table width="100%" cellpadding="8" cellspacing="0">
+                                {% if merenje.procenat_masti %}
+                                <tr>
+                                    <td style="color: #666; font-size: 14px; width: 50%;">Procenat masti:</td>
+                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.procenat_masti }}%</td>
+                                </tr>
+                                {% endif %}
+                                {% if merenje.misicna_masa %}
+                                <tr>
+                                    <td style="color: #666; font-size: 14px;">Mišićna masa:</td>
+                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.misicna_masa }} kg</td>
+                                </tr>
+                                {% endif %}
+                                {% if merenje.voda_u_telu %}
+                                <tr>
+                                    <td style="color: #666; font-size: 14px;">Voda u telu:</td>
+                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.voda_u_telu }}%</td>
+                                </tr>
+                                {% endif %}
+                                {% if merenje.visceralna_mast %}
+                                <tr>
+                                    <td style="color: #666; font-size: 14px;">Visceralna mast:</td>
+                                    <td style="color: #333; font-weight: bold; font-size: 16px;">
+                                        Nivo {{ merenje.visceralna_mast }}
+                                        <span style="padding: 4px 10px; border-radius: 12px; font-size: 12px; margin-left: 10px;
+                                        {% if merenje.visceralna_mast <= 9 %}
+                                            background-color: #28a745; color: #fff;
+                                        {% elif merenje.visceralna_mast <= 14 %}
+                                            background-color: #ff9800; color: #fff;
+                                        {% else %}
+                                            background-color: #dc3545; color: #fff;
+                                        {% endif %}
+                                        ">
+                                            {{ merenje.procena_rizika_visceralne_masti }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% if merenje.kostana_masa %}
+                                <tr>
+                                    <td style="color: #666; font-size: 14px;">Koštana masa:</td>
+                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.kostana_masa }} kg</td>
+                                </tr>
+                                {% endif %}
+                                {% if merenje.bazalni_metabolizam %}
+                                <tr>
+                                    <td style="color: #666; font-size: 14px;">Bazalni metabolizam:</td>
+                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.bazalni_metabolizam }} kcal</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    
+                    <!-- SEKCIJA: KARDIOVASKULARNI PARAMETRI -->
+                    {% if merenje.sistolni_pritisak or merenje.dijastolni_pritisak or merenje.puls_u_miru or merenje.vo2_max %}
+                    <tr>
+                        <td style="padding: 20px 30px;">
+                            <h3 style="margin: 0 0 15px 0; color: #667eea; font-size: 18px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                                ❤️ Kardiovaskularni parametri
+                            </h3>
+                            <table width="100%" cellpadding="8" cellspacing="0">
+                                {% if merenje.sistolni_pritisak and merenje.dijastolni_pritisak %}
+                                <tr>
+                                    <td style="color: #666; font-size: 14px; width: 50%;">Krvni pritisak:</td>
+                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.sistolni_pritisak }}/{{ merenje.dijastolni_pritisak }} mmHg</td>
+                                </tr>
+                                {% endif %}
+                                {% if merenje.puls_u_miru %}
+                                <tr>
+                                    <td style="color: #666; font-size: 14px;">Puls u miru:</td>
+                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.puls_u_miru }} otkucaja/min</td>
+                                </tr>
+                                {% endif %}
+                                {% if merenje.max_puls %}
+                                <tr>
+                                    <td style="color: #666; font-size: 14px;">Max puls:</td>
+                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.max_puls }} otkucaja/min</td>
+                                </tr>
+                                {% endif %}
+                                {% if merenje.vo2_max %}
+                                <tr>
+                                    <td style="color: #666; font-size: 14px;">VO2 Max:</td>
+                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.vo2_max }} ml/kg/min</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    
+                    <!-- SEKCIJA: OBIMI TELA -->
+                    {% if merenje.struk or merenje.grudi or merenje.kukovi %}
+                    <tr>
+                        <td style="padding: 20px 30px; background-color: #f8f9fa;">
+                            <h3 style="margin: 0 0 15px 0; color: #667eea; font-size: 18px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                                📐 Obimi tela
+                            </h3>
+                            <table width="100%" cellpadding="8" cellspacing="0">
+                                {% if merenje.struk %}
+                                <tr>
+                                    <td style="color: #666; font-size: 14px; width: 50%;">Struk:</td>
+                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.struk }} cm</td>
+                                </tr>
+                                {% endif %}
+                                {% if merenje.grudi %}
+                                <tr>
+                                    <td style="color: #666; font-size: 14px;">Grudi:</td>
+                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.grudi }} cm</td>
+                                </tr>
+                                {% endif %}
+                                {% if merenje.kukovi %}
+                                <tr>
+                                    <td style="color: #666; font-size: 14px;">Kukovi:</td>
+                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.kukovi }} cm</td>
+                                </tr>
+                                {% endif %}
+                                {% if merenje.levi_biceps %}
+                                <tr>
+                                    <td style="color: #666; font-size: 14px;">Levi biceps:</td>
+                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.levi_biceps }} cm</td>
+                                </tr>
+                                {% endif %}
+                                {% if merenje.desni_biceps %}
+                                <tr>
+                                    <td style="color: #666; font-size: 14px;">Desni biceps:</td>
+                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.desni_biceps }} cm</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    
+                    <!-- NAPOMENA TRENERA -->
+                    {% if merenje.napomena_trenera %}
+                    <tr>
+                        <td style="padding: 20px 30px;">
+                            <div style="background: linear-gradient(135deg, #667eea15, #764ba215); border-left: 4px solid #667eea; padding: 15px; border-radius: 8px;">
+                                <h4 style="margin: 0 0 10px 0; color: #667eea; font-size: 16px;">
+                                    💬 Napomena trenera:
+                                </h4>
+                                <p style="margin: 0; color: #333; font-size: 14px; line-height: 1.6;">
+                                    {{ merenje.napomena_trenera }}
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    
+                    <!-- FOOTER -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 25px 30px; text-align: center; border-top: 1px solid #e0e0e0;">
+                            <p style="margin: 0 0 10px 0; color: #666; font-size: 14px;">
+                                <strong>Alchemist Ladies Fitness & Health Club</strong>
+                            </p>
+                            <p style="margin: 0; color: #999; font-size: 12px;">
+                                Nastavite sa odličnim radom! 💪
+                            </p>
+                        </td>
+                    </tr>
+                    
+                </table>
+                
+            </td>
+        </tr>
+    </table>
+    
+</body>
+</html>
