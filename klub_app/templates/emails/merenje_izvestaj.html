@@ -1,299 +1,389 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rezultati Merenja</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4;">
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dodaj Merenje - {{ clan.ime_prezime }}{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ========================================
+   DODAJ MERENJE - MODERNIZOVAN DIZAJN
+   ======================================== */
+
+.form-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body.dark-theme .header-card {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2));
+}
+
+.header-card h1 {
+    font-size: 2.2em;
+    margin-bottom: 10px;
+    color: #00bfff;
+}
+
+.header-card p {
+    opacity: 0.8;
+    font-size: 1.1em;
+}
+
+.section-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    padding: 25px;
+    margin: 20px 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body.dark-theme .section-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.section-header i {
+    font-size: 1.5em;
+    margin-right: 15px;
+    color: #00bfff;
+}
+
+.section-header h3 {
+    margin: 0;
+    font-size: 1.3em;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 0.95em;
+    color: #e0e0e0;
+}
+
+body.dark-theme .form-group label {
+    color: #fff;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 12px 15px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    font-size: 1em;
+    transition: all 0.3s;
+}
+
+body.dark-theme .form-group input,
+body.dark-theme .form-group select,
+body.dark-theme .form-group textarea {
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #00bfff;
+    box-shadow: 0 0 15px rgba(0, 191, 255, 0.3);
+}
+
+.required-field::after {
+    content: " *";
+    color: #ff4444;
+    font-weight: bold;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #00bfff, #0099cc);
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(0, 191, 255, 0.3);
+    font-size: 1.1em;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 191, 255, 0.4);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    font-size: 1em;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 20px;
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.info-box {
+    background: rgba(79, 172, 254, 0.2);
+    border-left: 4px solid #4facfe;
+    padding: 15px;
+    border-radius: 10px;
+    margin: 20px 0;
+}
+
+.info-box i {
+    color: #4facfe;
+    margin-right: 10px;
+}
+
+#bmi-display {
+    background: rgba(0, 191, 255, 0.1);
+    border: 2px solid rgba(0, 191, 255, 0.3);
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    margin-top: 15px;
+}
+
+#bmi-value {
+    font-size: 2em;
+    font-weight: bold;
+    color: #00bfff;
+    margin: 10px 0;
+}
+
+#bmi-category {
+    font-size: 1.1em;
+    opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
     
-    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px 0;">
-        <tr>
-            <td align="center">
-                
-                <!-- GLAVNI KONTEJNER -->
-                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 15px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
-                    
-                    <!-- HEADER -->
-                    <tr>
-                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
-                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">
-                                📊 REZULTATI MERENJA
-                            </h1>
-                            <p style="margin: 10px 0 0 0; color: #ffffff; opacity: 0.9; font-size: 16px;">
-                                Alchemist Ladies Fitness & Health Club
-                            </p>
-                        </td>
-                    </tr>
-                    
-                    <!-- INFO KLIJENTA -->
-                    <tr>
-                        <td style="padding: 30px; background-color: #f8f9fa;">
-                            <h2 style="margin: 0 0 15px 0; color: #333; font-size: 22px;">
-                                {{ clan.ime_prezime }}
-                            </h2>
-                            <p style="margin: 5px 0; color: #666; font-size: 14px;">
-                                <strong>Datum merenja:</strong> {{ merenje.datum|date:"d.m.Y H:i" }}
-                            </p>
-                            {% if merenje.kreirao %}
-                            <p style="margin: 5px 0; color: #666; font-size: 14px;">
-                                <strong>Kreirao:</strong> {{ merenje.kreirao.username }}
-                            </p>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    
-                    <!-- SEKCIJA: OSNOVNI PODACI -->
-                    {% if merenje.tezina or merenje.visina or merenje.bmi %}
-                    <tr>
-                        <td style="padding: 20px 30px;">
-                            <h3 style="margin: 0 0 15px 0; color: #667eea; font-size: 18px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
-                                📏 Osnovni podaci
-                            </h3>
-                            <table width="100%" cellpadding="8" cellspacing="0">
-                                {% if merenje.tezina %}
-                                <tr>
-                                    <td style="color: #666; font-size: 14px; width: 50%;">Težina:</td>
-                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.tezina }} kg</td>
-                                </tr>
-                                {% endif %}
-                                {% if merenje.visina %}
-                                <tr>
-                                    <td style="color: #666; font-size: 14px;">Visina:</td>
-                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.visina }} cm</td>
-                                </tr>
-                                {% endif %}
-                                {% if merenje.bmi %}
-                                <tr>
-                                    <td style="color: #666; font-size: 14px;">BMI:</td>
-                                    <td style="color: #333; font-weight: bold; font-size: 16px;">
-                                        {{ merenje.bmi|floatformat:1 }}
-                                        <span style="padding: 4px 10px; border-radius: 12px; font-size: 12px; margin-left: 10px;
-                                        {% if merenje.bmi < 18.5 %}
-                                            background-color: #ffc107; color: #000;
-                                        {% elif merenje.bmi < 25 %}
-                                            background-color: #28a745; color: #fff;
-                                        {% elif merenje.bmi < 30 %}
-                                            background-color: #ff9800; color: #fff;
-                                        {% else %}
-                                            background-color: #dc3545; color: #fff;
-                                        {% endif %}
-                                        ">
-                                            {{ merenje.bmi_kategorija }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                {% endif %}
-                            </table>
-                        </td>
-                    </tr>
-                    {% endif %}
-                    
-                    <!-- SEKCIJA: SASTAV TELA -->
-                    {% if merenje.procenat_masti or merenje.misicna_masa or merenje.telesna_voda or merenje.visceralna_mast or merenje.kostana_masa or merenje.bazalni_metabolizam %}
-                    <tr>
-                        <td style="padding: 20px 30px; background-color: #f8f9fa;">
-                            <h3 style="margin: 0 0 15px 0; color: #667eea; font-size: 18px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
-                                🔬 Sastav tela
-                            </h3>
-                            <table width="100%" cellpadding="8" cellspacing="0">
-                                {% if merenje.procenat_masti %}
-                                <tr>
-                                    <td style="color: #666; font-size: 14px; width: 50%;">Procenat masti:</td>
-                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.procenat_masti }}%</td>
-                                </tr>
-                                {% endif %}
-                                {% if merenje.misicna_masa %}
-                                <tr>
-                                    <td style="color: #666; font-size: 14px;">Mišićna masa:</td>
-                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.misicna_masa }} kg</td>
-                                </tr>
-                                {% endif %}
-                                {% if merenje.telesna_voda %}
-                                <tr>
-                                    <td style="color: #666; font-size: 14px;">Voda u telu:</td>
-                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.telesna_voda }}%</td>
-                                </tr>
-                                {% endif %}
-                                {% if merenje.visceralna_mast %}
-                                <tr>
-                                    <td style="color: #666; font-size: 14px;">Visceralna mast:</td>
-                                    <td style="color: #333; font-weight: bold; font-size: 16px;">
-                                        Nivo {{ merenje.visceralna_mast }}
-                                        <span style="padding: 4px 10px; border-radius: 12px; font-size: 12px; margin-left: 10px;
-                                        {% if merenje.visceralna_mast <= 9 %}
-                                            background-color: #28a745; color: #fff;
-                                        {% elif merenje.visceralna_mast <= 14 %}
-                                            background-color: #ff9800; color: #fff;
-                                        {% else %}
-                                            background-color: #dc3545; color: #fff;
-                                        {% endif %}
-                                        ">
-                                            {% if merenje.visceralna_mast <= 9 %}Normalno{% elif merenje.visceralna_mast <= 14 %}Povišeno{% else %}Jako povišeno{% endif %}
-                                        </span>
-                                    </td>
-                                </tr>
-                                {% endif %}
-                                {% if merenje.kostana_masa %}
-                                <tr>
-                                    <td style="color: #666; font-size: 14px;">Koštana masa:</td>
-                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.kostana_masa }} kg</td>
-                                </tr>
-                                {% endif %}
-                                {% if merenje.bazalni_metabolizam %}
-                                <tr>
-                                    <td style="color: #666; font-size: 14px;">Bazalni metabolizam:</td>
-                                    <td style="color: #333; font-weight: bold; font-size: 16px;">{{ merenje.bazalni_metabolizam }} kcal</td>
-                                </tr>
-                                {% endif %}
-                            </table>
-                        </td>
-                    </tr>
-                    {% endif %}
-                    
-                    <!-- REFERENTNE VREDNOSTI - TABELA -->
-                    <tr>
-                        <td style="padding: 20px 30px;">
-                            <h3 style="margin: 0 0 15px 0; color: #28a745; font-size: 18px; border-bottom: 2px solid #28a745; padding-bottom: 10px;">
-                                📋 Referentne vrednosti
-                            </h3>
-                            
-                            <!-- BMI Tabela -->
-                            <table width="100%" cellpadding="8" cellspacing="0" style="margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px;">
-                                <tr style="background-color: #f8f9fa;">
-                                    <td colspan="2" style="padding: 10px; font-weight: bold; color: #333; border-bottom: 2px solid #ddd;">
-                                        Body Mass Index (BMI)
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px; color: #666; width: 60%;">Pothranjenost</td>
-                                    <td style="padding: 8px; color: #333; font-weight: bold;">&lt; 18.5</td>
-                                </tr>
-                                <tr style="background-color: #f8f9fa;">
-                                    <td style="padding: 8px; color: #666;">Normalna težina</td>
-                                    <td style="padding: 8px; color: #28a745; font-weight: bold;">18.5 - 25</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px; color: #666;">Prekomerna težina</td>
-                                    <td style="padding: 8px; color: #ff9800; font-weight: bold;">25 - 30</td>
-                                </tr>
-                                <tr style="background-color: #f8f9fa;">
-                                    <td style="padding: 8px; color: #666;">Gojaznost</td>
-                                    <td style="padding: 8px; color: #dc3545; font-weight: bold;">&gt; 30</td>
-                                </tr>
-                            </table>
-                            
-                            <!-- Procenat masti -->
-                            <table width="100%" cellpadding="8" cellspacing="0" style="margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px;">
-                                <tr style="background-color: #f8f9fa;">
-                                    <td colspan="3" style="padding: 10px; font-weight: bold; color: #333; border-bottom: 2px solid #ddd;">
-                                        Procenat telesne masti (%)
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px; color: #666; width: 40%;">Esencijalna mast</td>
-                                    <td style="padding: 8px; color: #333; font-weight: bold; width: 30%;">10-13%</td>
-                                    <td style="padding: 8px; color: #999; font-size: 12px;">Minimum za zdravlje</td>
-                                </tr>
-                                <tr style="background-color: #f8f9fa;">
-                                    <td style="padding: 8px; color: #666;">Sportski nivo</td>
-                                    <td style="padding: 8px; color: #28a745; font-weight: bold;">14-20%</td>
-                                    <td style="padding: 8px; color: #999; font-size: 12px;">Atletski izgled</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px; color: #666;">Fitnes nivo</td>
-                                    <td style="padding: 8px; color: #28a745; font-weight: bold;">21-24%</td>
-                                    <td style="padding: 8px; color: #999; font-size: 12px;">Odličan nivo</td>
-                                </tr>
-                                <tr style="background-color: #f8f9fa;">
-                                    <td style="padding: 8px; color: #666;">Prihvatljivo</td>
-                                    <td style="padding: 8px; color: #ffc107; font-weight: bold;">25-31%</td>
-                                    <td style="padding: 8px; color: #999; font-size: 12px;">Prosek</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px; color: #666;">Gojaznost</td>
-                                    <td style="padding: 8px; color: #dc3545; font-weight: bold;">&gt; 32%</td>
-                                    <td style="padding: 8px; color: #999; font-size: 12px;">Zdravstveni rizik</td>
-                                </tr>
-                            </table>
-                            
-                            <!-- Visceralna mast -->
-                            <table width="100%" cellpadding="8" cellspacing="0" style="margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px;">
-                                <tr style="background-color: #f8f9fa;">
-                                    <td colspan="2" style="padding: 10px; font-weight: bold; color: #333; border-bottom: 2px solid #ddd;">
-                                        Visceralna mast (Nivo)
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px; color: #666; width: 60%;">Normalan nivo</td>
-                                    <td style="padding: 8px; color: #28a745; font-weight: bold;">1 - 9</td>
-                                </tr>
-                                <tr style="background-color: #f8f9fa;">
-                                    <td style="padding: 8px; color: #666;">Povišen nivo</td>
-                                    <td style="padding: 8px; color: #ff9800; font-weight: bold;">10 - 14</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px; color: #666;">Jako povišen (rizik)</td>
-                                    <td style="padding: 8px; color: #dc3545; font-weight: bold;">&gt; 15</td>
-                                </tr>
-                            </table>
-                            
-                            <!-- Voda u telu -->
-                            <table width="100%" cellpadding="8" cellspacing="0" style="border: 1px solid #ddd; border-radius: 8px;">
-                                <tr style="background-color: #f8f9fa;">
-                                    <td colspan="2" style="padding: 10px; font-weight: bold; color: #333; border-bottom: 2px solid #ddd;">
-                                        Voda u telu (%)
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px; color: #666; width: 60%;">Dehidracija</td>
-                                    <td style="padding: 8px; color: #dc3545; font-weight: bold;">&lt; 45%</td>
-                                </tr>
-                                <tr style="background-color: #f8f9fa;">
-                                    <td style="padding: 8px; color: #666;">Normalan nivo</td>
-                                    <td style="padding: 8px; color: #28a745; font-weight: bold;">45-60%</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px; color: #666;">Odličan nivo</td>
-                                    <td style="padding: 8px; color: #28a745; font-weight: bold;">50-55%</td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                    
-                    <!-- NAPOMENA TRENERA -->
-                    {% if merenje.napomena %}
-                    <tr>
-                        <td style="padding: 20px 30px; background-color: #f8f9fa;">
-                            <div style="background: linear-gradient(135deg, #667eea15, #764ba215); border-left: 4px solid #667eea; padding: 15px; border-radius: 8px;">
-                                <h4 style="margin: 0 0 10px 0; color: #667eea; font-size: 16px;">
-                                    💬 Napomena trenera:
-                                </h4>
-                                <p style="margin: 0; color: #333; font-size: 14px; line-height: 1.6;">
-                                    {{ merenje.napomena }}
-                                </p>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endif %}
-                    
-                    <!-- FOOTER -->
-                    <tr>
-                        <td style="background-color: #f8f9fa; padding: 25px 30px; text-align: center; border-top: 1px solid #e0e0e0;">
-                            <p style="margin: 0 0 10px 0; color: #666; font-size: 14px;">
-                                <strong>Alchemist Ladies Fitness & Health Club</strong>
-                            </p>
-                            <p style="margin: 0; color: #999; font-size: 12px;">
-                                Nastavite sa odličnim radom! 💪
-                            </p>
-                        </td>
-                    </tr>
-                    
-                </table>
-                
-            </td>
-        </tr>
-    </table>
+    .header-card h1 {
+        font-size: 1.8em;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
     
-</body>
-</html>
+    <!-- BACK BUTTON -->
+    <a href="{% url 'profil' clan.id %}" class="btn-secondary">
+        <i class="fas fa-arrow-left"></i> Nazad na profil
+    </a>
+    
+    <!-- HEADER -->
+    <div class="header-card">
+        <h1><i class="fas fa-weight"></i> Novo Merenje</h1>
+        <p>{{ clan.ime_prezime }}</p>
+    </div>
+    
+    <form method="post" id="merenjeForm">
+        {% csrf_token %}
+        
+        <!-- SEKCIJA 1: OSNOVNI PODACI -->
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fas fa-user"></i>
+                <h3>Osnovni podaci</h3>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="required-field">Težina (kg)</label>
+                    {{ form.tezina }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Visina (cm)</label>
+                    {{ form.visina }}
+                </div>
+            </div>
+            
+            <div id="bmi-display" style="display: none;">
+                <div style="opacity: 0.8; font-size: 0.9em;">Body Mass Index (BMI)</div>
+                <div id="bmi-value">--</div>
+                <div id="bmi-category">--</div>
+            </div>
+        </div>
+        
+        <!-- SEKCIJA 2: SASTAV TELA -->
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fas fa-chart-pie"></i>
+                <h3>Sastav tela</h3>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Procenat masti (%)</label>
+                    {{ form.procenat_masti }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Mišićna masa (kg)</label>
+                    {{ form.misicna_masa }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Voda u telu (%)</label>
+                    {{ form.telesna_voda }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Visceralna mast (nivo)</label>
+                    {{ form.visceralna_mast }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Koštana masa (kg)</label>
+                    {{ form.kostana_masa }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Bazalni metabolizam (kcal)</label>
+                    {{ form.bazalni_metabolizam }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- SEKCIJA 3: DODATNE INFORMACIJE -->
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fas fa-clipboard"></i>
+                <h3>Dodatne informacije</h3>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Fizičko stanje (1-9)</label>
+                    {{ form.fizicki_status }}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Napomena trenera</label>
+                {{ form.napomena }}
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <i class="fas fa-info-circle"></i>
+            <strong>Napomena:</strong> Samo težina je obavezna. Sva ostala polja su opciona.
+        </div>
+        
+        <button type="submit" class="btn-primary">
+            <i class="fas fa-save"></i> Sačuvaj merenje
+        </button>
+    </form>
+    
+</div>
+
+<script>
+// AUTO-KALKULACIJA BMI
+document.addEventListener('DOMContentLoaded', function() {
+    const tezina = document.querySelector('input[name="tezina"]');
+    const visina = document.querySelector('input[name="visina"]');
+    const bmiDisplay = document.getElementById('bmi-display');
+    const bmiValue = document.getElementById('bmi-value');
+    const bmiCategory = document.getElementById('bmi-category');
+    
+    function calculateBMI() {
+        const t = parseFloat(tezina.value);
+        const v = parseFloat(visina.value);
+        
+        if (t && v && v > 0) {
+            const h = v / 100; // cm to m
+            const bmi = (t / (h * h)).toFixed(1);
+            
+            bmiDisplay.style.display = 'block';
+            bmiValue.textContent = bmi;
+            
+            // Kategorija
+            let category = '';
+            let color = '';
+            
+            if (bmi < 18.5) {
+                category = 'Pothranjenost';
+                color = '#ffa500';
+            } else if (bmi < 25) {
+                category = 'Normalna težina';
+                color = '#43e97b';
+            } else if (bmi < 30) {
+                category = 'Prekomerna težina';
+                color = '#f093fb';
+            } else {
+                category = 'Gojaznost';
+                color = '#ff4444';
+            }
+            
+            bmiCategory.textContent = category;
+            bmiValue.style.color = color;
+        } else {
+            bmiDisplay.style.display = 'none';
+        }
+    }
+    
+    tezina.addEventListener('input', calculateBMI);
+    visina.addEventListener('input', calculateBMI);
+    
+    // Pozovi na load ako ima vrednosti
+    calculateBMI();
+});
+</script>
+
+{% endblock %}
