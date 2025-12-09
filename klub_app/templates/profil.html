@@ -262,7 +262,7 @@ body.dark-theme .form-group textarea {
 }
 
 /* DUGMIĆI */
-.btn-primary, .btn-success, .btn-info, .btn-warning {
+.btn-primary, .btn-success, .btn-info, .btn-warning, .btn-danger {
     background: linear-gradient(135deg, #00bfff, #0099cc);
     color: white;
     border: none;
@@ -292,7 +292,12 @@ body.dark-theme .form-group textarea {
     box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
 }
 
-.btn-primary:hover, .btn-success:hover, .btn-info:hover, .btn-warning:hover {
+.btn-danger {
+    background: linear-gradient(135deg, #ff4444, #cc0000);
+    box-shadow: 0 4px 15px rgba(255, 68, 68, 0.3);
+}
+
+.btn-primary:hover, .btn-success:hover, .btn-info:hover, .btn-warning:hover, .btn-danger:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 191, 255, 0.4);
 }
@@ -352,6 +357,107 @@ body.dark-theme .table-container tr:hover {
     margin: 15px 0;
 }
 
+/* BADGE-OVI */
+.badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+.badge-success {
+    background: linear-gradient(135deg, #43e97b, #38d278);
+    color: white;
+}
+
+.badge-warning {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    color: white;
+}
+
+.badge-danger {
+    background: linear-gradient(135deg, #ff4444, #cc0000);
+    color: white;
+}
+
+.badge-info {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: white;
+}
+
+/* MEASUREMENT CARDS */
+.measurement-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s;
+}
+
+.measurement-card:hover {
+    transform: translateX(5px);
+    border-color: #00bfff;
+    box-shadow: 0 4px 15px rgba(0, 191, 255, 0.2);
+}
+
+.measurement-date {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #00bfff;
+    margin-bottom: 10px;
+}
+
+.measurement-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.measurement-stat {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.measurement-stat-value {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #00bfff;
+}
+
+.measurement-stat-label {
+    font-size: 0.85em;
+    opacity: 0.7;
+    margin-top: 5px;
+}
+
+.measurement-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.measurement-actions button,
+.measurement-actions form {
+    flex: 1;
+}
+
+.measurement-actions form button {
+    width: 100%;
+}
+
+/* CHART CONTAINER */
+.chart-container {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
 /* RESPONSIVE */
 @media (max-width: 768px) {
     .profile-header {
@@ -369,6 +475,14 @@ body.dark-theme .table-container tr:hover {
     
     .tabs-nav {
         overflow-x: auto;
+    }
+    
+    .measurement-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .measurement-actions {
+        flex-direction: column;
     }
 }
 </style>
@@ -413,48 +527,47 @@ body.dark-theme .table-container tr:hover {
         </div>
     </div>
 
-   <!-- STATISTIKA -->
-<div class="stats-row">
-    <div class="stat-card blue">
-        <i class="fas fa-calendar-check"></i>
-        <h3>
-            {% with last_uplata=uplate|first %}
-                {% if last_uplata %}
-                    {{ last_uplata.do_datum|date:"d.m.Y" }}
+    <!-- STATISTIKA -->
+    <div class="stats-row">
+        <div class="stat-card blue">
+            <i class="fas fa-calendar-check"></i>
+            <h3>
+                {% with last_uplata=uplate|first %}
+                    {% if last_uplata %}
+                        {{ last_uplata.do_datum|date:"d.m.Y" }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                {% endwith %}
+            </h3>
+            <p>Članarina važi do</p>
+        </div>
+        
+        <div class="stat-card green">
+            <i class="fas fa-euro-sign"></i>
+            <h3>{{ clan.krediti_voda|floatformat:2 }} €</h3>
+            <p>Krediti za vodu</p>
+        </div>
+        
+        <div class="stat-card pink">
+            <i class="fas fa-dumbbell"></i>
+            <h3>{{ istorija_rezervacija.count }}</h3>
+            <p>Ukupno treninga</p>
+        </div>
+        
+        <div class="stat-card purple">
+            <i class="fas fa-clock"></i>
+            <h3>
+                {% if clan.datum_rodjenja %}
+                    <span id="age-display">--</span> god
                 {% else %}
                     N/A
                 {% endif %}
-            {% endwith %}
-        </h3>
-        <p>Članarina važi do</p>
+            </h3>
+            <p>Starost</p>
+        </div>
     </div>
-    
-    <div class="stat-card green">
-        <i class="fas fa-euro-sign"></i>
-        <h3>{{ clan.krediti_voda|floatformat:2 }} €</h3>
-        <p>Krediti za vodu</p>
-    </div>
-    
-    <div class="stat-card pink">
-        <i class="fas fa-dumbbell"></i>
-        <h3>{{ istorija_rezervacija.count }}</h3>
-        <p>Ukupno treninga</p>
-    </div>
-    
-    <div class="stat-card purple">
-    <i class="fas fa-clock"></i>
-    <h3>
-        {% if clan.datum_rodjenja %}
-            {% now "Y" as current_year_str %}
-            {% widthratio clan.datum_rodjenja.year 1 1 as birth_year %}
-            {{ current_year_str|add:"-"|add:birth_year|add:"" }} god
-        {% else %}
-            N/A
-        {% endif %}
-    </h3>
-    <p>Starost</p>
-</div>
-</div>
+
     <!-- TAB NAVIGACIJA -->
     <div class="tabs-container">
         <div class="tabs-nav">
@@ -469,6 +582,9 @@ body.dark-theme .table-container tr:hover {
             </button>
             <button class="tab-button" onclick="openTab('poruke')">
                 <i class="fas fa-envelope"></i> Poruke
+            </button>
+            <button class="tab-button" onclick="openTab('merenja')">
+                <i class="fas fa-weight"></i> Merenja
             </button>
             <button class="tab-button" onclick="openTab('rezervacije')">
                 <i class="fas fa-calendar"></i> Rezervacije
@@ -705,7 +821,113 @@ body.dark-theme .table-container tr:hover {
             </div>
         </div>
 
-        <!-- TAB 5: REZERVACIJE -->
+        <!-- TAB 5: MERENJA (NOVO!) -->
+        <div id="merenja" class="tab-content">
+            
+            <!-- DODAJ NOVO MERENJE -->
+            <div class="section-card">
+                <div class="section-header">
+                    <i class="fas fa-plus-circle"></i>
+                    <h3>Dodaj novo merenje</h3>
+                </div>
+                <a href="{% url 'dodaj_merenje' clan.id %}" class="btn-success">
+                    <i class="fas fa-weight"></i> Kreiraj novo merenje
+                </a>
+            </div>
+            
+            <!-- GRAFIKON NAPRETKA -->
+            {% if merenja %}
+            <div class="section-card">
+                <div class="section-header">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Grafikon napretka</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="merenjaChart" height="80"></canvas>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- ISTORIJA MERENJA -->
+            <div class="section-card">
+                <div class="section-header">
+                    <i class="fas fa-history"></i>
+                    <h3>Istorija merenja</h3>
+                </div>
+                
+                {% if merenja %}
+                    {% for m in merenja %}
+                    <div class="measurement-card">
+                        <div class="measurement-date">
+                            <i class="fas fa-calendar-day"></i> {{ m.datum|date:"d.m.Y H:i" }}
+                        </div>
+                        
+                        <div class="measurement-stats">
+                            {% if m.tezina %}
+                            <div class="measurement-stat">
+                                <div class="measurement-stat-value">{{ m.tezina }} kg</div>
+                                <div class="measurement-stat-label">Težina</div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if m.bmi %}
+                            <div class="measurement-stat">
+                                <div class="measurement-stat-value">{{ m.bmi|floatformat:1 }}</div>
+                                <div class="measurement-stat-label">BMI</div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if m.procenat_masti %}
+                            <div class="measurement-stat">
+                                <div class="measurement-stat-value">{{ m.procenat_masti }}%</div>
+                                <div class="measurement-stat-label">Procenat masti</div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if m.misicna_masa %}
+                            <div class="measurement-stat">
+                                <div class="measurement-stat-value">{{ m.misicna_masa }} kg</div>
+                                <div class="measurement-stat-label">Mišićna masa</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if m.napomena_trenera %}
+                        <div style="margin-top: 15px; padding: 10px; background: rgba(0, 0, 0, 0.2); border-radius: 8px;">
+                            <strong style="color: #00bfff;"><i class="fas fa-comment"></i> Napomena:</strong>
+                            <p style="margin: 5px 0 0 0;">{{ m.napomena_trenera }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="measurement-actions">
+                            <form method="post" action="{% url 'posalji_merenje_email' m.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-info" style="margin: 0;">
+                                    <i class="fas fa-envelope"></i> Pošalji email
+                                </button>
+                            </form>
+                            
+                            <form method="post" action="{% url 'obrisi_merenje' m.id %}" onsubmit="return confirm('Da li ste sigurni da želite da obrišete ovo merenje?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-danger" style="margin: 0;">
+                                    <i class="fas fa-trash"></i> Obriši
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <p style="text-align: center; padding: 50px; opacity: 0.7;">
+                    <i class="fas fa-weight" style="font-size: 3em; margin-bottom: 15px; display: block;"></i>
+                    Još uvek nema evidencije merenja.<br>
+                    <small>Kliknite na dugme iznad da dodate prvo merenje.</small>
+                </p>
+                {% endif %}
+            </div>
+            
+        </div>
+
+        <!-- TAB 6: REZERVACIJE -->
         <div id="rezervacije" class="tab-content">
             <div class="section-card">
                 <div class="section-header">
@@ -757,6 +979,9 @@ body.dark-theme .table-container tr:hover {
 
 </div>
 
+<!-- Chart.js za grafikon -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
 // TAB SISTEM
 function openTab(tabName) {
@@ -773,6 +998,11 @@ function openTab(tabName) {
     
     // Aktiviraj dugme
     event.target.classList.add('active');
+    
+    // Ako je merenja tab, učitaj grafikon
+    if (tabName === 'merenja' && document.getElementById('merenjaChart')) {
+        loadMerenjaChart();
+    }
 }
 
 // VALIDACIJA KREDITA
@@ -797,6 +1027,107 @@ function validateKreditForm() {
     
     return true;
 }
+
+// GRAFIKON MERENJA
+let merenjaChartInstance = null;
+
+function loadMerenjaChart() {
+    if (merenjaChartInstance) {
+        return; // Već učitano
+    }
+    
+    fetch('/profil/{{ clan.id }}/merenja/json/')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('merenjaChart');
+            if (!ctx) return;
+            
+            merenjaChartInstance = new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [
+                        {
+                            label: 'Težina (kg)',
+                            data: data.tezina,
+                            borderColor: '#4facfe',
+                            backgroundColor: 'rgba(79, 172, 254, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Procenat masti (%)',
+                            data: data.procenat_masti,
+                            borderColor: '#f093fb',
+                            backgroundColor: 'rgba(240, 147, 251, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Mišićna masa (kg)',
+                            data: data.misicna_masa,
+                            borderColor: '#43e97b',
+                            backgroundColor: 'rgba(67, 233, 123, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'BMI',
+                            data: data.bmi,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: '#fff',
+                                font: { size: 13 }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            ticks: { color: '#fff' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#fff' }
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => console.error('Greška pri učitavanju grafikona:', error));
+}
+
+// IZRAČUNAJ STAROST
+document.addEventListener('DOMContentLoaded', function() {
+    {% if clan.datum_rodjenja %}
+    const birthDate = new Date('{{ clan.datum_rodjenja|date:"Y-m-d" }}');
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+    
+    const ageDisplay = document.getElementById('age-display');
+    if (ageDisplay) {
+        ageDisplay.textContent = age;
+    }
+    {% endif %}
+});
 </script>
 
 {% endblock %}
