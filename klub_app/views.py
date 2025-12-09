@@ -26,8 +26,8 @@ from django.views.decorators.csrf import csrf_exempt
 import firebase_admin
 from firebase_admin import credentials, messaging
 from django.core.files.storage import default_storage
-from .models import Clan, Uplata, Rezervacija, Stock, Sale, Obavestenje, UserProfile
-from .forms import ClanForm, UplataForm, SaleForm
+from .models import Clan, Uplata, Rezervacija, Stock, Sale, Obavestenje, UserProfile, Merenje
+from .forms import ClanForm, UplataForm, SaleForm, MerenjeForm
 from .services.firebase_service import send_push_notification
 
 
@@ -817,6 +817,7 @@ def profil(request, clan_id):
         'is_klijent': is_klijent,
         'clan_form': ClanForm(instance=clan),
         'uplata_form': UplataForm(),
+        'merenja': clan.merenja.all(),  # ← NOVO - JEDINA PROMENA!
     }
     return render(request, 'profil.html', context)
 
@@ -1315,3 +1316,112 @@ def logout_view(request):
     logout(request)
     messages.success(request, 'Uspešno ste se odjavili.')
     return redirect('klub_app:login')
+
+# ========================================
+# VIEWS ZA MERENJA - DODATO 09.12.2024
+# ========================================
+
+@login_required
+def dodaj_merenje(request, clan_id):
+    clan = get_object_or_404(Clan, id=clan_id)
+    
+    if request.method == 'POST':
+        form = MerenjeForm(request.POST)
+        if form.is_valid():
+            merenje = form.save(commit=False)
+            merenje.clan = clan
+            merenje.kreirao = request.user
+            merenje.save()
+            messages.success(request, f'✅ Merenje za {clan.ime_prezime} je uspešno sačuvano!')
+            return redirect('profil', clan_id=clan.id)
+        else:
+            messages.error(request, '❌ Greška pri čuvanju merenja.')
+    else:
+        poslednje_merenje = Merenje.objects.filter(clan=clan).first()
+        initial_data = {}
+        if poslednje_merenje and poslednje_merenje.visina:
+            initial_data['visina'] = poslednje_merenje.visina
+        form = MerenjeForm(initial=initial_data)
+    
+    return render(request, 'dodaj_merenje.html', {'form': form, 'clan': clan})
+
+
+@login_required
+def merenja_json(request, clan_id):
+    clan = get_object_or_404(Clan, id=clan_id)
+    merenja = Merenje.objects.filter(clan=clan).order_by('datum')[:20]
+    
+    data = {
+        'labels': [m.datum.strftime('%d.%m.%Y') for m in merenja],
+        'tezina': [float(m.tezina) if m.tezina else None for m in merenja],
+        'procenat_masti': [float(m.procenat_masti) if m.procenat_masti else None for m in merenja],
+        'misicna_masa': [float(m.misicna_masa) if m.misicna_masa else None for m in merenja],
+        'visceralna_mast': [int(m.visceralna_mast) if m.visceralna_mast else None for m in merenja],
+        'bmi': [float(m.bmi) if m.bmi else None for m in merenja],
+    }
+    
+    return JsonResponse(data)
+
+
+@login_required
+def obrisi_merenje(request, merenje_id):
+    merenje = get_object_or_404(Merenje, id=merenje_id)
+    clan_id = merenje.clan.id
+    
+    if request.method == 'POST':
+        merenje.delete()
+        messages.success(request, '✅ Merenje je uspešno obrisano!')
+    
+    return redirect('profil', clan_id=clan_id)
+
+
+@login_required
+def posalji_merenje_email(request, merenje_id):
+    merenje = get_object_or_404(Merenje, id=merenje_id)
+    clan = merenje.clan
+    
+    if not clan.email:
+        messages.error(request, '❌ Klijent nema unesen email.')
+        return redirect('profil', clan_id=clan.id)
+    
+    try:
+        from django.template.loader import render_to_string
+        from django.core.mail import EmailMessage
+        
+        html_content = render_to_string('emails/merenje_izvestaj.html', {
+            'clan': clan,
+            'merenje': merenje,
+        })
+        
+        email = EmailMessage(
+            subject=f'Rezultati merenja - {clan.ime_prezime}',
+            body=html_content,
+            from_email='office@alchemist-fitnessclub.com',
+            to=[clan.email],
+        )
+        email.content_subtype = 'html'
+        email.send()
+        
+        messages.success(request, f'✅ Izveštaj poslat na {clan.email}')
+    except Exception as e:
+        messages.error(request, f'❌ Greška: {str(e)}')
+    
+    return redirect('profil', clan_id=clan.id)
+
+
+@login_required
+def api_merenja_lista(request, clan_id):
+    clan = get_object_or_404(Clan, id=clan_id)
+    merenja = Merenje.objects.filter(clan=clan).order_by('-datum')
+    
+    data = []
+    for m in merenja:
+        data.append({
+            'id': m.id,
+            'datum': m.datum.strftime('%d.%m.%Y %H:%M'),
+            'tezina': float(m.tezina) if m.tezina else None,
+            'procenat_masti': float(m.procenat_masti) if m.procenat_masti else None,
+            'bmi': float(m.bmi) if m.bmi else None,
+        })
+    
+    return JsonResponse({'merenja': data})
