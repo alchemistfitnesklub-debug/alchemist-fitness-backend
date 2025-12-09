@@ -48,6 +48,13 @@ urlpatterns = [
     # ========== Krediti ==========
     path('krediti/<int:clan_id>/', views.krediti_json, name='krediti_json'),
     
+    # ========== MERENJA - DODATO 09.12.2024 ==========
+    path('profil/<int:clan_id>/dodaj-merenje/', views.dodaj_merenje, name='dodaj_merenje'),
+    path('merenja/<int:merenje_id>/obrisi/', views.obrisi_merenje, name='obrisi_merenje'),
+    path('merenja/<int:merenje_id>/posalji-email/', views.posalji_merenje_email, name='posalji_merenje_email'),
+    path('profil/<int:clan_id>/merenja/json/', views.merenja_json, name='merenja_json'),
+    path('api/clan/<int:clan_id>/merenja/', views.api_merenja_lista, name='api_merenja_lista'),
+    
     # ========== FCM Token Management ==========
     path('api/fcm-token/save/', save_fcm_token, name='save_fcm_token_api'),
     path('api/fcm-token/delete/', delete_fcm_token, name='delete_fcm_token_api'),
