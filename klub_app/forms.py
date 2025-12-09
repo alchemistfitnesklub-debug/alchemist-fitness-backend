@@ -1,5 +1,5 @@
 from django import forms
-from .models import Clan, Uplata, Sale, Stock
+from .models import Clan, Uplata, Sale, Stock, Merenje
 
 class ClanForm(forms.ModelForm):
     class Meta:
@@ -27,52 +27,198 @@ class SaleForm(forms.ModelForm):
 # FORMA ZA MERENJA - DODATO 09.12.2024
 # ========================================
 
-from .models import Merenje
-
 class MerenjeForm(forms.ModelForm):
     class Meta:
         model = Merenje
-        exclude = ['clan', 'kreirao', 'created_at', 'updated_at']
+        # ISKLJUČI polja koja se auto-generišu
+        exclude = ['clan', 'kreirao', 'created_at', 'updated_at', 'datum', 'bmi']
+        
         widgets = {
-            'datum': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
-            'tezina': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1', 'placeholder': '66.5'}),
-            'visina': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1', 'placeholder': '177'}),
-            'procenat_masti': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1'}),
-            'misicna_masa': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1'}),
-            'telesna_voda': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1'}),
-            'visceralna_mast': forms.NumberInput(attrs={'class': 'form-control'}),
-            'kostana_masa': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1'}),
-            'bmi': forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
-            'bazalni_metabolizam': forms.NumberInput(attrs={'class': 'form-control'}),
-            'krvni_pritisak_sistolni': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '120'}),
-            'krvni_pritisak_dijastolni': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '80'}),
-            'broj_otkucaja_miru': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '70'}),
-            'max_broj_otkucaja': forms.NumberInput(attrs={'class': 'form-control'}),
-            'max_otkucaja_70': forms.NumberInput(attrs={'class': 'form-control'}),
-            'max_otkucaja_80': forms.NumberInput(attrs={'class': 'form-control'}),
-            'vo2_apsolutni': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1'}),
-            'vo2_relativni': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1'}),
-            'obim_struka': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1'}),
-            'obim_grudi': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1'}),
-            'obim_bokova': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1'}),
-            'obim_podlaktice': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1'}),
-            'obim_podkolenice': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1'}),
-            'obim_nadlaktica_leva': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1'}),
-            'obim_nadlaktica_desna': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1'}),
-            'obim_butina_leva': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1'}),
-            'obim_butina_desna': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1'}),
-            'fizicki_status': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'max': '9', 'placeholder': '5'}),
-            'napomena': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Dodatne napomene...'}),
+            'tezina': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 75.5',
+                'step': '0.1',
+                'min': '20',
+                'max': '300'
+            }),
+            'visina': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 175',
+                'step': '0.1',
+                'min': '100',
+                'max': '250'
+            }),
+            'procenat_masti': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 20.5',
+                'step': '0.1',
+                'min': '0',
+                'max': '100'
+            }),
+            'misicna_masa': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 55.0',
+                'step': '0.1',
+                'min': '0',
+                'max': '200'
+            }),
+            'telesna_voda': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 60.0',
+                'step': '0.1',
+                'min': '0',
+                'max': '100'
+            }),
+            'visceralna_mast': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 5',
+                'step': '1',
+                'min': '0',
+                'max': '30'
+            }),
+            'kostana_masa': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 2.5',
+                'step': '0.1',
+                'min': '0',
+                'max': '10'
+            }),
+            'bazalni_metabolizam': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 1500',
+                'step': '1',
+                'min': '0',
+                'max': '5000'
+            }),
+            'krvni_pritisak_sistolni': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 120',
+                'step': '1',
+                'min': '50',
+                'max': '250'
+            }),
+            'krvni_pritisak_dijastolni': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 80',
+                'step': '1',
+                'min': '30',
+                'max': '150'
+            }),
+            'broj_otkucaja_miru': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 70',
+                'step': '1',
+                'min': '30',
+                'max': '200'
+            }),
+            'max_broj_otkucaja': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 180',
+                'step': '1',
+                'min': '100',
+                'max': '250'
+            }),
+            'max_otkucaja_70': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 126',
+                'step': '1',
+                'min': '50',
+                'max': '200'
+            }),
+            'max_otkucaja_80': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 144',
+                'step': '1',
+                'min': '50',
+                'max': '200'
+            }),
+            'vo2_apsolutni': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 3.5',
+                'step': '0.1',
+                'min': '0',
+                'max': '10'
+            }),
+            'vo2_relativni': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 45.0',
+                'step': '0.1',
+                'min': '0',
+                'max': '100'
+            }),
+            'obim_struka': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 80',
+                'step': '0.1',
+                'min': '30',
+                'max': '200'
+            }),
+            'obim_grudi': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 95',
+                'step': '0.1',
+                'min': '50',
+                'max': '200'
+            }),
+            'obim_bokova': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 100',
+                'step': '0.1',
+                'min': '50',
+                'max': '200'
+            }),
+            'obim_podlaktice': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 26',
+                'step': '0.1',
+                'min': '15',
+                'max': '50'
+            }),
+            'obim_podkolenice': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 35',
+                'step': '0.1',
+                'min': '20',
+                'max': '70'
+            }),
+            'obim_nadlaktica_leva': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 32',
+                'step': '0.1',
+                'min': '15',
+                'max': '70'
+            }),
+            'obim_nadlaktica_desna': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 32',
+                'step': '0.1',
+                'min': '15',
+                'max': '70'
+            }),
+            'obim_butina_leva': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 55',
+                'step': '0.1',
+                'min': '30',
+                'max': '100'
+            }),
+            'obim_butina_desna': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Npr. 55',
+                'step': '0.1',
+                'min': '30',
+                'max': '100'
+            }),
+            'fizicki_status': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Skala 1-9',
+                'step': '1',
+                'min': '1',
+                'max': '9'
+            }),
+            'napomena': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Unesite napomenu...',
+                'rows': 4
+            }),
         }
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        tezina = cleaned_data.get('tezina')
-        visina = cleaned_data.get('visina')
-        
-        if tezina and visina:
-            visina_m = float(visina) / 100
-            bmi = float(tezina) / (visina_m ** 2)
-            cleaned_data['bmi'] = round(bmi, 2)
-        
-        return cleaned_data
