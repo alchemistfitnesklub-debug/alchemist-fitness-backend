@@ -108,3 +108,113 @@ class FCMToken(models.Model):
             return f"{username} - {self.device_type} - {token_preview}..."
         except Exception:
             return f"FCMToken {self.id if self.id else 'New'}"
+
+# ========================================
+# MODEL ZA MERENJA - DODATO 09.12.2024
+# ========================================
+
+from django.utils import timezone
+from decimal import Decimal
+
+class Merenje(models.Model):
+    """
+    Model za čuvanje fizičkih merenja članova fitness kluba
+    """
+    clan = models.ForeignKey(Clan, on_delete=models.CASCADE, related_name='merenja')
+    datum = models.DateTimeField(default=timezone.now, verbose_name="Datum i vreme merenja")
+    
+    # OSNOVNA MERENJA
+    tezina = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name="Telesna masa (kg)")
+    visina = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, verbose_name="Visina (cm)")
+    procenat_masti = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, verbose_name="Telesnih masti (%)")
+    misicna_masa = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name="Mišićna masa (kg)")
+    telesna_voda = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name="Telesne vode (kg)")
+    visceralna_mast = models.IntegerField(null=True, blank=True, verbose_name="Visceralne masti (nivo)")
+    kostana_masa = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name="Koštana masa (kg)")
+    bmi = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name="BMI")
+    bazalni_metabolizam = models.IntegerField(null=True, blank=True, verbose_name="Bazalni metabolizam (kcal)")
+    
+    # KARDIOVASKULARNA MERENJA
+    krvni_pritisak_sistolni = models.IntegerField(null=True, blank=True, verbose_name="Sistolni pritisak (mmHg)")
+    krvni_pritisak_dijastolni = models.IntegerField(null=True, blank=True, verbose_name="Dijastolni pritisak (mmHg)")
+    broj_otkucaja_miru = models.IntegerField(null=True, blank=True, verbose_name="Broj srčanih otkucaja u miru")
+    max_broj_otkucaja = models.IntegerField(null=True, blank=True, verbose_name="Max. broj srčanih otkucaja")
+    max_otkucaja_70 = models.IntegerField(null=True, blank=True, verbose_name="70% od max otkucaja")
+    max_otkucaja_80 = models.IntegerField(null=True, blank=True, verbose_name="80% od max otkucaja")
+    vo2_apsolutni = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, verbose_name="Apsolutni max VO2")
+    vo2_relativni = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, verbose_name="Relativni max VO2")
+    
+    # OBIMI TELA
+    obim_struka = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, verbose_name="Obim struka (cm)")
+    obim_grudi = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, verbose_name="Obim grudi (cm)")
+    obim_bokova = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, verbose_name="Obim bokova (cm)")
+    obim_podlaktice = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, verbose_name="Obim podlaktice (cm)")
+    obim_podkolenice = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, verbose_name="Obim podkolenice (cm)")
+    obim_nadlaktica_leva = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, verbose_name="Obim leve nadlaktice (cm)")
+    obim_nadlaktica_desna = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, verbose_name="Obim desne nadlaktice (cm)")
+    obim_butina_leva = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, verbose_name="Obim leve butine (cm)")
+    obim_butina_desna = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, verbose_name="Obim desne butine (cm)")
+    
+    # DODATNO
+    fizicki_status = models.IntegerField(null=True, blank=True, verbose_name="Fizički status (1-9)")
+    napomena = models.TextField(blank=True, verbose_name="Napomena trenera")
+    kreirao = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Merenje izvršio")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-datum']
+        verbose_name = 'Merenje'
+        verbose_name_plural = 'Merenja'
+    
+    def __str__(self):
+        return f"{self.clan.ime_prezime} - {self.datum.strftime('%d.%m.%Y')}"
+    
+    def izracunaj_bmi(self):
+        if self.tezina and self.visina:
+            visina_m = float(self.visina) / 100
+            bmi = float(self.tezina) / (visina_m ** 2)
+            return round(bmi, 2)
+        return None
+    
+    def bmi_kategorija(self):
+        if not self.bmi:
+            return "N/A"
+        bmi = float(self.bmi)
+        if bmi < 18.5:
+            return "Pothranjen"
+        elif 18.5 <= bmi < 25:
+            return "Normalna težina"
+        elif 25 <= bmi < 30:
+            return "Prekomerna težina"
+        else:
+            return "Gojaznost"
+    
+    def status_telesne_masti(self):
+        if not self.procenat_masti:
+            return "N/A"
+        procenat = float(self.procenat_masti)
+        if procenat < 20:
+            return "Podhranjen"
+        elif 20 <= procenat < 30:
+            return "Zdrav"
+        elif 30 <= procenat < 35:
+            return "Prehranjen"
+        else:
+            return "Gojazan"
+    
+    def procena_rizika_visceralne_masti(self):
+        if not self.visceralna_mast:
+            return "N/A"
+        nivo = int(self.visceralna_mast)
+        if nivo <= 9:
+            return "Normalno (nizak rizik)"
+        elif 10 <= nivo <= 14:
+            return "Visok rizik"
+        else:
+            return "Veoma visok rizik"
+    
+    def save(self, *args, **kwargs):
+        if self.tezina and self.visina and not self.bmi:
+            self.bmi = self.izracunaj_bmi()
+        super().save(*args, **kwargs)
