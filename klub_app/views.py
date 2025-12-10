@@ -1636,3 +1636,290 @@ def management_staff_attendance(request):
         'staff_data': staff_data,
     }
     return render(request, 'management_staff_attendance.html', context)
+
+# ========================================
+# MANAGEMENT DASHBOARD - FAZA 2 (BONUS)
+# DODATO 10.12.2024
+# ========================================
+
+@admin_only
+def management_cash_flow(request):
+    """Cash Flow prognoza - 3 meseca unapred"""
+    today = timezone.now().date()
+    
+    # Kreiraj datume za naredna 3 meseca
+    months = []
+    for i in range(3):
+        if today.month + i > 12:
+            year = today.year + 1
+            month = (today.month + i) % 12
+        else:
+            year = today.year
+            month = today.month + i
+        
+        first_day = date(year, month, 1)
+        
+        # Poslednji dan meseca
+        if month == 12:
+            last_day = date(year, 12, 31)
+        else:
+            last_day = date(year, month + 1, 1) - timedelta(days=1)
+        
+        # Članarine koje ističu u ovom mesecu
+        expirations = Uplata.objects.filter(
+            do_datum__gte=first_day,
+            do_datum__lte=last_day
+        )
+        
+        predicted_income = expirations.aggregate(Sum('iznos'))['iznos__sum'] or Decimal('0.00')
+        
+        months.append({
+            'name': first_day.strftime('%B %Y'),
+            'first_day': first_day,
+            'last_day': last_day,
+            'predicted_income': predicted_income,
+            'count': expirations.count(),
+        })
+    
+    total_predicted = sum(m['predicted_income'] for m in months)
+    
+    context = {
+        'months': months,
+        'total_predicted': total_predicted,
+        'chart_labels': json.dumps([m['name'] for m in months]),
+        'chart_data': json.dumps([float(m['predicted_income']) for m in months]),
+    }
+    return render(request, 'management_cash_flow.html', context)
+
+
+@admin_only
+def management_retention_rate(request):
+    """Retention Rate - stopa zadržavanja klijenata"""
+    today = timezone.now().date()
+    
+    # Članarine koje su istekle u poslednjih 60 dana
+    sixty_days_ago = today - timedelta(days=60)
+    expired_memberships = Uplata.objects.filter(
+        do_datum__gte=sixty_days_ago,
+        do_datum__lt=today
+    ).select_related('clan')
+    
+    total_expired = expired_memberships.count()
+    renewed_count = 0
+    not_renewed = []
+    
+    for uplata in expired_memberships:
+        # Proveri da li ima noviju članarinu
+        has_renewal = Uplata.objects.filter(
+            clan=uplata.clan,
+            od_datum__gte=uplata.do_datum
+        ).exists()
+        
+        if has_renewal:
+            renewed_count += 1
+        else:
+            not_renewed.append({
+                'clan': uplata.clan,
+                'expired': uplata.do_datum,
+                'amount': uplata.iznos,
+            })
+    
+    retention_rate = (renewed_count / total_expired * 100) if total_expired > 0 else 0
+    
+    context = {
+        'total_expired': total_expired,
+        'renewed_count': renewed_count,
+        'not_renewed_count': len(not_renewed),
+        'retention_rate': round(retention_rate, 1),
+        'not_renewed': not_renewed[:20],  # Prvih 20
+    }
+    return render(request, 'management_retention_rate.html', context)
+
+
+@admin_only
+def management_top_clients(request):
+    """Top 10 klijenata po zaradi"""
+    from_date_str = request.GET.get('from_date')
+    to_date_str = request.GET.get('to_date')
+    
+    today = timezone.now().date()
+    
+    if from_date_str:
+        from_date = parse_date(from_date_str) or (today - timedelta(days=365))
+    else:
+        from_date = today - timedelta(days=365)  # Poslednja godina
+    
+    if to_date_str:
+        to_date = parse_date(to_date_str) or today
+    else:
+        to_date = today
+    
+    # Grupiši uplate po klijentu
+    top_clients = Uplata.objects.filter(
+        datum__gte=from_date,
+        datum__lte=to_date
+    ).values('clan__ime_prezime', 'clan__id').annotate(
+        total=Sum('iznos'),
+        count=Count('id')
+    ).order_by('-total')[:10]
+    
+    total_revenue = sum(c['total'] for c in top_clients)
+    
+    context = {
+        'from_date': from_date.strftime('%Y-%m-%d'),
+        'to_date': to_date.strftime('%Y-%m-%d'),
+        'top_clients': top_clients,
+        'total_revenue': total_revenue,
+        'chart_labels': json.dumps([c['clan__ime_prezime'] for c in top_clients]),
+        'chart_data': json.dumps([float(c['total']) for c in top_clients]),
+    }
+    return render(request, 'management_top_clients.html', context)
+
+
+@admin_only
+def management_ghost_members(request):
+    """Ghost Members - detaljniji prikaz"""
+    today = timezone.now().date()
+    days_threshold = int(request.GET.get('days', 30))
+    
+    threshold_date = today - timedelta(days=days_threshold)
+    
+    # Svi sa aktivnom članarinom
+    active_members = Clan.objects.filter(
+        uplata__do_datum__gte=today
+    ).distinct()
+    
+    ghost_members = []
+    total_potential_loss = Decimal('0.00')
+    
+    for clan in active_members:
+        # Poslednja rezervacija
+        last_reservation = Rezervacija.objects.filter(clan=clan).order_by('-datum').first()
+        
+        if not last_reservation or last_reservation.datum < threshold_date:
+            days_inactive = (today - last_reservation.datum).days if last_reservation else 999
+            
+            # Poslednja uplata
+            last_uplata = Uplata.objects.filter(clan=clan).order_by('-datum').first()
+            potential_loss = last_uplata.iznos if last_uplata else Decimal('0.00')
+            
+            ghost_members.append({
+                'clan': clan,
+                'last_reservation': last_reservation.datum if last_reservation else None,
+                'days_inactive': days_inactive,
+                'potential_loss': potential_loss,
+                'expires': last_uplata.do_datum if last_uplata else None,
+            })
+            
+            total_potential_loss += potential_loss
+    
+    # Sortiraj po broju dana neaktivnosti
+    ghost_members.sort(key=lambda x: x['days_inactive'], reverse=True)
+    
+    context = {
+        'days_threshold': days_threshold,
+        'ghost_members': ghost_members,
+        'count': len(ghost_members),
+        'total_potential_loss': total_potential_loss,
+    }
+    return render(request, 'management_ghost_members.html', context)
+
+
+@admin_only
+def management_attendance_heatmap(request):
+    """Attendance Heatmap - najpopularniji dani/termini"""
+    from_date_str = request.GET.get('from_date')
+    to_date_str = request.GET.get('to_date')
+    
+    today = timezone.now().date()
+    
+    if from_date_str:
+        from_date = parse_date(from_date_str) or (today - timedelta(days=30))
+    else:
+        from_date = today - timedelta(days=30)
+    
+    if to_date_str:
+        to_date = parse_date(to_date_str) or today
+    else:
+        to_date = today
+    
+    # Rezervacije u periodu
+    rezervacije = Rezervacija.objects.filter(
+        datum__gte=from_date,
+        datum__lte=to_date
+    )
+    
+    # Grupiši po danu u nedelji
+    day_counts = rezervacije.extra(
+        select={'day_of_week': "EXTRACT(DOW FROM datum)"}
+    ).values('day_of_week').annotate(count=Count('id')).order_by('day_of_week')
+    
+    day_labels = ['Nedelja', 'Ponedeljak', 'Utorak', 'Sreda', 'Četvrtak', 'Petak', 'Subota']
+    day_data = [0] * 7
+    
+    for entry in day_counts:
+        day_index = int(entry['day_of_week'])
+        day_data[day_index] = entry['count']
+    
+    # Grupiši po satu
+    hour_counts = rezervacije.values('sat').annotate(count=Count('id')).order_by('sat')
+    
+    hour_labels = [f"{h}:00" for h in range(6, 23)]
+    hour_data = [0] * len(hour_labels)
+    
+    for entry in hour_counts:
+        hour_index = entry['sat'] - 6  # Offset jer počinje od 6
+        if 0 <= hour_index < len(hour_data):
+            hour_data[hour_index] = entry['count']
+    
+    # Najpopularniji termin
+    most_popular = hour_counts.first()
+    most_popular_time = f"{most_popular['sat']}:00" if most_popular else "N/A"
+    most_popular_count = most_popular['count'] if most_popular else 0
+    
+    context = {
+        'from_date': from_date.strftime('%Y-%m-%d'),
+        'to_date': to_date.strftime('%Y-%m-%d'),
+        'total_reservations': rezervacije.count(),
+        'most_popular_time': most_popular_time,
+        'most_popular_count': most_popular_count,
+        'day_labels': json.dumps(day_labels),
+        'day_data': json.dumps(day_data),
+        'hour_labels': json.dumps(hour_labels),
+        'hour_data': json.dumps(hour_data),
+    }
+    return render(request, 'management_attendance_heatmap.html', context)
+
+
+@admin_only
+def management_customer_value(request):
+    """Average Customer Value - prosečna vrednost člana"""
+    # Svi članovi sa uplatama
+    clanovi_sa_uplatama = Clan.objects.annotate(
+        total_paid=Sum('uplata__iznos'),
+        payment_count=Count('uplata')
+    ).filter(total_paid__gt=0).order_by('-total_paid')
+    
+    total_members = clanovi_sa_uplatama.count()
+    total_revenue = clanovi_sa_uplatama.aggregate(Sum('total_paid'))['total_paid__sum'] or Decimal('0.00')
+    
+    average_value = (total_revenue / total_members) if total_members > 0 else Decimal('0.00')
+    
+    # Raspodela po kategorijama
+    categories = {
+        'low': clanovi_sa_uplatama.filter(total_paid__lt=100).count(),
+        'medium': clanovi_sa_uplatama.filter(total_paid__gte=100, total_paid__lt=500).count(),
+        'high': clanovi_sa_uplatama.filter(total_paid__gte=500, total_paid__lt=1000).count(),
+        'vip': clanovi_sa_uplatama.filter(total_paid__gte=1000).count(),
+    }
+    
+    context = {
+        'total_members': total_members,
+        'total_revenue': total_revenue,
+        'average_value': round(average_value, 2),
+        'categories': categories,
+        'top_spenders': clanovi_sa_uplatama[:10],
+        'chart_labels': json.dumps(['< 100€', '100-500€', '500-1000€', '1000€+']),
+        'chart_data': json.dumps([categories['low'], categories['medium'], categories['high'], categories['vip']]),
+    }
+    return render(request, 'management_customer_value.html', context)
