@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Management Dashboard{% endblock %}
+
+{% block extra_head %}
+<style>
+.management-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.management-header {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    text-align: center;
+    border: 2px solid rgba(102, 126, 234, 0.3);
+}
+
+.management-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.management-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s;
+    text-align: center;
+}
+
+body.dark-theme .management-card {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.management-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.management-card i {
+    font-size: 3em;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.management-card h3 {
+    font-size: 1.3em;
+    margin-bottom: 15px;
+}
+
+.management-card p {
+    opacity: 0.8;
+    margin-bottom: 20px;
+}
+
+.btn-management {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 10px;
+    text-decoration: none;
+    display: inline-block;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.btn-management:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-back {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 10px;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 20px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="management-container">
+    
+    <a href="{% url 'dashboard' %}" class="btn-back">
+        <i class="fas fa-arrow-left"></i> Nazad na Dashboard
+    </a>
+    
+    <div class="management-header">
+        <h1 style="font-size: 2.5em; margin-bottom: 10px;">
+            <i class="fas fa-lock"></i> MANAGEMENT DASHBOARD
+        </h1>
+        <p style="opacity: 0.9; font-size: 1.1em;">Napredne menadžerske metrike - Samo za tvoje oči</p>
+    </div>
+    
+    <div class="management-grid">
+        
+        <!-- PREDVIĐENE UPLATE -->
+        <div class="management-card">
+            <i class="fas fa-euro-sign" style="color: #43e97b;"></i>
+            <h3>Predviđene Uplate</h3>
+            <p>Ko treba da plati i koliko - prognoza prihoda</p>
+            <a href="{% url 'management_predicted_income' %}" class="btn-management">
+                <i class="fas fa-chart-line"></i> Prikaži
+            </a>
+        </div>
+        
+        <!-- UPLATE PO KLIJENTU -->
+        <div class="management-card">
+            <i class="fas fa-search-dollar" style="color: #4facfe;"></i>
+            <h3>Uplate po Klijentu</h3>
+            <p>Pretraži istoriju uplata za bilo kog člana</p>
+            <a href="{% url 'management_client_payments' %}" class="btn-management">
+                <i class="fas fa-search"></i> Pretraži
+            </a>
+        </div>
+        
+        <!-- CHART TEKUĆEG MESECA -->
+        <div class="management-card">
+            <i class="fas fa-chart-bar" style="color: #f093fb;"></i>
+            <h3>Analiza Tekućeg Meseca</h3>
+            <p>Ostvareno, predviđeno i potencijalni gubitak</p>
+            <a href="{% url 'management_monthly_chart' %}" class="btn-management">
+                <i class="fas fa-chart-pie"></i> Prikaži
+            </a>
+        </div>
+        
+        <!-- RADNI DANI ZAPOSLENIH -->
+        <div class="management-card">
+            <i class="fas fa-users-cog" style="color: #ff9800;"></i>
+            <h3>Prisustvo Zaposlenih</h3>
+            <p>Broj radnih dana trenera i admina</p>
+            <a href="{% url 'management_staff_attendance' %}" class="btn-management">
+                <i class="fas fa-calendar-check"></i> Prikaži
+            </a>
+        </div>
+        
+    </div>
+    
+</div>
+{% endblock %}
