@@ -1428,3 +1428,204 @@ def api_merenja_lista(request, clan_id):
         })
     
     return JsonResponse({'merenja': data})
+
+# ========================================
+# MANAGEMENT DASHBOARD - DODATO 10.12.2024
+# ========================================
+
+@admin_only
+def management_dashboard(request):
+    """Glavni Management Dashboard sa svim menadžerskim metrikama"""
+    today = timezone.now().date()
+    
+    context = {
+        'today': today,
+    }
+    return render(request, 'management_dashboard.html', context)
+
+
+@admin_only
+def management_predicted_income(request):
+    """Predviđene uplate - ko treba da plati i koliko"""
+    from_date_str = request.GET.get('from_date')
+    to_date_str = request.GET.get('to_date')
+    
+    today = timezone.now().date()
+    
+    if from_date_str:
+        from_date = parse_date(from_date_str) or today
+    else:
+        from_date = today
+    
+    if to_date_str:
+        to_date = parse_date(to_date_str) or (today + timedelta(days=30))
+    else:
+        to_date = today + timedelta(days=30)
+    
+    # Članarine koje ističu u periodu
+    expirations = Uplata.objects.filter(
+        do_datum__gte=from_date,
+        do_datum__lte=to_date
+    ).select_related('clan').order_by('do_datum')
+    
+    # Prognoza - pretpostavka da će platiti isto kao prošli put
+    predicted_data = []
+    total_predicted = Decimal('0.00')
+    
+    for uplata in expirations:
+        predicted_amount = uplata.iznos  # Očekujemo istu cifru
+        predicted_data.append({
+            'clan': uplata.clan,
+            'expires': uplata.do_datum,
+            'last_amount': uplata.iznos,
+            'predicted_amount': predicted_amount,
+            'meseci': uplata.meseci,
+        })
+        total_predicted += predicted_amount
+    
+    context = {
+        'from_date': from_date.strftime('%Y-%m-%d'),
+        'to_date': to_date.strftime('%Y-%m-%d'),
+        'predicted_data': predicted_data,
+        'total_predicted': total_predicted,
+        'count': len(predicted_data),
+    }
+    return render(request, 'management_predicted_income.html', context)
+
+
+@admin_only
+def management_client_payments(request):
+    """Uplate po klijentu - search box"""
+    q = request.GET.get('q', '').strip()
+    
+    results = []
+    total_sum = Decimal('0.00')
+    
+    if q:
+        # Pronađi klijenta
+        clanovi = Clan.objects.filter(ime_prezime__icontains=q)
+        
+        if clanovi.exists():
+            clan = clanovi.first()
+            uplate = Uplata.objects.filter(clan=clan).order_by('-datum')
+            total_sum = uplate.aggregate(Sum('iznos'))['iznos__sum'] or Decimal('0.00')
+            results = uplate
+    
+    context = {
+        'q': q,
+        'results': results,
+        'total_sum': total_sum,
+        'clan': clanovi.first() if q and clanovi.exists() else None,
+    }
+    return render(request, 'management_client_payments.html', context)
+
+
+@admin_only
+def management_monthly_chart(request):
+    """Chart za tekući kalendarski mesec sa prognozama"""
+    today = timezone.now().date()
+    first_day = today.replace(day=1)
+    
+    # Poslednji dan meseca
+    if today.month == 12:
+        last_day = today.replace(day=31)
+    else:
+        last_day = (today.replace(month=today.month + 1, day=1) - timedelta(days=1))
+    
+    # Stvarne uplate ovog meseca
+    uplate_meseca = Uplata.objects.filter(
+        datum__gte=first_day,
+        datum__lte=last_day
+    ).aggregate(Sum('iznos'))['iznos__sum'] or Decimal('0.00')
+    
+    # Predviđene uplate (članarine koje ističu ovog meseca)
+    predvidjene = Uplata.objects.filter(
+        do_datum__gte=first_day,
+        do_datum__lte=last_day
+    ).aggregate(Sum('iznos'))['iznos__sum'] or Decimal('0.00')
+    
+    # Klijenti koji nisu pravili rezervaciju 30+ dana (potencijalni gubitak)
+    trideset_dana_unazad = today - timedelta(days=30)
+    aktivni_clanovi = Clan.objects.filter(
+        uplata__do_datum__gte=today  # Ima aktivnu članarinu
+    ).distinct()
+    
+    ghost_count = 0
+    potential_loss = Decimal('0.00')
+    
+    for clan in aktivni_clanovi:
+        poslednja_rezervacija = Rezervacija.objects.filter(clan=clan).order_by('-datum').first()
+        
+        if not poslednja_rezervacija or poslednja_rezervacija.datum < trideset_dana_unazad:
+            ghost_count += 1
+            # Proceni gubitak kao poslednju uplatu
+            poslednja_uplata = Uplata.objects.filter(clan=clan).order_by('-datum').first()
+            if poslednja_uplata:
+                potential_loss += poslednja_uplata.iznos
+    
+    context = {
+        'first_day': first_day,
+        'last_day': last_day,
+        'uplate_meseca': uplate_meseca,
+        'predvidjene': predvidjene,
+        'ghost_count': ghost_count,
+        'potential_loss': potential_loss,
+        'chart_labels': json.dumps(['Ostvareno', 'Predviđeno', 'Potencijalni gubitak']),
+        'chart_data': json.dumps([
+            float(uplate_meseca),
+            float(predvidjene),
+            float(potential_loss)
+        ]),
+    }
+    return render(request, 'management_monthly_chart.html', context)
+
+
+@admin_only
+def management_staff_attendance(request):
+    """Broj radnih dana zaposlenih - tracking prisustva"""
+    from .models import RadnikPrisustvo
+    
+    from_date_str = request.GET.get('from_date')
+    to_date_str = request.GET.get('to_date')
+    
+    today = timezone.now().date()
+    prvi_dan_meseca = today.replace(day=1)
+    
+    if from_date_str:
+        from_date = parse_date(from_date_str) or prvi_dan_meseca
+    else:
+        from_date = prvi_dan_meseca
+    
+    if to_date_str:
+        to_date = parse_date(to_date_str) or today
+    else:
+        to_date = today
+    
+    # Svi treneri i admini
+    staff_profiles = UserProfile.objects.filter(
+        is_trener=True
+    ) | UserProfile.objects.filter(is_admin=True)
+    
+    staff_data = []
+    
+    for profile in staff_profiles:
+        prisustva = RadnikPrisustvo.objects.filter(
+            user=profile.user,
+            datum__gte=from_date,
+            datum__lte=to_date
+        ).order_by('-datum')
+        
+        radni_dani = prisustva.count()
+        
+        staff_data.append({
+            'user': profile.user,
+            'radni_dani': radni_dani,
+            'prisustva': prisustva[:10],  # Poslednje 10 za prikaz
+        })
+    
+    context = {
+        'from_date': from_date.strftime('%Y-%m-%d'),
+        'to_date': to_date.strftime('%Y-%m-%d'),
+        'staff_data': staff_data,
+    }
+    return render(request, 'management_staff_attendance.html', context)
