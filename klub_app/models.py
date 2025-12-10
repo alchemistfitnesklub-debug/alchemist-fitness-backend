@@ -218,3 +218,23 @@ class Merenje(models.Model):
         if self.tezina and self.visina and not self.bmi:
             self.bmi = self.izracunaj_bmi()
         super().save(*args, **kwargs)
+
+# ========================================
+# MODEL ZA TRACKING PRISUSTVA RADNIKA
+# DODATO 10.12.2024
+# ========================================
+
+class RadnikPrisustvo(models.Model):
+    """Beleženje radnih dana zaposlenih"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='prisustva')
+    datum = models.DateField(auto_now_add=True)
+    vreme_logovanja = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "Prisustvo Radnika"
+        verbose_name_plural = "Prisustva Radnika"
+        ordering = ['-datum']
+        unique_together = ['user', 'datum']  # Jedno prisustvo po danu
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.datum.strftime('%d.%m.%Y')}"
