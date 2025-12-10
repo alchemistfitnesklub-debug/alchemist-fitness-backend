@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Predviđene Uplate{% endblock %}
+
+{% block content %}
+<div style="max-width: 1400px; margin: 0 auto;">
+    
+    <a href="{% url 'management_dashboard' %}" class="btn-secondary">
+        <i class="fas fa-arrow-left"></i> Nazad
+    </a>
+    
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="font-size: 2.5em;">
+            <i class="fas fa-euro-sign"></i> PREDVIĐENE UPLATE
+        </h1>
+        <p style="opacity: 0.8;">Članarine koje ističu - prognoza prihoda</p>
+    </div>
+    
+    <!-- FILTER -->
+    <div class="filter-card">
+        <form method="get" class="filter-grid">
+            <div class="filter-group">
+                <label>Od datuma</label>
+                <input type="date" name="from_date" value="{{ from_date }}" required>
+            </div>
+            <div class="filter-group">
+                <label>Do datuma</label>
+                <input type="date" name="to_date" value="{{ to_date }}" required>
+            </div>
+            <div class="filter-group">
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-search"></i> Prikaži
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- STATISTIKA -->
+    <div class="stats-row">
+        <div class="stat-card green">
+            <i class="fas fa-users"></i>
+            <h3>{{ count }}</h3>
+            <p>Klijenata treba da plati</p>
+        </div>
+        
+        <div class="stat-card blue">
+            <i class="fas fa-euro-sign"></i>
+            <h3>{{ total_predicted|floatformat:2 }} €</h3>
+            <p>Predviđeni prihod</p>
+        </div>
+    </div>
+    
+    <!-- TABELA -->
+    {% if predicted_data %}
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-list"></i>
+            <h2>Detalji</h2>
+        </div>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Klijent</th>
+                        <th>Ističe</th>
+                        <th>Prošla Uplata</th>
+                        <th>Predviđeno</th>
+                        <th>Meseci</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in predicted_data %}
+                    <tr>
+                        <td><strong>{{ item.clan.ime_prezime }}</strong></td>
+                        <td>{{ item.expires|date:"d.m.Y" }}</td>
+                        <td>{{ item.last_amount }} €</td>
+                        <td><strong style="color: #43e97b;">{{ item.predicted_amount }} €</strong></td>
+                        <td>{{ item.meseci }} mes.</td>
+                    </tr>
+                    {% endfor %}
+                    <tr style="background: rgba(67, 233, 123, 0.2); font-weight: bold;">
+                        <td colspan="3">UKUPNO PREDVIĐENO:</td>
+                        <td colspan="2" style="font-size: 1.3em; color: #43e97b;">{{ total_predicted|floatformat:2 }} €</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-info-circle"></i>
+        <p>Nema isteka članarina u izabranom periodu</p>
+    </div>
+    {% endif %}
+    
+</div>
+{% endblock %}
