@@ -8,6 +8,12 @@ urlpatterns = [
     # ========== Osnovne stranice ==========
     path('', views.pocetna, name='pocetna'),
     path('dashboard/', views.dashboard, name='dashboard'),
+    # ========== MANAGEMENT DASHBOARD - DODATO 10.12.2024 ==========
+    path('dashboard/management/', views.management_dashboard, name='management_dashboard'),
+    path('dashboard/management/predicted-income/', views.management_predicted_income, name='management_predicted_income'),
+    path('dashboard/management/client-payments/', views.management_client_payments, name='management_client_payments'),
+    path('dashboard/management/monthly-chart/', views.management_monthly_chart, name='management_monthly_chart'),
+    path('dashboard/management/staff-attendance/', views.management_staff_attendance, name='management_staff_attendance'),
     path('statistike/', views.statistike, name='statistike'),
     
     # ========== Klijenti ==========
