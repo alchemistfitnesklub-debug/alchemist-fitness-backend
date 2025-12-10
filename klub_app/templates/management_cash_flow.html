@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cash Flow Prognoza{% endblock %}
+
+{% block content %}
+<div style="max-width: 1400px; margin: 0 auto;">
+    
+    <a href="{% url 'management_dashboard' %}" class="btn-secondary">
+        <i class="fas fa-arrow-left"></i> Nazad
+    </a>
+    
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="font-size: 2.5em;">
+            <i class="fas fa-chart-line"></i> CASH FLOW PROGNOZA
+        </h1>
+        <p style="opacity: 0.8;">Projekcija prihoda za naredna 3 meseca</p>
+    </div>
+    
+    <!-- STATISTIKA -->
+    <div class="stats-row">
+        <div class="stat-card green">
+            <i class="fas fa-calendar-alt"></i>
+            <h3>3 Meseca</h3>
+            <p>Period prognoze</p>
+        </div>
+        
+        <div class="stat-card blue">
+            <i class="fas fa-euro-sign"></i>
+            <h3>{{ total_predicted|floatformat:2 }} €</h3>
+            <p>Ukupna prognoza prihoda</p>
+        </div>
+    </div>
+    
+    <!-- MESEČNA TABELA -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-table"></i>
+            <h2>Detalji po Mesecima</h2>
+        </div>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mesec</th>
+                        <th>Period</th>
+                        <th>Broj Isteka</th>
+                        <th>Predviđen Prihod</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for month in months %}
+                    <tr>
+                        <td><strong>{{ month.name }}</strong></td>
+                        <td>{{ month.first_day|date:"d.m" }} - {{ month.last_day|date:"d.m.Y" }}</td>
+                        <td>{{ month.count }} članarina</td>
+                        <td style="font-size: 1.3em; font-weight: bold; color: #43e97b;">{{ month.predicted_income|floatformat:2 }} €</td>
+                    </tr>
+                    {% endfor %}
+                    <tr style="background: rgba(67, 233, 123, 0.2); font-weight: bold;">
+                        <td colspan="3">UKUPNO (3 meseca):</td>
+                        <td style="font-size: 1.5em; color: #43e97b;">{{ total_predicted|floatformat:2 }} €</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- CHART -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-chart-bar"></i>
+            <h2>Grafički Prikaz</h2>
+        </div>
+        <canvas id="cashFlowChart" height="100"></canvas>
+    </div>
+    
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('cashFlowChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_labels|safe }},
+            datasets: [{
+                label: 'Predviđen Prihod (€)',
+                data: {{ chart_data|safe }},
+                backgroundColor: 'rgba(67, 233, 123, 0.2)',
+                borderColor: '#43e97b',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.parsed.y.toFixed(2) + ' €';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    ticks: { 
+                        color: '#fff',
+                        callback: function(value) {
+                            return value + ' €';
+                        }
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#fff' }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
