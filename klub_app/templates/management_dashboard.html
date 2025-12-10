@@ -106,49 +106,110 @@ body.dark-theme .management-card {
         <p style="opacity: 0.9; font-size: 1.1em;">Napredne menadžerske metrike - Samo za tvoje oči</p>
     </div>
     
-    <div class="management-grid">
-        
-        <!-- PREDVIĐENE UPLATE -->
-        <div class="management-card">
-            <i class="fas fa-euro-sign" style="color: #43e97b;"></i>
-            <h3>Predviđene Uplate</h3>
-            <p>Ko treba da plati i koliko - prognoza prihoda</p>
-            <a href="{% url 'management_predicted_income' %}" class="btn-management">
-                <i class="fas fa-chart-line"></i> Prikaži
-            </a>
-        </div>
-        
-        <!-- UPLATE PO KLIJENTU -->
-        <div class="management-card">
-            <i class="fas fa-search-dollar" style="color: #4facfe;"></i>
-            <h3>Uplate po Klijentu</h3>
-            <p>Pretraži istoriju uplata za bilo kog člana</p>
-            <a href="{% url 'management_client_payments' %}" class="btn-management">
-                <i class="fas fa-search"></i> Pretraži
-            </a>
-        </div>
-        
-        <!-- CHART TEKUĆEG MESECA -->
-        <div class="management-card">
-            <i class="fas fa-chart-bar" style="color: #f093fb;"></i>
-            <h3>Analiza Tekućeg Meseca</h3>
-            <p>Ostvareno, predviđeno i potencijalni gubitak</p>
-            <a href="{% url 'management_monthly_chart' %}" class="btn-management">
-                <i class="fas fa-chart-pie"></i> Prikaži
-            </a>
-        </div>
-        
-        <!-- RADNI DANI ZAPOSLENIH -->
-        <div class="management-card">
-            <i class="fas fa-users-cog" style="color: #ff9800;"></i>
-            <h3>Prisustvo Zaposlenih</h3>
-            <p>Broj radnih dana trenera i admina</p>
-            <a href="{% url 'management_staff_attendance' %}" class="btn-management">
-                <i class="fas fa-calendar-check"></i> Prikaži
-            </a>
-        </div>
-        
+   <div class="management-grid">
+    
+    <!-- FAZA 1 - OSNOVNE METRIKE -->
+    
+    <!-- PREDVIĐENE UPLATE -->
+    <div class="management-card">
+        <i class="fas fa-euro-sign" style="color: #43e97b;"></i>
+        <h3>Predviđene Uplate</h3>
+        <p>Ko treba da plati i koliko - prognoza prihoda</p>
+        <a href="{% url 'management_predicted_income' %}" class="btn-management">
+            <i class="fas fa-chart-line"></i> Prikaži
+        </a>
+    </div>
+    
+    <!-- UPLATE PO KLIJENTU -->
+    <div class="management-card">
+        <i class="fas fa-search-dollar" style="color: #4facfe;"></i>
+        <h3>Uplate po Klijentu</h3>
+        <p>Pretraži istoriju uplata za bilo kog člana</p>
+        <a href="{% url 'management_client_payments' %}" class="btn-management">
+            <i class="fas fa-search"></i> Pretraži
+        </a>
+    </div>
+    
+    <!-- CHART TEKUĆEG MESECA -->
+    <div class="management-card">
+        <i class="fas fa-chart-bar" style="color: #f093fb;"></i>
+        <h3>Analiza Tekućeg Meseca</h3>
+        <p>Ostvareno, predviđeno i potencijalni gubitak</p>
+        <a href="{% url 'management_monthly_chart' %}" class="btn-management">
+            <i class="fas fa-chart-pie"></i> Prikaži
+        </a>
+    </div>
+    
+    <!-- RADNI DANI ZAPOSLENIH -->
+    <div class="management-card">
+        <i class="fas fa-users-cog" style="color: #ff9800;"></i>
+        <h3>Prisustvo Zaposlenih</h3>
+        <p>Broj radnih dana trenera i admina</p>
+        <a href="{% url 'management_staff_attendance' %}" class="btn-management">
+            <i class="fas fa-calendar-check"></i> Prikaži
+        </a>
+    </div>
+    
+    <!-- FAZA 2 - NAPREDNE ANALITIKE -->
+    
+    <!-- CASH FLOW PROGNOZA -->
+    <div class="management-card" style="border: 2px solid #43e97b;">
+        <i class="fas fa-chart-line" style="color: #43e97b;"></i>
+        <h3>Cash Flow Prognoza</h3>
+        <p>Projekcija prihoda za naredna 3 meseca</p>
+        <a href="{% url 'management_cash_flow' %}" class="btn-management">
+            <i class="fas fa-calendar-alt"></i> Prikaži
+        </a>
+    </div>
+    
+    <!-- RETENTION RATE -->
+    <div class="management-card" style="border: 2px solid #667eea;">
+        <i class="fas fa-percentage" style="color: #667eea;"></i>
+        <h3>Retention Rate</h3>
+        <p>Stopa zadržavanja klijenata - ko obnavlja članarinu</p>
+        <a href="{% url 'management_retention_rate' %}" class="btn-management">
+            <i class="fas fa-user-check"></i> Prikaži
+        </a>
+    </div>
+    
+    <!-- TOP 10 KLIJENATA -->
+    <div class="management-card" style="border: 2px solid #ffc107;">
+        <i class="fas fa-trophy" style="color: #ffc107;"></i>
+        <h3>Top 10 Klijenata</h3>
+        <p>Najbolji članovi po ukupnoj zaradi</p>
+        <a href="{% url 'management_top_clients' %}" class="btn-management">
+            <i class="fas fa-medal"></i> Prikaži
+        </a>
+    </div>
+    
+    <!-- GHOST MEMBERS -->
+    <div class="management-card" style="border: 2px solid #ff4444;">
+        <i class="fas fa-ghost" style="color: #ff4444;"></i>
+        <h3>Ghost Members</h3>
+        <p>Članovi koji plaćaju ali ne dolaze - rizik gubitka</p>
+        <a href="{% url 'management_ghost_members' %}" class="btn-management">
+            <i class="fas fa-exclamation-triangle"></i> Prikaži
+        </a>
+    </div>
+    
+    <!-- ATTENDANCE HEATMAP -->
+    <div class="management-card" style="border: 2px solid #00bfff;">
+        <i class="fas fa-calendar-week" style="color: #00bfff;"></i>
+        <h3>Attendance Heatmap</h3>
+        <p>Najpopularniji dani i termini za treninge</p>
+        <a href="{% url 'management_attendance_heatmap' %}" class="btn-management">
+            <i class="fas fa-chart-area"></i> Prikaži
+        </a>
+    </div>
+    
+    <!-- CUSTOMER VALUE -->
+    <div class="management-card" style="border: 2px solid #f093fb;">
+        <i class="fas fa-coins" style="color: #f093fb;"></i>
+        <h3>Customer Value</h3>
+        <p>Prosečna vrednost člana i kategorije potrošnje</p>
+        <a href="{% url 'management_customer_value' %}" class="btn-management">
+            <i class="fas fa-dollar-sign"></i> Prikaži
+        </a>
     </div>
     
 </div>
-{% endblock %}
