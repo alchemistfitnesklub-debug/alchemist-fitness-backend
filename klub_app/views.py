@@ -1320,9 +1320,9 @@ def privacy_policy(request):
     return render(request, 'privacy_policy.html')
 
 def logout_view(request):
-    logout(request)
+    auth_logout(request)
     messages.success(request, 'Uspešno ste se odjavili.')
-    return redirect('klub_app:login')
+    return redirect('login')  
 
 # ========================================
 # VIEWS ZA MERENJA - DODATO 09.12.2024
