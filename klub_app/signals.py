@@ -1,8 +1,10 @@
 # klub_app/signals.py
 from django.db.models.signals import post_save
+from django.contrib.auth.signals import user_logged_in  # ← DODATO
 from django.dispatch import receiver
 from django.contrib.auth.models import User
-from .models import UserProfile, Clan  # ← DODAO SAM CLAN
+from django.utils import timezone  # ← DODATO
+from .models import UserProfile, Clan, RadnikPrisustvo  # ← DODATO RadnikPrisustvo
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
@@ -56,14 +58,11 @@ def kreiraj_user_za_clana(sender, instance, created, **kwargs):
         except Exception as e:
             print(f"❌ Greška pri auto-kreiranju naloga: {e}")
 
+
 # ========================================
 # SIGNAL ZA TRACKING PRISUSTVA RADNIKA
 # DODATO 10.12.2024
 # ========================================
-
-from django.contrib.auth.signals import user_logged_in
-from django.utils import timezone
-from .models import RadnikPrisustvo
 
 @receiver(user_logged_in)
 def log_user_login(sender, request, user, **kwargs):
