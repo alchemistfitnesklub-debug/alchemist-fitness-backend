@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Customer Value{% endblock %}
+
+{% block content %}
+<div style="max-width: 1400px; margin: 0 auto;">
+    
+    <a href="{% url 'management_dashboard' %}" class="btn-secondary">
+        <i class="fas fa-arrow-left"></i> Nazad
+    </a>
+    
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="font-size: 2.5em;">
+            <i class="fas fa-coins"></i> CUSTOMER VALUE
+        </h1>
+        <p style="opacity: 0.8;">Prosečna vrednost člana i kategorije potrošnje</p>
+    </div>
+    
+    <!-- STATISTIKA -->
+    <div class="stats-row">
+        <div class="stat-card blue">
+            <i class="fas fa-users"></i>
+            <h3>{{ total_members }}</h3>
+            <p>Ukupno Članova</p>
+        </div>
+        
+        <div class="stat-card green">
+            <i class="fas fa-euro-sign"></i>
+            <h3>{{ total_revenue|floatformat:2 }} €</h3>
+            <p>Ukupna Zarada</p>
+        </div>
+        
+        <div class="stat-card purple">
+            <i class="fas fa-chart-line"></i>
+            <h3>{{ average_value|floatformat:2 }} €</h3>
+            <p>Prosečna Vrednost po Članu</p>
+        </div>
+    </div>
+    
+    <!-- KATEGORIJE -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-layer-group"></i>
+            <h2>Kategorije Potrošnje</h2>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 20px;">
+            
+            <div style="background: rgba(255, 68, 68, 0.1); border-radius: 15px; padding: 25px; text-align: center; border: 2px solid #ff4444;">
+                <h3 style="font-size: 2em; margin-bottom: 10px;">{{ categories.low }}</h3>
+                <p style="opacity: 0.8;">Low Value</p>
+                <p style="font-size: 0.9em; opacity: 0.6;">&lt; 100€</p>
+            </div>
+            
+            <div style="background: rgba(255, 193, 7, 0.1); border-radius: 15px; padding: 25px; text-align: center; border: 2px solid #ffc107;">
+                <h3 style="font-size: 2em; margin-bottom: 10px;">{{ categories.medium }}</h3>
+                <p style="opacity: 0.8;">Medium Value</p>
+                <p style="font-size: 0.9em; opacity: 0.6;">100-500€</p>
+            </div>
+            
+            <div style="background: rgba(67, 233, 123, 0.1); border-radius: 15px; padding: 25px; text-align: center; border: 2px solid #43e97b;">
+                <h3 style="font-size: 2em; margin-bottom: 10px;">{{ categories.high }}</h3>
+                <p style="opacity: 0.8;">High Value</p>
+                <p style="font-size: 0.9em; opacity: 0.6;">500-1000€</p>
+            </div>
+            
+            <div style="background: rgba(255, 215, 0, 0.1); border-radius: 15px; padding: 25px; text-align: center; border: 2px solid #ffd700;">
+                <h3 style="font-size: 2em; margin-bottom: 10px;">{{ categories.vip }}</h3>
+                <p style="opacity: 0.8;">VIP</p>
+                <p style="font-size: 0.9em; opacity: 0.6;">&gt; 1000€</p>
+            </div>
+            
+        </div>
+    </div>
+    
+    <!-- CHART -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-chart-pie"></i>
+            <h2>Raspodela po Kategorijama</h2>
+        </div>
+        <canvas id="categoryChart" height="100"></canvas>
+    </div>
+    
+    <!-- TOP SPENDERS -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-star"></i>
+            <h2>Top 10 Spenders</h2>
+        </div>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rang</th>
+                        <th>Klijent</th>
+                        <th>Broj Uplata</th>
+                        <th>Ukupno Plaćeno</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for client in top_spenders %}
+                    <tr>
+                        <td style="font-size: 1.5em;">
+                            {% if forloop.counter == 1 %}
+                                🥇
+                            {% elif forloop.counter == 2 %}
+                                🥈
+                            {% elif forloop.counter == 3 %}
+                                🥉
+                            {% else %}
+                                {{ forloop.counter }}
+                            {% endif %}
+                        </td>
+                        <td><strong>{{ client.ime_prezime }}</strong></td>
+                        <td>{{ client.payment_count }} uplata</td>
+                        <td style="font-size: 1.3em; font-weight: bold; color: #43e97b;">{{ client.total_paid|floatformat:2 }} €</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ chart_labels|safe }},
+            datasets: [{
+                data: {{ chart_data|safe }},
+                backgroundColor: [
+                    'rgba(255, 68, 68, 0.85)',
+                    'rgba(255, 193, 7, 0.85)',
+                    'rgba(67, 233, 123, 0.85)',
+                    'rgba(255, 215, 0, 0.85)',
+                ],
+                borderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: '#fff', font: { size: 14 } }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed + ' članova';
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
