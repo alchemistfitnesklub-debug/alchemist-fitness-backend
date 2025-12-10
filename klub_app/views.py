@@ -201,13 +201,13 @@ def dashboard(request):
             to_date = today + timedelta(days=30)  # ← PROMENA: +30 dana unapred
 
         # Postojeći kod za uplate, sales, itd...
-        uplate = Uplata.objects.filter(datum__gte=from_date, datum__lte=to_date).select_related('clan')
-        daily_payments = uplate.values('datum').annotate(total=Sum('iznos')).order_by('datum')
+        uplate = Uplata.objects.filter(od_datum__gte=from_date, od_datum__lte=to_date).select_related('clan')
+        daily_payments = uplate.values('od_datum').annotate(total=Sum('iznos')).order_by('od_datum')
         sales = Sale.objects.filter(datum__date__gte=from_date, datum__date__lte=to_date).select_related('stock')
         daily_sales = sales.values('datum__date').annotate(total=Sum('price')).order_by('datum__date')
         water_sales = sales.filter(stock__naziv__icontains='voda').values('datum__date').annotate(total=Sum('price')).order_by('datum__date')
 
-        labels = [entry['datum'].strftime('%Y-%m') for entry in daily_payments if entry['datum']]
+        labels = [entry['od_datum'].strftime('%Y-%m') for entry in daily_payments if entry['od_datum']]
         data = [float(entry['total']) or 0 for entry in daily_payments]
         bar_data = [0] * len(labels)
         water_data = [0] * len(labels)
