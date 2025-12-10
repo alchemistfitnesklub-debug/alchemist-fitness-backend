@@ -15,6 +15,13 @@ urlpatterns = [
     path('dashboard/management/monthly-chart/', views.management_monthly_chart, name='management_monthly_chart'),
     path('dashboard/management/staff-attendance/', views.management_staff_attendance, name='management_staff_attendance'),
     path('statistike/', views.statistike, name='statistike'),
+    # ========== MANAGEMENT DASHBOARD - FAZA 2 (BONUS) ==========
+    path('dashboard/management/cash-flow/', views.management_cash_flow, name='management_cash_flow'),
+    path('dashboard/management/retention-rate/', views.management_retention_rate, name='management_retention_rate'),
+    path('dashboard/management/top-clients/', views.management_top_clients, name='management_top_clients'),
+    path('dashboard/management/ghost-members/', views.management_ghost_members, name='management_ghost_members'),
+    path('dashboard/management/attendance-heatmap/', views.management_attendance_heatmap, name='management_attendance_heatmap'),
+    path('dashboard/management/customer-value/', views.management_customer_value, name='management_customer_value'),
     
     # ========== Klijenti ==========
     path('klijenti/', views.klijenti, name='klijenti'),
