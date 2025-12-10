@@ -35,7 +35,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
-    'klub_app',
+    'klub_app.apps.KlubAppConfig',
     'django_recaptcha',
 ]
 
