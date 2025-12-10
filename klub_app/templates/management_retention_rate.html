@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Retention Rate{% endblock %}
+
+{% block content %}
+<div style="max-width: 1400px; margin: 0 auto;">
+    
+    <a href="{% url 'management_dashboard' %}" class="btn-secondary">
+        <i class="fas fa-arrow-left"></i> Nazad
+    </a>
+    
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="font-size: 2.5em;">
+            <i class="fas fa-percentage"></i> RETENTION RATE
+        </h1>
+        <p style="opacity: 0.8;">Stopa zadržavanja klijenata - Ko obnavlja članarinu</p>
+    </div>
+    
+    <!-- STATISTIKA -->
+    <div class="stats-row">
+        <div class="stat-card blue">
+            <i class="fas fa-users"></i>
+            <h3>{{ total_expired }}</h3>
+            <p>Članarina istekla (60 dana)</p>
+        </div>
+        
+        <div class="stat-card green">
+            <i class="fas fa-user-check"></i>
+            <h3>{{ renewed_count }}</h3>
+            <p>Obnovili članarinu</p>
+        </div>
+        
+        <div class="stat-card orange">
+            <i class="fas fa-user-times"></i>
+            <h3>{{ not_renewed_count }}</h3>
+            <p>Nisu obnovili</p>
+        </div>
+        
+        <div class="stat-card purple">
+            <i class="fas fa-chart-line"></i>
+            <h3>{{ retention_rate }}%</h3>
+            <p>Retention Rate</p>
+        </div>
+    </div>
+    
+    <!-- INFO -->
+    <div class="section-card" style="background: {% if retention_rate >= 70 %}rgba(67, 233, 123, 0.1){% elif retention_rate >= 50 %}rgba(255, 193, 7, 0.1){% else %}rgba(255, 68, 68, 0.1){% endif %}; border-left: 5px solid {% if retention_rate >= 70 %}#43e97b{% elif retention_rate >= 50 %}#ffc107{% else %}#ff4444{% endif %};">
+        <div style="text-align: center; padding: 20px;">
+            <h2 style="font-size: 2.5em; margin-bottom: 10px;">
+                {% if retention_rate >= 70 %}
+                    ✅ ODLIČNA STOPA!
+                {% elif retention_rate >= 50 %}
+                    ⚠️ PROSEČNA STOPA
+                {% else %}
+                    🚨 NISKA STOPA
+                {% endif %}
+            </h2>
+            <p style="font-size: 1.2em; opacity: 0.9;">
+                {% if retention_rate >= 70 %}
+                    Većina klijenata obnavlja članarinu - nastavi ovako!
+                {% elif retention_rate >= 50 %}
+                    Retention rate je u redu, ali može bolje. Fokusiraj se na zadržavanje članova.
+                {% else %}
+                    Puno članova napušta klub. Potrebna akcija!
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    
+    <!-- TABELA - KO NIJE OBNOVIO -->
+    {% if not_renewed %}
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h2>Klijenti koji NISU obnovili (Top 20)</h2>
+        </div>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Klijent</th>
+                        <th>Članarina Istekla</th>
+                        <th>Poslednji Iznos</th>
+                        <th>Dana od Isteka</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in not_renewed %}
+                    <tr>
+                        <td><strong>{{ item.clan.ime_prezime }}</strong></td>
+                        <td>{{ item.expired|date:"d.m.Y" }}</td>
+                        <td style="color: #ff4444; font-weight: bold;">{{ item.amount }} €</td>
+                        <td>{{ item.expired|timesince }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+    
+</div>
+{% endblock %}
