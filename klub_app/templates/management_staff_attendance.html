@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Prisustvo Zaposlenih{% endblock %}
+
+{% block content %}
+<div style="max-width: 1400px; margin: 0 auto;">
+    
+    <a href="{% url 'management_dashboard' %}" class="btn-secondary">
+        <i class="fas fa-arrow-left"></i> Nazad
+    </a>
+    
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="font-size: 2.5em;">
+            <i class="fas fa-users-cog"></i> PRISUSTVO ZAPOSLENIH
+        </h1>
+        <p style="opacity: 0.8;">Broj radnih dana - tracking logovanja</p>
+    </div>
+    
+    <!-- FILTER -->
+    <div class="filter-card">
+        <form method="get" class="filter-grid">
+            <div class="filter-group">
+                <label>Od datuma</label>
+                <input type="date" name="from_date" value="{{ from_date }}" required>
+            </div>
+            <div class="filter-group">
+                <label>Do datuma</label>
+                <input type="date" name="to_date" value="{{ to_date }}" required>
+            </div>
+            <div class="filter-group">
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-search"></i> Prikaži
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    {% if staff_data %}
+    <!-- KARTICE ZA SVAKOG ZAPOSLENOG -->
+    {% for item in staff_data %}
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-user-tie"></i>
+            <h2>{{ item.user.get_full_name|default:item.user.username }}</h2>
+            <span class="badge-success" style="margin-left: auto; font-size: 1.2em;">
+                {{ item.radni_dani }} radnih dana
+            </span>
+        </div>
+        
+        {% if item.prisustva %}
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Vreme logovanja</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prisustvo in item.prisustva %}
+                    <tr>
+                        <td><strong>{{ prisustvo.datum|date:"d.m.Y (l)" }}</strong></td>
+                        <td>{{ prisustvo.vreme_logovanja|time:"H:i" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="opacity: 0.7; text-align: center; padding: 20px;">
+            <i class="fas fa-calendar-times"></i> Nema prijava u ovom periodu
+        </p>
+        {% endif %}
+    </div>
+    {% endfor %}
+    
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-user-slash"></i>
+        <p>Nema zaposlenih u sistemu</p>
+    </div>
+    {% endif %}
+    
+</div>
+{% endblock %}
