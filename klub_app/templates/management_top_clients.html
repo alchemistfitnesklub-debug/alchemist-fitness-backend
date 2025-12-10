@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Top 10 Klijenata{% endblock %}
+
+{% block content %}
+<div style="max-width: 1400px; margin: 0 auto;">
+    
+    <a href="{% url 'management_dashboard' %}" class="btn-secondary">
+        <i class="fas fa-arrow-left"></i> Nazad
+    </a>
+    
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="font-size: 2.5em;">
+            <i class="fas fa-trophy"></i> TOP 10 KLIJENATA
+        </h1>
+        <p style="opacity: 0.8;">Najbolji članovi po ukupnoj zaradi</p>
+    </div>
+    
+    <!-- FILTER -->
+    <div class="filter-card">
+        <form method="get" class="filter-grid">
+            <div class="filter-group">
+                <label>Od datuma</label>
+                <input type="date" name="from_date" value="{{ from_date }}" required>
+            </div>
+            <div class="filter-group">
+                <label>Do datuma</label>
+                <input type="date" name="to_date" value="{{ to_date }}" required>
+            </div>
+            <div class="filter-group">
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-search"></i> Prikaži
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- STATISTIKA -->
+    <div class="stats-row">
+        <div class="stat-card blue">
+            <i class="fas fa-users"></i>
+            <h3>10</h3>
+            <p>Top Klijenata</p>
+        </div>
+        
+        <div class="stat-card green">
+            <i class="fas fa-euro-sign"></i>
+            <h3>{{ total_revenue|floatformat:2 }} €</h3>
+            <p>Ukupna Zarada (Top 10)</p>
+        </div>
+    </div>
+    
+    <!-- TABELA -->
+    {% if top_clients %}
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-medal"></i>
+            <h2>Rang Lista</h2>
+        </div>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rang</th>
+                        <th>Klijent</th>
+                        <th>Broj Uplata</th>
+                        <th>Ukupno</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for client in top_clients %}
+                    <tr>
+                        <td style="font-size: 1.5em;">
+                            {% if forloop.counter == 1 %}
+                                🥇
+                            {% elif forloop.counter == 2 %}
+                                🥈
+                            {% elif forloop.counter == 3 %}
+                                🥉
+                            {% else %}
+                                {{ forloop.counter }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>{{ client.clan__ime_prezime }}</strong>
+                        </td>
+                        <td>{{ client.count }} uplata</td>
+                        <td style="font-size: 1.3em; font-weight: bold; color: #43e97b;">{{ client.total|floatformat:2 }} €</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- CHART -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-chart-bar"></i>
+            <h2>Grafički Prikaz</h2>
+        </div>
+        <canvas id="topClientsChart" height="100"></canvas>
+    </div>
+    {% endif %}
+    
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('topClientsChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ chart_labels|safe }},
+            datasets: [{
+                label: 'Ukupno Plaćeno (€)',
+                data: {{ chart_data|safe }},
+                backgroundColor: [
+                    'rgba(255, 215, 0, 0.85)',    // Gold
+                    'rgba(192, 192, 192, 0.85)',  // Silver
+                    'rgba(205, 127, 50, 0.85)',   // Bronze
+                    'rgba(67, 233, 123, 0.85)',
+                    'rgba(79, 172, 254, 0.85)',
+                    'rgba(240, 147, 251, 0.85)',
+                    'rgba(255, 193, 7, 0.85)',
+                    'rgba(102, 126, 234, 0.85)',
+                    'rgba(245, 87, 108, 0.85)',
+                    'rgba(0, 191, 255, 0.85)',
+                ],
+                borderWidth: 2,
+                borderRadius: 8,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.parsed.y.toFixed(2) + ' €';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    ticks: { 
+                        color: '#fff',
+                        callback: function(value) {
+                            return value + ' €';
+                        }
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#fff' }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
