@@ -178,23 +178,29 @@ def pocetna(request):
 @admin_only
 def dashboard(request):
     try:
+        # ========================================
+        # DEFAULT PERIOD: DANAS + 30 DANA UNAPRED
+        # ========================================
         from_date_str = request.GET.get('from_date')
         to_date_str = request.GET.get('to_date')
 
+        today = timezone.now().date()
+        
         if from_date_str:
             from_date = parse_date(from_date_str)
             if not from_date:
-                from_date = timezone.now().date() - timedelta(days=30)
+                from_date = today
         else:
-            from_date = timezone.now().date() - timedelta(days=30)
+            from_date = today  # ← PROMENA: Danas umesto -30 dana
 
         if to_date_str:
             to_date = parse_date(to_date_str)
             if not to_date:
-                to_date = timezone.now().date()
+                to_date = today + timedelta(days=30)
         else:
-            to_date = timezone.now().date()
+            to_date = today + timedelta(days=30)  # ← PROMENA: +30 dana unapred
 
+        # Postojeći kod za uplate, sales, itd...
         uplate = Uplata.objects.filter(datum__gte=from_date, datum__lte=to_date).select_related('clan')
         daily_payments = uplate.values('datum').annotate(total=Sum('iznos')).order_by('datum')
         sales = Sale.objects.filter(datum__date__gte=from_date, datum__date__lte=to_date).select_related('stock')
@@ -246,6 +252,7 @@ def dashboard(request):
             'recent_obavestenja': recent_obavestenja,
             'from_date': from_date.strftime('%Y-%m-%d'),
             'to_date': to_date.strftime('%Y-%m-%d'),
+            'today': today.strftime('%Y-%m-%d'),  # ← NOVO
             'uplate': uplate,
         }
         return render(request, 'dashboard.html', context)
