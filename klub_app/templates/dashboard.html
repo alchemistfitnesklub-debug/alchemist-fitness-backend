@@ -389,6 +389,21 @@ body.dark-theme .table-container tr:hover {
         </div>
     </div>
 
+    <!-- MANAGEMENT DUGME - NOVO! -->
+    <div class="section-card" style="border-left: 5px solid #667eea !important; background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));">
+        <div class="section-header">
+            <i class="fas fa-chart-line"></i>
+            <h2>Menadžerski Pregled</h2>
+        </div>
+        <p style="margin-bottom: 20px; opacity: 0.9;">
+            <i class="fas fa-lock" style="color: #667eea;"></i>
+            Napredne menadžerske metrike i analize - samo za tvoje oči!
+        </p>
+        <a href="{% url 'management_dashboard' %}" class="btn-primary" style="width: auto; display: inline-block;">
+            <i class="fas fa-tachometer-alt"></i> Otvori Management Dashboard
+        </a>
+    </div>
+
     <!-- DUGME ZA AUTOMATSKA OBAVEŠTENJA -->
     <div class="section-card" style="border-left: 5px solid #28a745 !important;">
         <div class="section-header">
