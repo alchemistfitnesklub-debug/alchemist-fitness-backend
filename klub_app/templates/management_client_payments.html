@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Uplate po Klijentu{% endblock %}
+
+{% block content %}
+<div style="max-width: 1400px; margin: 0 auto;">
+    
+    <a href="{% url 'management_dashboard' %}" class="btn-secondary">
+        <i class="fas fa-arrow-left"></i> Nazad
+    </a>
+    
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="font-size: 2.5em;">
+            <i class="fas fa-search-dollar"></i> UPLATE PO KLIJENTU
+        </h1>
+        <p style="opacity: 0.8;">Pretraži istoriju uplata</p>
+    </div>
+    
+    <!-- SEARCH BOX -->
+    <div class="filter-card">
+        <form method="get">
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <input 
+                    type="text" 
+                    name="q" 
+                    value="{{ q }}" 
+                    placeholder="Unesite ime klijenta..." 
+                    style="flex: 1; padding: 15px; border-radius: 10px; border: 2px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.5); color: #fff; font-size: 1.1em;"
+                    autofocus
+                >
+                <button type="submit" class="btn-primary" style="width: auto; padding: 15px 40px;">
+                    <i class="fas fa-search"></i> Pretraži
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    {% if q %}
+        {% if clan %}
+        <!-- KLIJENT INFO -->
+        <div class="section-card" style="background: linear-gradient(135deg, rgba(67, 233, 123, 0.2), rgba(56, 210, 120, 0.1));">
+            <div style="text-align: center;">
+                <h2 style="font-size: 2em; margin-bottom: 10px;">
+                    <i class="fas fa-user"></i> {{ clan.ime_prezime }}
+                </h2>
+                <p style="opacity: 0.9;">
+                    <i class="fas fa-phone"></i> {{ clan.telefon|default:"Nema" }} | 
+                    <i class="fas fa-envelope"></i> {{ clan.email|default:"Nema" }}
+                </p>
+            </div>
+        </div>
+        
+        <!-- STATISTIKA -->
+        <div class="stats-row">
+            <div class="stat-card green">
+                <i class="fas fa-calculator"></i>
+                <h3>{{ results|length }}</h3>
+                <p>Ukupno uplata</p>
+            </div>
+            
+            <div class="stat-card blue">
+                <i class="fas fa-euro-sign"></i>
+                <h3>{{ total_sum|floatformat:2 }} €</h3>
+                <p>Ukupan iznos</p>
+            </div>
+        </div>
+        
+        <!-- TABELA -->
+        {% if results %}
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fas fa-list"></i>
+                <h2>Istorija Uplata</h2>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Datum</th>
+                            <th>Iznos</th>
+                            <th>Meseci</th>
+                            <th>Od</th>
+                            <th>Do</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for uplata in results %}
+                        <tr>
+                            <td><strong>{{ uplata.datum|date:"d.m.Y" }}</strong></td>
+                            <td style="font-size: 1.2em; font-weight: bold; color: #43e97b;">{{ uplata.iznos }} €</td>
+                            <td>{{ uplata.meseci }} mes.</td>
+                            <td>{{ uplata.od_datum|date:"d.m.Y" }}</td>
+                            <td>{{ uplata.do_datum|date:"d.m.Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                        <tr style="background: rgba(67, 233, 123, 0.2); font-weight: bold;">
+                            <td>UKUPNO:</td>
+                            <td colspan="4" style="font-size: 1.5em; color: #43e97b;">{{ total_sum|floatformat:2 }} €</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <p>Klijent nema unetih uplata</p>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-user-slash"></i>
+            <p>Klijent nije pronađen</p>
+            <small>Pokušajte sa drugim imenom</small>
+        </div>
+        {% endif %}
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-search"></i>
+        <p style="font-size: 1.5em;">Unesite ime klijenta</p>
+        <small style="opacity: 0.6;">Počnite sa pretragom da vidite istoriju uplata</small>
+    </div>
+    {% endif %}
+    
+</div>
+{% endblock %}
