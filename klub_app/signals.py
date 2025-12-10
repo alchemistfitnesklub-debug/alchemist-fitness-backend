@@ -55,3 +55,34 @@ def kreiraj_user_za_clana(sender, instance, created, **kwargs):
             
         except Exception as e:
             print(f"❌ Greška pri auto-kreiranju naloga: {e}")
+
+# ========================================
+# SIGNAL ZA TRACKING PRISUSTVA RADNIKA
+# DODATO 10.12.2024
+# ========================================
+
+from django.contrib.auth.signals import user_logged_in
+from django.utils import timezone
+from .models import RadnikPrisustvo
+
+@receiver(user_logged_in)
+def log_user_login(sender, request, user, **kwargs):
+    """
+    Automatski beleži prisustvo kada se radnik loguje
+    Samo za trenere i admine, ne za klijente
+    """
+    try:
+        profile = UserProfile.objects.get(user=user)
+        
+        # Samo za trenere i admine
+        if profile.is_trener or profile.is_admin:
+            today = timezone.now().date()
+            
+            # Kreiraj prisustvo ako ne postoji za danas
+            RadnikPrisustvo.objects.get_or_create(
+                user=user,
+                datum=today,
+                defaults={'vreme_logovanja': timezone.now()}
+            )
+    except UserProfile.DoesNotExist:
+        pass  # Klijenti nemaju tracking
