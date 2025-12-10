@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Attendance Heatmap{% endblock %}
+
+{% block content %}
+<div style="max-width: 1400px; margin: 0 auto;">
+    
+    <a href="{% url 'management_dashboard' %}" class="btn-secondary">
+        <i class="fas fa-arrow-left"></i> Nazad
+    </a>
+    
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="font-size: 2.5em;">
+            <i class="fas fa-calendar-week"></i> ATTENDANCE HEATMAP
+        </h1>
+        <p style="opacity: 0.8;">Najpopularniji dani i termini za treninge</p>
+    </div>
+    
+    <!-- FILTER -->
+    <div class="filter-card">
+        <form method="get" class="filter-grid">
+            <div class="filter-group">
+                <label>Od datuma</label>
+                <input type="date" name="from_date" value="{{ from_date }}" required>
+            </div>
+            <div class="filter-group">
+                <label>Do datuma</label>
+                <input type="date" name="to_date" value="{{ to_date }}" required>
+            </div>
+            <div class="filter-group">
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-search"></i> Prikaži
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- STATISTIKA -->
+    <div class="stats-row">
+        <div class="stat-card blue">
+            <i class="fas fa-calendar-check"></i>
+            <h3>{{ total_reservations }}</h3>
+            <p>Ukupno Rezervacija</p>
+        </div>
+        
+        <div class="stat-card green">
+            <i class="fas fa-clock"></i>
+            <h3>{{ most_popular_time }}</h3>
+            <p>Najpopularniji Termin</p>
+        </div>
+        
+        <div class="stat-card purple">
+            <i class="fas fa-users"></i>
+            <h3>{{ most_popular_count }}</h3>
+            <p>Rezervacija u tom terminu</p>
+        </div>
+    </div>
+    
+    <!-- CHART - PO DANIMA -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-calendar-alt"></i>
+            <h2>Popularnost po Danima u Nedelji</h2>
+        </div>
+        <canvas id="dayChart" height="100"></canvas>
+    </div>
+    
+    <!-- CHART - PO SATIMA -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-clock"></i>
+            <h2>Popularnost po Terminima</h2>
+        </div>
+        <canvas id="hourChart" height="120"></canvas>
+    </div>
+    
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Chart po danima
+    const dayCtx = document.getElementById('dayChart').getContext('2d');
+    new Chart(dayCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ day_labels|safe }},
+            datasets: [{
+                label: 'Broj Rezervacija',
+                data: {{ day_data|safe }},
+                backgroundColor: [
+                    'rgba(255, 68, 68, 0.85)',    // Nedelja
+                    'rgba(67, 233, 123, 0.85)',   // Ponedeljak
+                    'rgba(79, 172, 254, 0.85)',   // Utorak
+                    'rgba(240, 147, 251, 0.85)',  // Sreda
+                    'rgba(255, 193, 7, 0.85)',    // Četvrtak
+                    'rgba(102, 126, 234, 0.85)',  // Petak
+                    'rgba(245, 87, 108, 0.85)',   // Subota
+                ],
+                borderWidth: 2,
+                borderRadius: 8,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.parsed.y + ' rezervacija';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    ticks: { 
+                        color: '#fff',
+                        stepSize: 1
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#fff' }
+                }
+            }
+        }
+    });
+    
+    // Chart po satima
+    const hourCtx = document.getElementById('hourChart').getContext('2d');
+    new Chart(hourCtx, {
+        type: 'line',
+        data: {
+            labels: {{ hour_labels|safe }},
+            datasets: [{
+                label: 'Broj Rezervacija',
+                data: {{ hour_data|safe }},
+                backgroundColor: 'rgba(0, 191, 255, 0.2)',
+                borderColor: '#00bfff',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.parsed.y + ' rezervacija';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    ticks: { 
+                        color: '#fff',
+                        stepSize: 1
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#fff' }
+                }
+            }
+        }
+    });
+    
+});
+</script>
+{% endblock %}
