@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ghost Members{% endblock %}
+
+{% block content %}
+<div style="max-width: 1400px; margin: 0 auto;">
+    
+    <a href="{% url 'management_dashboard' %}" class="btn-secondary">
+        <i class="fas fa-arrow-left"></i> Nazad
+    </a>
+    
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="font-size: 2.5em;">
+            <i class="fas fa-ghost"></i> GHOST MEMBERS
+        </h1>
+        <p style="opacity: 0.8;">Članovi koji plaćaju ali ne dolaze</p>
+    </div>
+    
+    <!-- FILTER -->
+    <div class="filter-card">
+        <form method="get">
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <div style="flex: 1;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Broj dana neaktivnosti:</label>
+                    <select name="days" style="width: 100%; padding: 12px; border-radius: 10px; border: 2px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.5); color: #fff; font-size: 1em;">
+                        <option value="30" {% if days_threshold == 30 %}selected{% endif %}>30 dana</option>
+                        <option value="45" {% if days_threshold == 45 %}selected{% endif %}>45 dana</option>
+                        <option value="60" {% if days_threshold == 60 %}selected{% endif %}>60 dana</option>
+                        <option value="90" {% if days_threshold == 90 %}selected{% endif %}>90 dana</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" style="width: auto; padding: 15px 40px; margin-top: 25px;">
+                    <i class="fas fa-search"></i> Prikaži
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- STATISTIKA -->
+    <div class="stats-row">
+        <div class="stat-card orange">
+            <i class="fas fa-ghost"></i>
+            <h3>{{ count }}</h3>
+            <p>Ghost Members</p>
+        </div>
+        
+        <div class="stat-card purple">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>{{ total_potential_loss|floatformat:2 }} €</h3>
+            <p>Potencijalni Gubitak</p>
+        </div>
+    </div>
+    
+    <!-- WARNING -->
+    {% if count > 0 %}
+    <div class="section-card" style="background: rgba(255, 68, 68, 0.1); border-left: 5px solid #ff4444;">
+        <div style="padding: 20px;">
+            <h3 style="color: #ff4444; margin-bottom: 10px;">
+                <i class="fas fa-exclamation-circle"></i> UPOZORENJE!
+            </h3>
+            <p style="opacity: 0.9; line-height: 1.8;">
+                <strong>{{ count }} članova</strong> ima aktivnu članarinu ali nije pravilo rezervaciju u poslednjih <strong>{{ days_threshold }} dana</strong>.
+                Ovo su potencijalno izgubljeni klijenti koji možda neće obnoviti članarinu.
+                <br><br>
+                <strong>Akcija:</strong> Kontaktiraj ih i motiviši ih da se vrate u teretanu!
+            </p>
+        </div>
+    </div>
+    
+    <!-- TABELA -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-list"></i>
+            <h2>Lista Ghost Members</h2>
+        </div>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Klijent</th>
+                        <th>Poslednja Poseta</th>
+                        <th>Dana Neaktivan</th>
+                        <th>Članarina Ističe</th>
+                        <th>Potencijalni Gubitak</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ghost in ghost_members %}
+                    <tr style="{% if ghost.days_inactive > 60 %}background: rgba(255, 68, 68, 0.2);{% endif %}">
+                        <td><strong>{{ ghost.clan.ime_prezime }}</strong></td>
+                        <td>
+                            {% if ghost.last_reservation %}
+                                {{ ghost.last_reservation|date:"d.m.Y" }}
+                            {% else %}
+                                <span style="color: #ff4444;">Nikada</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size: 1.2em; font-weight: bold; color: #ff9800;">{{ ghost.days_inactive }} dana</td>
+                        <td>
+                            {% if ghost.expires %}
+                                {{ ghost.expires|date:"d.m.Y" }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td style="font-weight: bold; color: #ff4444;">{{ ghost.potential_loss }} €</td>
+                    </tr>
+                    {% endfor %}
+                    <tr style="background: rgba(255, 68, 68, 0.3); font-weight: bold;">
+                        <td colspan="4">UKUPAN POTENCIJALNI GUBITAK:</td>
+                        <td style="font-size: 1.5em; color: #ff4444;">{{ total_potential_loss|floatformat:2 }} €</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-check-circle" style="color: #43e97b;"></i>
+        <p style="color: #43e97b; font-weight: bold;">SVE JE U REDU!</p>
+        <small style="opacity: 0.6;">Nema Ghost Members u poslednjih {{ days_threshold }} dana</small>
+    </div>
+    {% endif %}
+    
+</div>
+{% endblock %}
