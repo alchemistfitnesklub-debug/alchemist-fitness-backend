@@ -21,6 +21,7 @@ urlpatterns = [
     path('dashboard/management/top-clients/', views.management_top_clients, name='management_top_clients'),
     path('dashboard/management/ghost-members/', views.management_ghost_members, name='management_ghost_members'),
     path('dashboard/management/attendance-heatmap/', views.management_attendance_heatmap, name='management_attendance_heatmap'),
+    path('dashboard/management/monthly-payments/', views.management_monthly_payments, name='management_monthly_payments'),
     path('dashboard/management/customer-value/', views.management_customer_value, name='management_customer_value'),
     
     # ========== Klijenti ==========
