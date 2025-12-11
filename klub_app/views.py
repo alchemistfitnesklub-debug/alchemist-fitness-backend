@@ -1923,3 +1923,56 @@ def management_customer_value(request):
         'chart_data': json.dumps([categories['low'], categories['medium'], categories['high'], categories['vip']]),
     }
     return render(request, 'management_customer_value.html', context)
+
+@admin_only
+def management_monthly_payments(request):
+    """Pregled svih uplata po mesecima"""
+    # Filter parametri
+    month_str = request.GET.get('month')
+    year_str = request.GET.get('year')
+    
+    today = timezone.now().date()
+    
+    # Ako nisu uneti, uzmi trenutni mesec
+    if month_str and year_str:
+        month = int(month_str)
+        year = int(year_str)
+    else:
+        month = today.month
+        year = today.year
+    
+    # Prvi i poslednji dan meseca
+    first_day = date(year, month, 1)
+    
+    if month == 12:
+        last_day = date(year, 12, 31)
+    else:
+        last_day = date(year, month + 1, 1) - timedelta(days=1)
+    
+    # Sve uplate u tom mesecu (po od_datum)
+    uplate = Uplata.objects.filter(
+        od_datum__gte=first_day,
+        od_datum__lte=last_day
+    ).select_related('clan').order_by('od_datum')
+    
+    total_sum = uplate.aggregate(Sum('iznos'))['iznos__sum'] or Decimal('0.00')
+    total_count = uplate.count()
+    
+    # Mesečni nazivi
+    month_names = {
+        1: 'Januar', 2: 'Februar', 3: 'Mart', 4: 'April',
+        5: 'Maj', 6: 'Jun', 7: 'Jul', 8: 'Avgust',
+        9: 'Septembar', 10: 'Oktobar', 11: 'Novembar', 12: 'Decembar'
+    }
+    
+    context = {
+        'uplate': uplate,
+        'total_sum': total_sum,
+        'total_count': total_count,
+        'selected_month': month,
+        'selected_year': year,
+        'month_name': month_names[month],
+        'first_day': first_day,
+        'last_day': last_day,
+    }
+    return render(request, 'management_monthly_payments.html', context)
