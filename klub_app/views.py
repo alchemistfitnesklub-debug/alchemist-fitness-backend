@@ -2022,3 +2022,76 @@ def edit_uplata(request, uplata_id):
         'uplata': uplata,
     }
     return render(request, 'edit_uplata.html', context)
+
+# ========================================
+# ZATVARANJE TERMINA
+# DODATO 16.12.2024
+# ========================================
+
+@admin_only
+def zatvori_termin(request):
+    """Zatvori termin (admin)"""
+    if request.method == 'POST':
+        datum = request.POST.get('datum')
+        sat = request.POST.get('sat')
+        razlog = request.POST.get('razlog', '')
+        
+        try:
+            # Ekstraktuj sat iz formata "08:00"
+            sat_int = int(sat.split(':')[0])
+            
+            # Kreiraj zatvoreni termin
+            zatvoren, created = ZatvorenTermin.objects.get_or_create(
+                datum=datum,
+                sat=sat_int,
+                defaults={
+                    'razlog': razlog,
+                    'zatvorio': request.user
+                }
+            )
+            
+            if created:
+                return JsonResponse({
+                    'status': 'success',
+                    'message': f'Termin {datum} u {sat} je zatvoren!'
+                })
+            else:
+                return JsonResponse({
+                    'status': 'info',
+                    'message': 'Termin je već zatvoren.'
+                })
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Greška: {str(e)}'
+            })
+    
+    return JsonResponse({'status': 'error', 'message': 'Pogrešan metod'})
+
+
+@admin_only
+def otvori_termin(request):
+    """Otvori zatvoreni termin (admin)"""
+    if request.method == 'POST':
+        datum = request.POST.get('datum')
+        sat = request.POST.get('sat')
+        
+        try:
+            sat_int = int(sat.split(':')[0])
+            
+            ZatvorenTermin.objects.filter(
+                datum=datum,
+                sat=sat_int
+            ).delete()
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': f'Termin {datum} u {sat} je ponovo otvoren!'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Greška: {str(e)}'
+            })
+    
+    return JsonResponse({'status': 'error', 'message': 'Pogrešan metod'})
