@@ -302,6 +302,38 @@ body.dark-theme .form-group textarea {
     box-shadow: 0 6px 20px rgba(0, 191, 255, 0.4);
 }
 
+/* DUGMAD ZA AKCIJE U TABELI */
+.btn-edit,
+.btn-delete {
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: all 0.3s;
+    margin: 0 3px;
+}
+
+.btn-edit {
+    background: linear-gradient(135deg, #00bfff, #0099cc);
+    color: white;
+}
+
+.btn-edit:hover {
+    transform: scale(1.1);
+    box-shadow: 0 5px 15px rgba(0, 191, 255, 0.4);
+}
+
+.btn-delete {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+    color: white;
+}
+
+.btn-delete:hover {
+    transform: scale(1.1);
+    box-shadow: 0 5px 15px rgba(255, 68, 68, 0.4);
+}
+
 /* TABELE */
 .table-container {
     background: rgba(255, 255, 255, 0.95);
@@ -694,18 +726,36 @@ body.dark-theme .table-container tr:hover {
                         <thead>
                             <tr>
                                 <th>Datum uplate</th>
+                                <th>Od datuma</th>
+                                <th>Do datuma</th>
                                 <th>Iznos</th>
-                                <th>Meseci</th>
-                                <th>Važi do</th>
+                                {% if request.user.userprofile.is_admin %}
+                                <th>Akcije</th>
+                                {% endif %}
                             </tr>
                         </thead>
                         <tbody>
                             {% for uplata in uplate %}
                             <tr>
                                 <td>{{ uplata.datum|date:"d.m.Y" }}</td>
-                                <td><strong style="color: #43e97b;">{{ uplata.iznos }} €</strong></td>
-                                <td>{{ uplata.meseci }}</td>
+                                <td>{{ uplata.od_datum|date:"d.m.Y" }}</td>
                                 <td>{{ uplata.do_datum|date:"d.m.Y" }}</td>
+                                <td style="font-weight: bold; color: #43e97b;">{{ uplata.iznos }} €</td>
+                                {% if request.user.userprofile.is_admin %}
+                                <td style="white-space: nowrap;">
+                                    <button onclick="openEditModal({{ uplata.id }}, '{{ uplata.datum|date:"Y-m-d" }}', '{{ uplata.od_datum|date:"Y-m-d" }}', '{{ uplata.do_datum|date:"Y-m-d" }}', '{{ uplata.iznos }}')" 
+                                            class="btn-edit" 
+                                            title="Izmeni">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <form method="post" action="{% url 'delete_uplata' uplata.id %}" style="display: inline;" onsubmit="return confirm('Da li ste sigurni da želite da obrišete ovu uplatu?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn-delete" title="Obriši">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                                {% endif %}
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -821,7 +871,7 @@ body.dark-theme .table-container tr:hover {
             </div>
         </div>
 
-        <!-- TAB 5: MERENJA (NOVO!) -->
+        <!-- TAB 5: MERENJA -->
         <div id="merenja" class="tab-content">
             
             <!-- DODAJ NOVO MERENJE -->
@@ -979,6 +1029,49 @@ body.dark-theme .table-container tr:hover {
 
 </div>
 
+<!-- MODAL ZA IZMENU UPLATE -->
+{% if request.user.userprofile.is_admin %}
+<div id="editUplataModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(255,255,255,0.98); backdrop-filter: blur(20px); padding: 35px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); z-index: 1000; width: 90%; max-width: 500px; color: #000;">
+    <h3 style="color: #00bfff; margin-top: 0; margin-bottom: 20px;">
+        <i class="fas fa-edit"></i> Izmeni Uplatu
+    </h3>
+    
+    <form method="post" id="editUplataForm">
+        {% csrf_token %}
+        
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Datum Uplate:</label>
+            <input type="date" name="datum" id="editDatum" required style="width: 100%; padding: 12px; border-radius: 10px; border: 2px solid rgba(0,0,0,0.2); font-size: 1em;">
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Članarina Od:</label>
+            <input type="date" name="od_datum" id="editOdDatum" required style="width: 100%; padding: 12px; border-radius: 10px; border: 2px solid rgba(0,0,0,0.2); font-size: 1em;">
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Članarina Do:</label>
+            <input type="date" name="do_datum" id="editDoDatum" required style="width: 100%; padding: 12px; border-radius: 10px; border: 2px solid rgba(0,0,0,0.2); font-size: 1em;">
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Iznos (€):</label>
+            <input type="number" step="0.01" name="iznos" id="editIznos" required style="width: 100%; padding: 12px; border-radius: 10px; border: 2px solid rgba(0,0,0,0.2); font-size: 1em;">
+        </div>
+        
+        <button type="submit" style="background: linear-gradient(135deg, #43e97b, #38d278); color: white; border: none; font-weight: bold; cursor: pointer; padding: 12px 25px; border-radius: 10px; width: 100%; margin-bottom: 10px; font-size: 1em;">
+            <i class="fas fa-save"></i> Sačuvaj Izmene
+        </button>
+        
+        <button type="button" onclick="closeEditModal()" style="background: linear-gradient(135deg, #ccc, #aaa); color: #333; border: none; font-weight: bold; cursor: pointer; padding: 12px 25px; border-radius: 10px; width: 100%; font-size: 1em;">
+            <i class="fas fa-times"></i> Otkaži
+        </button>
+    </form>
+</div>
+
+<div id="editUplataOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 999;" onclick="closeEditModal()"></div>
+{% endif %}
+
 <!-- Chart.js za grafikon -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -1003,6 +1096,23 @@ function openTab(tabName) {
     if (tabName === 'merenja' && document.getElementById('merenjaChart')) {
         loadMerenjaChart();
     }
+}
+
+// MODAL FUNKCIJE
+function openEditModal(uplataId, datum, odDatum, doDatum, iznos) {
+    document.getElementById('editUplataForm').action = '/uplata/edit/' + uplataId + '/';
+    document.getElementById('editDatum').value = datum;
+    document.getElementById('editOdDatum').value = odDatum;
+    document.getElementById('editDoDatum').value = doDatum;
+    document.getElementById('editIznos').value = iznos;
+    
+    document.getElementById('editUplataModal').style.display = 'block';
+    document.getElementById('editUplataOverlay').style.display = 'block';
+}
+
+function closeEditModal() {
+    document.getElementById('editUplataModal').style.display = 'none';
+    document.getElementById('editUplataOverlay').style.display = 'none';
 }
 
 // VALIDACIJA KREDITA
