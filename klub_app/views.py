@@ -26,7 +26,7 @@ from django.views.decorators.csrf import csrf_exempt
 import firebase_admin
 from firebase_admin import credentials, messaging
 from django.core.files.storage import default_storage
-from .models import Clan, Uplata, Rezervacija, Stock, Sale, Obavestenje, UserProfile, Merenje
+from .models import Clan, Uplata, Rezervacija, Stock, Sale, Obavestenje, UserProfile, Merenje, ZatvorenTermin
 from .forms import ClanForm, UplataForm, SaleForm, MerenjeForm
 from .services.firebase_service import send_push_notification
 
@@ -603,6 +603,22 @@ def rezervacije(request):
                 return JsonResponse({'status': 'error', 'message': 'Sat mora biti između 6 i 22!'})
         except:
             return JsonResponse({'status': 'error', 'message': 'Nevalidan sat!'})
+        
+        # ========================================
+        # PROVERI DA LI JE TERMIN ZATVOREN
+        # ========================================
+        zatvoren_termin = ZatvorenTermin.objects.filter(
+            datum=datum,
+            sat=sat
+        ).exists()
+        
+        if zatvoren_termin:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Ovaj termin je zatvoren i nije dostupan za rezervaciju.'
+            })
+        # ========================================
+        
         try:
             clan = get_object_or_404(Clan, id=clan_id)
             if action != 'confirm':
@@ -1159,7 +1175,6 @@ def test_notifications(request):
     
     return redirect('dashboard')
 
-
 @login_required
 def rezervacije_json(request):
     try:
@@ -1188,6 +1203,26 @@ def rezervacije_json(request):
             'title': r.clan.ime_prezime,
             'start': f"{r.datum}T{sat_str}:00"
         })
+    
+    # ========================================
+    # DODAJ ZATVORENE TERMINE
+    # ========================================
+    zatvoreni = ZatvorenTermin.objects.filter(
+        datum__gte=start_date,
+        datum__lte=end_date
+    )
+    
+    for z in zatvoreni:
+        events.append({
+            'id': f'closed_{z.id}',
+            'title': z.razlog or 'ZATVORENO',
+            'start': f"{z.datum}T{z.sat:02d}:00:00",
+            'color': '#ff0000',
+            'textColor': '#ffffff',
+            'closed': True  # Oznaka da je zatvoren termin
+        })
+    # ========================================
+    
     return JsonResponse(events, safe=False)
 
 
