@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
 from datetime import datetime, timedelta
-from .models import Clan, Uplata, Rezervacija, Obavestenje, UserProfile
+from .models import Clan, Uplata, Rezervacija, Obavestenje, UserProfile, ZatvorenTermin
 from .serializers import (
     ClanSerializer, UplataSerializer, 
     RezervacijaSerializer, ObavestenjeSerializer
@@ -176,6 +176,20 @@ def kreiraj_rezervaciju(request):
             return Response({
                 'error': 'Termin je popunjen (maksimalno 6 članova)'
             }, status=status.HTTP_400_BAD_REQUEST)
+
+        # ========================================
+        # PROVERI DA LI JE TERMIN ZATVOREN
+        # ========================================
+        zatvoren_termin = ZatvorenTermin.objects.filter(
+            datum=datum,
+            sat=sat
+        ).exists()
+        
+        if zatvoren_termin:
+            return Response({
+                'error': 'Ovaj termin je zatvoren i nije dostupan za rezervaciju.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        # ========================================
         
         # Proveri da li korisnik već ima rezervaciju za taj termin
         # Proveri da li korisnik već ima rezervaciju za taj DAN (bilo koji sat)
@@ -327,11 +341,18 @@ def dostupni_termini(request):
                 sat=sat
             ).count()
             
+            # PROVERI DA LI JE TERMIN ZATVOREN
+            zatvoren = ZatvorenTermin.objects.filter(
+                datum=datum,
+                sat=sat
+            ).exists()
+            
             termini_data.append({
                 'sat': sat,
                 'zauzeto': broj_rezervacija,
-                'dostupno': 6 - broj_rezervacija,  # Maksimalno 6
-                'popunjeno': broj_rezervacija >= 6  # Popunjeno ako ima 6 ili više
+                'dostupno': 0 if zatvoren else (6 - broj_rezervacija),  # 0 ako zatvoren
+                'popunjeno': zatvoren or broj_rezervacija >= 6,  # Popunjeno ako zatvoren ili pun
+                'zatvoren': zatvoren  # NOVO polje za aplikaciju
             })
         
         return Response(termini_data)
