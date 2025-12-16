@@ -238,3 +238,20 @@ class RadnikPrisustvo(models.Model):
     
     def __str__(self):
         return f"{self.user.username} - {self.datum.strftime('%d.%m.%Y')}"
+
+
+class ZatvorenTermin(models.Model):
+    """Model za zatvaranje termina (npr. praznici, održavanje)"""
+    datum = models.DateField()
+    sat = models.IntegerField()  # 8-19
+    razlog = models.CharField(max_length=200, blank=True, null=True)
+    zatvorio = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    kreiran = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['datum', 'sat']
+        verbose_name = 'Zatvoren termin'
+        verbose_name_plural = 'Zatvoreni termini'
+    
+    def __str__(self):
+        return f"{self.datum} u {self.sat}:00 - {self.razlog or 'Zatvoren'}"
