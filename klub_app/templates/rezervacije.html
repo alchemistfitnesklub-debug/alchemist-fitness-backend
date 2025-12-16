@@ -846,6 +846,15 @@ function calculateStats(data, from_date, to_date) {
 function openPopup(time, date) {
     console.log('openPopup() pozvan za:', time, date);
     
+    // OČISTI PRETHODNA DUGMAD PRE OTVARANJA
+    var reservedListDiv = document.getElementById('reservedList');
+    var extraButtons = reservedListDiv.querySelectorAll('button:not(.delete-btn), div[style*="marginTop"]');
+    extraButtons.forEach(function(btn) {
+        btn.remove();
+    });
+    
+    var slot = document.querySelector(`.time-slot[data-date="${date}"][data-time="${time}"]`);
+    
     var slot = document.querySelector(`.time-slot[data-date="${date}"][data-time="${time}"]`);
     if (slot && slot.dataset.closed === 'true') {
         document.getElementById('popup').style.display = 'block';
@@ -965,6 +974,15 @@ function closePopup() {
     document.getElementById('reservationForm').reset();
     document.getElementById('popupSat').textContent = '';
     document.getElementById('popupDatum').textContent = '';
+    
+    // OČISTI SVA DODATNA DUGMAD
+    var reservedListDiv = document.getElementById('reservedList');
+    var buttons = reservedListDiv.querySelectorAll('button, div');
+    buttons.forEach(function(btn) {
+        if (btn.parentNode === reservedListDiv) {
+            btn.remove();
+        }
+    });
 }
 
 // PREVIOUS WEEK
