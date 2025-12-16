@@ -1976,3 +1976,49 @@ def management_monthly_payments(request):
         'last_day': last_day,
     }
     return render(request, 'management_monthly_payments.html', context)
+
+# ========================================
+# IZMENA I BRISANJE UPLATA - SAMO ADMIN
+# DODATO 16.12.2024
+# ========================================
+
+@admin_only
+def delete_uplata(request, uplata_id):
+    """Brisanje uplate - samo admin"""
+    uplata = get_object_or_404(Uplata, id=uplata_id)
+    clan_id = uplata.clan.id
+    
+    uplata.delete()
+    messages.success(request, f'Uplata od {uplata.iznos}€ je uspešno obrisana!')
+    
+    return redirect('clan_profil', clan_id=clan_id)
+
+
+@admin_only
+def edit_uplata(request, uplata_id):
+    """Izmena uplate - samo admin"""
+    uplata = get_object_or_404(Uplata, id=uplata_id)
+    
+    if request.method == 'POST':
+        iznos = request.POST.get('iznos')
+        datum = request.POST.get('datum')
+        od_datum = request.POST.get('od_datum')
+        do_datum = request.POST.get('do_datum')
+        
+        # Validacija
+        try:
+            uplata.iznos = Decimal(iznos)
+            uplata.datum = parse_date(datum)
+            uplata.od_datum = parse_date(od_datum)
+            uplata.do_datum = parse_date(do_datum)
+            uplata.save()
+            
+            messages.success(request, 'Uplata uspešno izmenjena!')
+            return redirect('clan_profil', clan_id=uplata.clan.id)
+        except Exception as e:
+            messages.error(request, f'Greška pri izmeni: {str(e)}')
+    
+    context = {
+        'uplata': uplata,
+    }
+    return render(request, 'edit_uplata.html', context)
