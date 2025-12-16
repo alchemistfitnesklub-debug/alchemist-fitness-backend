@@ -97,4 +97,8 @@ urlpatterns = [
     path('api/rezervacije/kreiraj/', api_views.kreiraj_rezervaciju, name='api_kreiraj_rezervaciju_alias'),
     path('api/rezervacije/<int:pk>/otkazi/', api_views.otkazi_rezervaciju, name='api_otkazi_rezervaciju_alias'),
     path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
+
+    # Izmena/Brisanje Uplata - Samo Admin
+    path('uplata/delete/<int:uplata_id>/', views.delete_uplata, name='delete_uplata'),
+    path('uplata/edit/<int:uplata_id>/', views.edit_uplata, name='edit_uplata'),
 ]
