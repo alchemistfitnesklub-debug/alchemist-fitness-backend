@@ -43,6 +43,9 @@ urlpatterns = [
     path('rezervacije/json/', views.rezervacije_json, name='rezervacije_json'),
     path('rezervacije/json/clanovi/', views.rezervacije_json_clanovi, name='rezervacije_json_clanovi'),
     path('brisi_rezervaciju/<int:rezervacija_id>/', views.brisi_rezervaciju, name='brisi_rezervaciju'),
+    # Zatvaranje termina
+    path('zatvori-termin/', views.zatvori_termin, name='zatvori_termin'),
+    path('otvori-termin/', views.otvori_termin, name='otvori_termin'),
     
     # ========== Trener i Klijent dashboards ==========
     path('trener-home/', views.trener_home, name='trener_home'),
