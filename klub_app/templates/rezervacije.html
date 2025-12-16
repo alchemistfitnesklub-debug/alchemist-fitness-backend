@@ -671,7 +671,7 @@ body.dark-theme #popup select {
 
 </div>
 
-<!-- JAVASCRIPT - ISPRAVLJEN loadSchedule() -->
+<!-- JAVASCRIPT - SA SVIM IZMENAMA -->
 <script>
 console.log('SKRIPTA SE UČITAVA');
 
@@ -680,7 +680,7 @@ function loadSchedule() {
     console.log('loadSchedule() pokrenut');
     
     var today = new Date();
-    var currentDay = today.getDay() || 7; // 0=Nedelja postaje 7
+    var currentDay = today.getDay() || 7;
     var monday = new Date(today);
     monday.setDate(today.getDate() - (currentDay - 1));
     var sunday = new Date(monday);
@@ -689,36 +689,29 @@ function loadSchedule() {
     var from_date = new URLSearchParams(window.location.search).get('from_date') || monday.toISOString().split('T')[0];
     var to_date = new URLSearchParams(window.location.search).get('to_date') || sunday.toISOString().split('T')[0];
     
-    // ========================================
     // FIX: OSIGURAJ DA NEDELJA POČINJE OD PONEDELJKA
-    // ========================================
     var startDate = new Date(from_date);
-    var startDay = startDate.getDay(); // 0=Nedelja, 1=Ponedeljak, ...
+    var startDay = startDate.getDay();
     
-    // Prilagodi da ponedeljak bude prvi dan (ako nije)
     if (startDay === 0) {
-        // Ako je nedelja, idi unazad 6 dana do ponedeljka
         startDate.setDate(startDate.getDate() - 6);
     } else if (startDay !== 1) {
-        // Ako nije ponedeljak, idi unazad do ponedeljka
         startDate.setDate(startDate.getDate() - (startDay - 1));
     }
     
-    // Kreiraj niz od 7 dana (ponedeljak -> nedelja)
     var days = [];
     for (var i = 0; i < 7; i++) {
         var day = new Date(startDate);
         day.setDate(startDate.getDate() + i);
         days.push(day.toISOString().split('T')[0]);
     }
-    // ========================================
     
     var weekStart = new Date(days[0]);
     var weekEnd = new Date(days[6]);
     document.getElementById('weekRange').textContent = `${weekStart.toLocaleDateString('sr-RS', {day: '2-digit', month: '2-digit', year: 'numeric'})} - ${weekEnd.toLocaleDateString('sr-RS', {day: '2-digit', month: '2-digit', year: 'numeric'})}`;
     
-    document.getElementById('fromDateInput').value = days[0]; // Ažuriraj input da odražava pravi ponedeljak
-    document.getElementById('toDateInput').value = days[6];   // Ažuriraj input da odražava pravu nedelju
+    document.getElementById('fromDateInput').value = days[0];
+    document.getElementById('toDateInput').value = days[6];
     
     var schedule = document.getElementById('schedule');
     if (!schedule) { 
@@ -756,22 +749,29 @@ function loadSchedule() {
         schedule.appendChild(dayDiv);
     }
     
-    loadReservations(days[0], days[6]); // Koristi tačne datume
+    loadReservations(days[0], days[6]);
 }
 
-// LOAD RESERVATIONS
+// LOAD RESERVATIONS - SA ZATVORENIM TERMINIMA
 function loadReservations(from_date, to_date) {
     $.get(`/rezervacije/json/?start=${from_date}&end=${to_date}`, function(data) {
         var slotCounts = {};
+        var closedSlots = {};
         
         data.forEach(function(event) {
             var date = event.start.split('T')[0];
             var time = event.start.split('T')[1].split(':')[0] + ':00';
             var key = `${date}_${time}`;
-            slotCounts[key] = (slotCounts[key] || 0) + 1;
+            
+            // PROVERI DA LI JE ZATVOREN
+            if (event.closed === true) {
+                closedSlots[key] = event.title;
+            } else {
+                slotCounts[key] = (slotCounts[key] || 0) + 1;
+            }
         });
         
-        // Ažuriraj slotove
+        // Ažuriraj slotove sa brojevima
         Object.keys(slotCounts).forEach(function(key) {
             var [date, time] = key.split('_');
             var slot = document.querySelector(`.time-slot[data-date="${date}"][data-time="${time}"]`);
@@ -790,7 +790,33 @@ function loadReservations(from_date, to_date) {
             }
         });
         
-        // Izračunaj statistiku
+        // OZNAČI ZATVORENE SLOTOVE
+        Object.keys(closedSlots).forEach(function(key) {
+            var [date, time] = key.split('_');
+            var slot = document.querySelector(`.time-slot[data-date="${date}"][data-time="${time}"]`);
+            
+            if (slot) {
+                slot.style.background = 'linear-gradient(135deg, #ff4444, #cc0000)';
+                slot.style.color = 'white';
+                slot.dataset.closed = 'true';
+                slot.textContent = '';
+                
+                const oldBadge = slot.querySelector('.count-badge');
+                if (oldBadge) oldBadge.remove();
+                
+                const lockIcon = document.createElement('div');
+                lockIcon.innerHTML = '<i class="fas fa-lock"></i>';
+                lockIcon.style.position = 'absolute';
+                lockIcon.style.top = '50%';
+                lockIcon.style.left = '50%';
+                lockIcon.style.transform = 'translate(-50%, -50%)';
+                lockIcon.style.fontSize = '1.5em';
+                lockIcon.style.zIndex = '10';
+                lockIcon.style.pointerEvents = 'none';
+                slot.appendChild(lockIcon);
+            }
+        });
+        
         calculateStats(data, from_date, to_date);
         
     }).fail(function(xhr, status, error) {
@@ -800,18 +826,19 @@ function loadReservations(from_date, to_date) {
 
 // IZRAČUNAJ STATISTIKU
 function calculateStats(data, from_date, to_date) {
-    var total = data.length;
+    // Filtriraj zatvorene termine iz statistike
+    var realReservations = data.filter(e => !e.closed);
+    var total = realReservations.length;
     
     var today = new Date().toISOString().split('T')[0];
     var tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     var tomorrowStr = tomorrow.toISOString().split('T')[0];
     
-    var todayCount = data.filter(e => e.start.split('T')[0] === today).length;
-    var tomorrowCount = data.filter(e => e.start.split('T')[0] === tomorrowStr).length;
+    var todayCount = realReservations.filter(e => e.start.split('T')[0] === today).length;
+    var tomorrowCount = realReservations.filter(e => e.start.split('T')[0] === tomorrowStr).length;
     
-    // Izračunaj prosečnu popunjenost (maksimalno 6 po slotu, 12 sati dnevno, 7 dana)
-    var maxCapacity = 7 * 12 * 6; // 7 dana * 12 sati * 6 maksimalno
+    var maxCapacity = 7 * 12 * 6;
     var capacityPercent = maxCapacity > 0 ? Math.round((total / maxCapacity) * 100) : 0;
     
     document.getElementById('total-count').textContent = total;
@@ -820,10 +847,49 @@ function calculateStats(data, from_date, to_date) {
     document.getElementById('capacity-percent').textContent = capacityPercent + '%';
 }
 
-// OPEN POPUP
+// OPEN POPUP - SA ZATVORENIM TERMINIMA
 function openPopup(time, date) {
     console.log('openPopup() pozvan za:', time, date);
     
+    // Proveri da li je slot zatvoren
+    var slot = document.querySelector(`.time-slot[data-date="${date}"][data-time="${time}"]`);
+    if (slot && slot.dataset.closed === 'true') {
+        // TERMIN JE ZATVOREN
+        document.getElementById('popup').style.display = 'block';
+        document.getElementById('satInput').value = time;
+        document.getElementById('datumInput').value = date;
+        document.getElementById('popupSat').textContent = time;
+        document.getElementById('popupDatum').textContent = date;
+        
+        document.getElementById('confirmButton').style.display = 'none';
+        document.getElementById('clanSearch').style.display = 'none';
+        document.getElementById('clanSelect').style.display = 'none';
+        
+        var reservedListItems = document.getElementById('reservedListItems');
+        reservedListItems.innerHTML = `
+            <li style="text-align: center; background: rgba(255,0,0,0.2); padding: 20px; border: 2px solid #ff0000; border-radius: 10px;">
+                <i class="fas fa-lock" style="font-size: 2em; color: #ff0000; margin-bottom: 10px;"></i><br>
+                <strong style="color: #ff0000; font-size: 1.2em;">TERMIN ZATVOREN</strong><br>
+                <small style="opacity: 0.8;">Ovaj termin nije dostupan za rezervaciju</small>
+            </li>
+        `;
+        
+        {% if request.user.userprofile.is_admin %}
+        // Dodaj dugme za otvaranje termina
+        var otvoriBtnDiv = document.createElement('div');
+        otvoriBtnDiv.style.marginTop = '15px';
+        otvoriBtnDiv.innerHTML = `
+            <button type="button" onclick="otvoriTermin('${date}', '${time}')" style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white; border: none; font-weight: bold; cursor: pointer; padding: 12px 25px; border-radius: 10px; width: 100%; font-size: 1em;">
+                <i class="fas fa-unlock"></i> Otvori termin
+            </button>
+        `;
+        document.getElementById('reservedList').appendChild(otvoriBtnDiv);
+        {% endif %}
+        
+        return;
+    }
+    
+    // NORMALAN POPUP ZA OTVORENE TERMINE
     document.getElementById('popup').style.display = 'block';
     document.getElementById('satInput').value = time;
     document.getElementById('datumInput').value = date;
@@ -838,7 +904,7 @@ function openPopup(time, date) {
         var reserved = data.filter(event => {
             var eventDate = event.start.split('T')[0];
             var eventTime = event.start.split('T')[1].split(':')[0] + ':00';
-            return eventDate === date && eventTime === time;
+            return eventDate === date && eventTime === time && !event.closed;
         });
         
         var count = reserved.length;
@@ -860,10 +926,7 @@ function openPopup(time, date) {
             reservedListItems.innerHTML = '<li style="text-align: center; opacity: 0.5;"><i class="fas fa-info-circle"></i> Nema zakazanih članova</li>';
         }
         
-        // Proveri da li je pun (6 ili više)
-        var slot = document.querySelector(`.time-slot[data-date="${date}"][data-time="${time}"]`);
         if (count >= 6) {
-            slot.classList.add('full');
             document.getElementById('confirmButton').style.display = 'none';
             document.getElementById('clanSearch').style.display = 'none';
             document.getElementById('clanSelect').style.display = 'none';
@@ -872,6 +935,31 @@ function openPopup(time, date) {
             document.getElementById('clanSearch').style.display = 'block';
             document.getElementById('clanSelect').style.display = 'block';
         }
+        
+        {% if request.user.userprofile.is_admin %}
+        // Dodaj dugme za ZATVARANJE termina
+        if (count < 6) {
+            var zatvoriBtn = document.createElement('button');
+            zatvoriBtn.type = 'button';
+            zatvoriBtn.style.background = 'linear-gradient(135deg, #ff4444, #cc0000)';
+            zatvoriBtn.style.color = 'white';
+            zatvoriBtn.style.border = 'none';
+            zatvoriBtn.style.fontWeight = 'bold';
+            zatvoriBtn.style.cursor = 'pointer';
+            zatvoriBtn.style.padding = '12px 25px';
+            zatvoriBtn.style.borderRadius = '10px';
+            zatvoriBtn.style.width = '100%';
+            zatvoriBtn.style.marginTop = '10px';
+            zatvoriBtn.style.fontSize = '1em';
+            zatvoriBtn.innerHTML = '<i class="fas fa-lock"></i> Zatvori termin';
+            zatvoriBtn.onclick = function() {
+                zatvoriTermin(date, time);
+            };
+            
+            var reservedListDiv = document.getElementById('reservedList');
+            reservedListDiv.appendChild(zatvoriBtn);
+        }
+        {% endif %}
         
     }).fail(function(xhr, status, error) {
         console.error('Error loading reserved list:', error);
@@ -954,6 +1042,65 @@ function deleteReservation(id, title, date, time) {
     }
 }
 
+// ========================================
+// ZATVARANJE I OTVARANJE TERMINA
+// ========================================
+
+function zatvoriTermin(date, time) {
+    var razlog = prompt('Unesite razlog zatvaranja (opciono):');
+    
+    if (razlog === null) return; // Otkazano
+    
+    $.ajax({
+        url: '/zatvori-termin/',
+        type: 'POST',
+        data: {
+            'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
+            'datum': date,
+            'sat': time,
+            'razlog': razlog
+        },
+        success: function(data) {
+            if (data.status === 'success') {
+                toastr.success(data.message);
+                closePopup();
+                loadSchedule();
+            } else {
+                toastr.info(data.message);
+            }
+        },
+        error: function(xhr) {
+            toastr.error('Greška: ' + xhr.responseText);
+        }
+    });
+}
+
+function otvoriTermin(date, time) {
+    if (!confirm('Da li želite da ponovo otvorite ovaj termin?')) return;
+    
+    $.ajax({
+        url: '/otvori-termin/',
+        type: 'POST',
+        data: {
+            'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
+            'datum': date,
+            'sat': time
+        },
+        success: function(data) {
+            if (data.status === 'success') {
+                toastr.success(data.message);
+                closePopup();
+                loadSchedule();
+            } else {
+                toastr.error(data.message);
+            }
+        },
+        error: function(xhr) {
+            toastr.error('Greška: ' + xhr.responseText);
+        }
+    });
+}
+
 // FORM SUBMIT
 document.getElementById('reservationForm').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -996,7 +1143,7 @@ document.getElementById('reservationForm').addEventListener('submit', function(e
                             error: function(xhr) {
                                 toastr.error('AJAX greška: ' + xhr.responseText);
                             }
-                        });
+        });
                     }
                 } else {
                     toastr.error(data.message);
