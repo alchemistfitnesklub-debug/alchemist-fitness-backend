@@ -675,7 +675,7 @@ body.dark-theme #popup select {
 <script>
 console.log('SKRIPTA SE UČITAVA');
 
-// LOAD SCHEDULE - ISPRAVLJENO
+// LOAD SCHEDULE
 function loadSchedule() {
     console.log('loadSchedule() pokrenut');
     
@@ -689,7 +689,6 @@ function loadSchedule() {
     var from_date = new URLSearchParams(window.location.search).get('from_date') || monday.toISOString().split('T')[0];
     var to_date = new URLSearchParams(window.location.search).get('to_date') || sunday.toISOString().split('T')[0];
     
-    // FIX: OSIGURAJ DA NEDELJA POČINJE OD PONEDELJKA
     var startDate = new Date(from_date);
     var startDay = startDate.getDay();
     
@@ -763,7 +762,6 @@ function loadReservations(from_date, to_date) {
             var time = event.start.split('T')[1].split(':')[0] + ':00';
             var key = `${date}_${time}`;
             
-            // PROVERI DA LI JE ZATVOREN
             if (event.closed === true) {
                 closedSlots[key] = event.title;
             } else {
@@ -771,7 +769,6 @@ function loadReservations(from_date, to_date) {
             }
         });
         
-        // Ažuriraj slotove sa brojevima
         Object.keys(slotCounts).forEach(function(key) {
             var [date, time] = key.split('_');
             var slot = document.querySelector(`.time-slot[data-date="${date}"][data-time="${time}"]`);
@@ -790,7 +787,6 @@ function loadReservations(from_date, to_date) {
             }
         });
         
-        // OZNAČI ZATVORENE SLOTOVE
         Object.keys(closedSlots).forEach(function(key) {
             var [date, time] = key.split('_');
             var slot = document.querySelector(`.time-slot[data-date="${date}"][data-time="${time}"]`);
@@ -826,7 +822,6 @@ function loadReservations(from_date, to_date) {
 
 // IZRAČUNAJ STATISTIKU
 function calculateStats(data, from_date, to_date) {
-    // Filtriraj zatvorene termine iz statistike
     var realReservations = data.filter(e => !e.closed);
     var total = realReservations.length;
     
@@ -851,10 +846,8 @@ function calculateStats(data, from_date, to_date) {
 function openPopup(time, date) {
     console.log('openPopup() pozvan za:', time, date);
     
-    // Proveri da li je slot zatvoren
     var slot = document.querySelector(`.time-slot[data-date="${date}"][data-time="${time}"]`);
     if (slot && slot.dataset.closed === 'true') {
-        // TERMIN JE ZATVOREN
         document.getElementById('popup').style.display = 'block';
         document.getElementById('satInput').value = time;
         document.getElementById('datumInput').value = date;
@@ -875,7 +868,6 @@ function openPopup(time, date) {
         `;
         
         {% if request.user.userprofile.is_admin %}
-        // Dodaj dugme za otvaranje termina
         var otvoriBtnDiv = document.createElement('div');
         otvoriBtnDiv.style.marginTop = '15px';
         otvoriBtnDiv.innerHTML = `
@@ -889,7 +881,6 @@ function openPopup(time, date) {
         return;
     }
     
-    // NORMALAN POPUP ZA OTVORENE TERMINE
     document.getElementById('popup').style.display = 'block';
     document.getElementById('satInput').value = time;
     document.getElementById('datumInput').value = date;
@@ -937,28 +928,26 @@ function openPopup(time, date) {
         }
         
         {% if request.user.userprofile.is_admin %}
-        // Dodaj dugme za ZATVARANJE termina
-        if (count < 6) {
-            var zatvoriBtn = document.createElement('button');
-            zatvoriBtn.type = 'button';
-            zatvoriBtn.style.background = 'linear-gradient(135deg, #ff4444, #cc0000)';
-            zatvoriBtn.style.color = 'white';
-            zatvoriBtn.style.border = 'none';
-            zatvoriBtn.style.fontWeight = 'bold';
-            zatvoriBtn.style.cursor = 'pointer';
-            zatvoriBtn.style.padding = '12px 25px';
-            zatvoriBtn.style.borderRadius = '10px';
-            zatvoriBtn.style.width = '100%';
-            zatvoriBtn.style.marginTop = '10px';
-            zatvoriBtn.style.fontSize = '1em';
-            zatvoriBtn.innerHTML = '<i class="fas fa-lock"></i> Zatvori termin';
-            zatvoriBtn.onclick = function() {
-                zatvoriTermin(date, time);
-            };
-            
-            var reservedListDiv = document.getElementById('reservedList');
-            reservedListDiv.appendChild(zatvoriBtn);
-        }
+        // DUGME "ZATVORI TERMIN" - UVEK PRIKAZANO
+        var zatvoriBtn = document.createElement('button');
+        zatvoriBtn.type = 'button';
+        zatvoriBtn.style.background = 'linear-gradient(135deg, #ff4444, #cc0000)';
+        zatvoriBtn.style.color = 'white';
+        zatvoriBtn.style.border = 'none';
+        zatvoriBtn.style.fontWeight = 'bold';
+        zatvoriBtn.style.cursor = 'pointer';
+        zatvoriBtn.style.padding = '12px 25px';
+        zatvoriBtn.style.borderRadius = '10px';
+        zatvoriBtn.style.width = '100%';
+        zatvoriBtn.style.marginTop = '10px';
+        zatvoriBtn.style.fontSize = '1em';
+        zatvoriBtn.innerHTML = '<i class="fas fa-lock"></i> Zatvori termin';
+        zatvoriBtn.onclick = function() {
+            zatvoriTermin(date, time, count);
+        };
+        
+        var reservedListDiv = document.getElementById('reservedList');
+        reservedListDiv.appendChild(zatvoriBtn);
         {% endif %}
         
     }).fail(function(xhr, status, error) {
@@ -1042,14 +1031,18 @@ function deleteReservation(id, title, date, time) {
     }
 }
 
-// ========================================
 // ZATVARANJE I OTVARANJE TERMINA
-// ========================================
-
-function zatvoriTermin(date, time) {
+function zatvoriTermin(date, time, count) {
+    // UPOZORENJE AKO IMA REZERVACIJA
+    if (count > 0) {
+        if (!confirm(`PAŽNJA: Ovaj termin ima ${count} rezervacija!\n\nDa li želite da ZATVORITE termin?\n(Rezervacije će ostati, ali novi članovi neće moći da se zakažu)`)) {
+            return;
+        }
+    }
+    
     var razlog = prompt('Unesite razlog zatvaranja (opciono):');
     
-    if (razlog === null) return; // Otkazano
+    if (razlog === null) return;
     
     $.ajax({
         url: '/zatvori-termin/',
@@ -1143,7 +1136,7 @@ document.getElementById('reservationForm').addEventListener('submit', function(e
                             error: function(xhr) {
                                 toastr.error('AJAX greška: ' + xhr.responseText);
                             }
-        });
+                        });
                     }
                 } else {
                     toastr.error(data.message);
