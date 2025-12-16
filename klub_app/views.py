@@ -2026,7 +2026,7 @@ def delete_uplata(request, uplata_id):
     uplata.delete()
     messages.success(request, f'Uplata od {uplata.iznos}€ je uspešno obrisana!')
     
-    return redirect('clan_profil', clan_id=clan_id)
+    return redirect('profil', clan_id=clan_id)  # ← IZMENJENO!
 
 
 @admin_only
@@ -2048,8 +2048,10 @@ def edit_uplata(request, uplata_id):
             uplata.do_datum = parse_date(do_datum)
             uplata.save()
             
+            uplata.save()
+            
             messages.success(request, 'Uplata uspešno izmenjena!')
-            return redirect('clan_profil', clan_id=uplata.clan.id)
+            return redirect('profil', clan_id=uplata.clan.id)  # ← IZMENJENO!
         except Exception as e:
             messages.error(request, f'Greška pri izmeni: {str(e)}')
     
