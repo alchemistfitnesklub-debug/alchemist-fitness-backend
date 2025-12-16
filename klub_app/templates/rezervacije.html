@@ -671,16 +671,16 @@ body.dark-theme #popup select {
 
 </div>
 
-<!-- JAVASCRIPT - ZADRŽANA ORIGINAL LOGIKA -->
+<!-- JAVASCRIPT - ISPRAVLJEN loadSchedule() -->
 <script>
 console.log('SKRIPTA SE UČITAVA');
 
-// LOAD SCHEDULE
+// LOAD SCHEDULE - ISPRAVLJENO
 function loadSchedule() {
     console.log('loadSchedule() pokrenut');
     
     var today = new Date();
-    var currentDay = today.getDay() || 7;
+    var currentDay = today.getDay() || 7; // 0=Nedelja postaje 7
     var monday = new Date(today);
     monday.setDate(today.getDate() - (currentDay - 1));
     var sunday = new Date(monday);
@@ -689,20 +689,36 @@ function loadSchedule() {
     var from_date = new URLSearchParams(window.location.search).get('from_date') || monday.toISOString().split('T')[0];
     var to_date = new URLSearchParams(window.location.search).get('to_date') || sunday.toISOString().split('T')[0];
     
+    // ========================================
+    // FIX: OSIGURAJ DA NEDELJA POČINJE OD PONEDELJKA
+    // ========================================
     var startDate = new Date(from_date);
+    var startDay = startDate.getDay(); // 0=Nedelja, 1=Ponedeljak, ...
+    
+    // Prilagodi da ponedeljak bude prvi dan (ako nije)
+    if (startDay === 0) {
+        // Ako je nedelja, idi unazad 6 dana do ponedeljka
+        startDate.setDate(startDate.getDate() - 6);
+    } else if (startDay !== 1) {
+        // Ako nije ponedeljak, idi unazad do ponedeljka
+        startDate.setDate(startDate.getDate() - (startDay - 1));
+    }
+    
+    // Kreiraj niz od 7 dana (ponedeljak -> nedelja)
     var days = [];
     for (var i = 0; i < 7; i++) {
         var day = new Date(startDate);
         day.setDate(startDate.getDate() + i);
         days.push(day.toISOString().split('T')[0]);
     }
+    // ========================================
     
     var weekStart = new Date(days[0]);
     var weekEnd = new Date(days[6]);
     document.getElementById('weekRange').textContent = `${weekStart.toLocaleDateString('sr-RS', {day: '2-digit', month: '2-digit', year: 'numeric'})} - ${weekEnd.toLocaleDateString('sr-RS', {day: '2-digit', month: '2-digit', year: 'numeric'})}`;
     
-    document.getElementById('fromDateInput').value = from_date;
-    document.getElementById('toDateInput').value = to_date;
+    document.getElementById('fromDateInput').value = days[0]; // Ažuriraj input da odražava pravi ponedeljak
+    document.getElementById('toDateInput').value = days[6];   // Ažuriraj input da odražava pravu nedelju
     
     var schedule = document.getElementById('schedule');
     if (!schedule) { 
@@ -740,7 +756,7 @@ function loadSchedule() {
         schedule.appendChild(dayDiv);
     }
     
-    loadReservations(from_date, to_date);
+    loadReservations(days[0], days[6]); // Koristi tačne datume
 }
 
 // LOAD RESERVATIONS
