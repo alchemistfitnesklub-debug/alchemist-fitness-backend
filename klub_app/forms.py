@@ -41,6 +41,7 @@ class MerenjeForm(forms.ModelForm):
             'kostana_masa',
             'bazalni_metabolizam',
             'fizicki_status',
+            'metabolic_age',  # ← DODAJ OVO
             'napomena'
         ]
         
@@ -107,6 +108,13 @@ class MerenjeForm(forms.ModelForm):
                 'step': '1',
                 'min': '1',
                 'max': '9'
+            }),
+            'metabolic_age': forms.NumberInput(attrs={  # ← DODAJ OVO
+                'class': 'form-control',
+                'placeholder': 'Npr. 35',
+                'step': '1',
+                'min': '18',
+                'max': '100'
             }),
             'napomena': forms.Textarea(attrs={
                 'class': 'form-control',
