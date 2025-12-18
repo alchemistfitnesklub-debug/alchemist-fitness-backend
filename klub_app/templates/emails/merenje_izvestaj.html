@@ -158,6 +158,148 @@
                     {% endif %}
                 </table>
             </div>
+
+                     
+            <!-- ======================================== -->
+            <!-- FITNESS LEVEL & METABOLIC AGE - NOVO -->
+            <!-- ======================================== -->
+            
+            <!-- FITNESS LEVEL -->
+            {% if merenje.fizicki_status %}
+            <div style="margin-bottom: 30px;">
+                <h3 style="color: #e67e22; border-left: 4px solid #e67e22; padding-left: 15px; margin-bottom: 20px;">
+                    🏋️ Fitness Level
+                </h3>
+                
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 12px; background: #f8f9fa; border-radius: 8px; width: 50%;">
+                            <strong style="color: #7f8c8d;">Fitness Level:</strong>
+                        </td>
+                        <td style="padding: 12px; text-align: right;">
+                            <span style="font-size: 1.5em; color: #2c3e50; font-weight: bold;">{{ merenje.fizicki_status }}</span>
+                            <br>
+                            <span style="font-size: 1em; color: #e67e22; font-weight: 600; margin-top: 5px; display: inline-block;">
+                                {% if merenje.fizicki_status == 1 %}Podhranjeni
+                                {% elif merenje.fizicki_status == 2 %}Gojazni
+                                {% elif merenje.fizicki_status == 3 %}Solidno građeni
+                                {% elif merenje.fizicki_status == 4 %}Podtrenirani
+                                {% elif merenje.fizicki_status == 5 %}Standardni
+                                {% elif merenje.fizicki_status == 6 %}Standardno mišićavi
+                                {% elif merenje.fizicki_status == 7 %}Vitki
+                                {% elif merenje.fizicki_status == 8 %}Vitki i mišićavi
+                                {% elif merenje.fizicki_status == 9 %}Jako mišićavi
+                                {% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+                
+                <!-- TABELA REFERENTNIH VREDNOSTI -->
+                <div style="margin-top: 20px; background: #fff9e6; padding: 20px; border-radius: 12px; border: 2px solid #e67e22;">
+                    <h4 style="color: #d35400; margin-top: 0; margin-bottom: 15px;">📊 Fizički Status - Referentne Vrednosti</h4>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
+                        <thead>
+                            <tr style="background: #e67e22; color: white;">
+                                <th style="padding: 10px; border: 1px solid #d35400; text-align: center;">Rezultat</th>
+                                <th style="padding: 10px; border: 1px solid #d35400; text-align: left;">Fizički Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background: {% if merenje.fizicki_status == 1 %}#d5f4e6{% else %}white{% endif %};">
+                                <td style="padding: 8px; border: 1px solid #bdc3c7; text-align: center; font-weight: bold;">1</td>
+                                <td style="padding: 8px; border: 1px solid #bdc3c7;">Podhranjeni</td>
+                            </tr>
+                            <tr style="background: {% if merenje.fizicki_status == 2 %}#d5f4e6{% else %}white{% endif %};">
+                                <td style="padding: 8px; border: 1px solid #bdc3c7; text-align: center; font-weight: bold;">2</td>
+                                <td style="padding: 8px; border: 1px solid #bdc3c7;">Gojazni</td>
+                            </tr>
+                            <tr style="background: {% if merenje.fizicki_status == 3 %}#d5f4e6{% else %}white{% endif %};">
+                                <td style="padding: 8px; border: 1px solid #bdc3c7; text-align: center; font-weight: bold;">3</td>
+                                <td style="padding: 8px; border: 1px solid #bdc3c7;">Solidno građeni</td>
+                            </tr>
+                            <tr style="background: {% if merenje.fizicki_status == 4 %}#d5f4e6{% else %}white{% endif %};">
+                                <td style="padding: 8px; border: 1px solid #bdc3c7; text-align: center; font-weight: bold;">4</td>
+                                <td style="padding: 8px; border: 1px solid #bdc3c7;">Podtrenirani</td>
+                            </tr>
+                            <tr style="background: {% if merenje.fizicki_status == 5 %}#d5f4e6{% else %}white{% endif %};">
+                                <td style="padding: 8px; border: 1px solid #bdc3c7; text-align: center; font-weight: bold;">5</td>
+                                <td style="padding: 8px; border: 1px solid #bdc3c7;">Standardni</td>
+                            </tr>
+                            <tr style="background: {% if merenje.fizicki_status == 6 %}#d5f4e6{% else %}white{% endif %};">
+                                <td style="padding: 8px; border: 1px solid #bdc3c7; text-align: center; font-weight: bold;">6</td>
+                                <td style="padding: 8px; border: 1px solid #bdc3c7;">Standardno mišićavi</td>
+                            </tr>
+                            <tr style="background: {% if merenje.fizicki_status == 7 %}#d5f4e6{% else %}white{% endif %};">
+                                <td style="padding: 8px; border: 1px solid #bdc3c7; text-align: center; font-weight: bold;">7</td>
+                                <td style="padding: 8px; border: 1px solid #bdc3c7;">Vitki</td>
+                            </tr>
+                            <tr style="background: {% if merenje.fizicki_status == 8 %}#d5f4e6{% else %}white{% endif %};">
+                                <td style="padding: 8px; border: 1px solid #bdc3c7; text-align: center; font-weight: bold;">8</td>
+                                <td style="padding: 8px; border: 1px solid #bdc3c7;">Vitki i mišićavi</td>
+                            </tr>
+                            <tr style="background: {% if merenje.fizicki_status == 9 %}#d5f4e6{% else %}white{% endif %};">
+                                <td style="padding: 8px; border: 1px solid #bdc3c7; text-align: center; font-weight: bold;">9</td>
+                                <td style="padding: 8px; border: 1px solid #bdc3c7;">Jako mišićavi</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- METABOLIC AGE -->
+            {% if merenje.metabolic_age %}
+            <div style="margin-bottom: 30px;">
+                <h3 style="color: #e74c3c; border-left: 4px solid #e74c3c; padding-left: 15px; margin-bottom: 20px;">
+                    ⏳ Metabolička Starost
+                </h3>
+                
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 12px; background: #f8f9fa; border-radius: 8px; width: 50%;">
+                            <strong style="color: #7f8c8d;">Metabolička starost:</strong>
+                        </td>
+                        <td style="padding: 12px; text-align: right;">
+                            <span style="font-size: 1.5em; color: #2c3e50; font-weight: bold;">{{ merenje.metabolic_age }} god</span>
+                            <br>
+                            {% if clan.datum_rodjenja %}
+                                {% load tz %}
+                                {% now "Y" as current_year %}
+                                {% with clan.datum_rodjenja|date:"Y" as birth_year %}
+                                    {% with current_year|add:"0"|add:"-"|add:birth_year|add:"0" as real_age %}
+                                        {% if merenje.metabolic_age < real_age %}
+                                            <span style="background: #28a745; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; margin-top: 8px; display: inline-block;">
+                                                ✓ Mlađe od stvarne starosti ({{ real_age }} god)
+                                            </span>
+                                        {% elif merenje.metabolic_age == real_age %}
+                                            <span style="background: #ffc107; color: #000; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; margin-top: 8px; display: inline-block;">
+                                                = Odgovara stvarnoj starosti ({{ real_age }} god)
+                                            </span>
+                                        {% else %}
+                                            <span style="background: #dc3545; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; margin-top: 8px; display: inline-block;">
+                                                ⚠ Starije od stvarne starosti ({{ real_age }} god)
+                                            </span>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% endwith %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+                
+                <div style="margin-top: 15px; background: #ffe6e6; padding: 15px; border-radius: 8px; border-left: 4px solid #e74c3c;">
+                    <p style="margin: 0; font-size: 0.9em; color: #c0392b; line-height: 1.6;">
+                        💡 <strong>Šta je metabolička starost?</strong><br>
+                        Metabolička starost pokazuje kako vaše telo funkcioniše u odnosu na vašu stvarnu starost. Niža metabolička starost znači da vaše telo radi efikasnije nego što bi trebalo za vaše godine.
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- ======================================== -->
+
+                                
             
             <!-- REFERENTNE VREDNOSTI -->
             <div style="margin-bottom: 30px; background: #f0f8ff; padding: 25px; border-radius: 12px; border-left: 4px solid #2ecc71;">
