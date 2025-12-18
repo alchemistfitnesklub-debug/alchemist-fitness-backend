@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Push Notification Panel{% endblock %}
+
+{% block extra_head %}
+<style>
+.push-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px;
+}
+
+.panel-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body.dark-theme .panel-card {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #e0e0e0;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 12px 15px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    font-size: 1em;
+}
+
+body.dark-theme .form-group input,
+body.dark-theme .form-group textarea,
+body.dark-theme .form-group select {
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.btn-send {
+    background: linear-gradient(135deg, #00bfff, #0099cc);
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    font-size: 1.2em;
+    margin-top: 20px;
+}
+
+.btn-send:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 191, 255, 0.4);
+}
+
+.client-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.client-item {
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.client-item:hover {
+    background: rgba(0, 191, 255, 0.1);
+}
+
+.client-item label {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    margin: 0;
+}
+
+.client-item input[type="checkbox"] {
+    width: auto;
+    margin-right: 10px;
+}
+
+.stats-box {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 30px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 20px;
+    background: rgba(0, 191, 255, 0.1);
+    border-radius: 10px;
+    border: 2px solid rgba(0, 191, 255, 0.3);
+}
+
+.stat-number {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #00bfff;
+}
+
+.stat-label {
+    font-size: 0.9em;
+    color: #b0b0b0;
+    margin-top: 5px;
+}
+
+.preview-box {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 20px;
+    border-left: 4px solid #00bfff;
+}
+
+.preview-title {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #00bfff;
+    margin-bottom: 10px;
+}
+
+.preview-body {
+    color: #e0e0e0;
+    line-height: 1.6;
+}
+
+#recipient-selector {
+    margin-bottom: 20px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="push-container">
+    
+    <h1 style="text-align: center; margin-bottom: 10px;">📱 Push Notification Panel</h1>
+    <p style="text-align: center; color: #b0b0b0; margin-bottom: 40px;">Pošaljite push notifikacije svim klijentima odjednom</p>
+    
+    <!-- STATS -->
+    <div class="stats-box">
+        <div class="stat-item">
+            <div class="stat-number">{{ total_devices }}</div>
+            <div class="stat-label">Aktivnih Uređaja</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ clanovi.count }}</div>
+            <div class="stat-label">Klijenata sa Aplikacijom</div>
+        </div>
+    </div>
+    
+    <!-- FORMA -->
+    <div class="panel-card">
+        <form method="post" id="pushForm">
+            {% csrf_token %}
+            
+            <!-- NASLOV -->
+            <div class="form-group">
+                <label>📌 Naslov Notifikacije</label>
+                <input type="text" name="title" id="titleInput" placeholder="Npr. Važno obaveštenje" required maxlength="100">
+            </div>
+            
+            <!-- PORUKA -->
+            <div class="form-group">
+                <label>💬 Poruka</label>
+                <textarea name="body" id="bodyInput" placeholder="Unesite tekst poruke..." required maxlength="500"></textarea>
+            </div>
+            
+            <!-- KOME POSLATI -->
+            <div class="form-group" id="recipient-selector">
+                <label>👥 Pošalji:</label>
+                <select name="send_to" id="sendToSelect" onchange="toggleClientList()">
+                    <option value="all">Svim klijentima ({{ total_devices }} uređaja)</option>
+                    <option value="selected">Odabranim klijentima</option>
+                </select>
+            </div>
+            
+            <!-- LISTA KLIJENATA (skrivena po defaultu) -->
+            <div class="form-group" id="clientListContainer" style="display: none;">
+                <label>Odaberi klijente:</label>
+                <div class="client-list">
+                    {% for clan in clanovi %}
+                    <div class="client-item">
+                        <label>
+                            <input type="checkbox" name="selected_clients" value="{{ clan.id }}">
+                            {{ clan.ime_prezime }}
+                        </label>
+                    </div>
+                    {% empty %}
+                    <p style="text-align: center; color: #888;">Nema klijenata sa aplikacijom</p>
+                    {% endfor %}
+                </div>
+                <div style="margin-top: 10px;">
+                    <button type="button" onclick="selectAll()" style="padding: 8px 15px; margin-right: 10px; border-radius: 5px; border: none; background: #00bfff; color: white; cursor: pointer;">Odaberi sve</button>
+                    <button type="button" onclick="deselectAll()" style="padding: 8px 15px; border-radius: 5px; border: none; background: #ff4444; color: white; cursor: pointer;">Poništi sve</button>
+                </div>
+            </div>
+            
+            <!-- PREVIEW -->
+            <div class="preview-box">
+                <div class="preview-title" id="previewTitle">Naslov notifikacije</div>
+                <div class="preview-body" id="previewBody">Tekst poruke će se prikazati ovde...</div>
+            </div>
+            
+            <!-- SUBMIT -->
+            <button type="submit" class="btn-send" onclick="return confirm('Da li ste sigurni da želite poslati notifikaciju?')">
+                📤 Pošalji Notifikaciju
+            </button>
+        </form>
+    </div>
+    
+</div>
+
+<script>
+// Live preview
+document.getElementById('titleInput').addEventListener('input', function() {
+    document.getElementById('previewTitle').textContent = this.value || 'Naslov notifikacije';
+});
+
+document.getElementById('bodyInput').addEventListener('input', function() {
+    document.getElementById('previewBody').textContent = this.value || 'Tekst poruke će se prikazati ovde...';
+});
+
+// Toggle client list
+function toggleClientList() {
+    const sendTo = document.getElementById('sendToSelect').value;
+    const clientList = document.getElementById('clientListContainer');
+    
+    if (sendTo === 'selected') {
+        clientList.style.display = 'block';
+    } else {
+        clientList.style.display = 'none';
+    }
+}
+
+// Select/Deselect all
+function selectAll() {
+    document.querySelectorAll('input[name="selected_clients"]').forEach(cb => cb.checked = true);
+}
+
+function deselectAll() {
+    document.querySelectorAll('input[name="selected_clients"]').forEach(cb => cb.checked = false);
+}
+</script>
+
+{% endblock %}
