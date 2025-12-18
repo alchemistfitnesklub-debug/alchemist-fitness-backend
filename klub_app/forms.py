@@ -24,13 +24,11 @@ class SaleForm(forms.ModelForm):
         fields = ['clan', 'stock', 'kolicina']
 
 # ========================================
-# FORMA ZA MERENJA - DODATO 09.12.2024
+# FORMA ZA MERENJA - AŽURIRANO 18.12.2024
 # ========================================
-
 class MerenjeForm(forms.ModelForm):
     class Meta:
         model = Merenje
-        # EKSPLICITNO navedi SAMO polja koja želiš (bez kardiovaskularnih i obima)
         fields = [
             'tezina',
             'visina', 
@@ -41,7 +39,7 @@ class MerenjeForm(forms.ModelForm):
             'kostana_masa',
             'bazalni_metabolizam',
             'fizicki_status',
-            'metabolic_age',  # ← DODAJ OVO
+            'metabolic_age',
             'napomena'
         ]
         
@@ -109,7 +107,7 @@ class MerenjeForm(forms.ModelForm):
                 'min': '1',
                 'max': '9'
             }),
-            'metabolic_age': forms.NumberInput(attrs={  # ← DODAJ OVO
+            'metabolic_age': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Npr. 35',
                 'step': '1',
