@@ -2150,3 +2150,72 @@ def otvori_termin(request):
             })
     
     return JsonResponse({'status': 'error', 'message': 'Pogrešan metod'})
+
+# ========================================
+# PUSH NOTIFICATION PANEL ZA ADMINA
+# DODATO 18.12.2024
+# ========================================
+
+@admin_only
+def push_notification_panel(request):
+    """Admin panel za slanje push notifikacija svim klijentima"""
+    from .models import FCMToken
+    
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        body = request.POST.get('body', '').strip()
+        send_to = request.POST.get('send_to', 'all')  # 'all' ili 'selected'
+        selected_clients = request.POST.getlist('selected_clients')  # Lista ID-jeva
+        
+        if not title or not body:
+            messages.error(request, '❌ Naslov i poruka su obavezni!')
+            return redirect('push_panel')
+        
+        # Pronađi sve aktivne FCM tokene
+        tokens_query = FCMToken.objects.filter(is_active=True).select_related('user', 'user__clan')
+        
+        # Ako je odabrano "selected", filtriraj po ID-jevima
+        if send_to == 'selected' and selected_clients:
+            tokens_query = tokens_query.filter(user__clan__id__in=selected_clients)
+        
+        sent_count = 0
+        failed_count = 0
+        
+        for token_obj in tokens_query:
+            try:
+                response = send_push_notification(
+                    fcm_token=token_obj.token,
+                    title=title,
+                    body=body
+                )
+                
+                if response:
+                    sent_count += 1
+                else:
+                    failed_count += 1
+            except Exception as e:
+                print(f"Push greška za {token_obj.user.username}: {e}")
+                failed_count += 1
+        
+        if sent_count > 0:
+            messages.success(request, f'✅ Poslato {sent_count} notifikacija! ({failed_count} neuspešnih)')
+        else:
+            messages.error(request, f'❌ Nijedna notifikacija nije poslata. ({failed_count} neuspešnih)')
+        
+        return redirect('push_panel')
+    
+    # GET request - prikaži formu
+    from .models import FCMToken
+    
+    # Svi klijenti koji imaju FCM token
+    clanovi_sa_tokenima = Clan.objects.filter(
+        user__fcm_tokens__is_active=True
+    ).distinct().order_by('ime_prezime')
+    
+    total_devices = FCMToken.objects.filter(is_active=True).count()
+    
+    context = {
+        'clanovi': clanovi_sa_tokenima,
+        'total_devices': total_devices,
+    }
+    return render(request, 'push_panel.html', context)
