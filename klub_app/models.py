@@ -157,6 +157,7 @@ class Merenje(models.Model):
     
     # DODATNO
     fizicki_status = models.IntegerField(null=True, blank=True, verbose_name="Fizički status (1-9)")
+    metabolic_age = models.IntegerField(null=True, blank=True, verbose_name="Metabolička starost")  # NOVO
     napomena = models.TextField(blank=True, verbose_name="Napomena trenera")
     kreirao = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Merenje izvršio")
     created_at = models.DateTimeField(auto_now_add=True)
