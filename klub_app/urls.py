@@ -52,6 +52,7 @@ urlpatterns = [
     path('klijent-dashboard/', views.klijent_dashboard, name='klijent_dashboard'),
     
     # ========== Push notifikacije ==========
+    path('push-panel/', views.push_notification_panel, name='push_panel'),
     path('test-push/', views.test_push, name='test_push'),
     path('save-push-token/', views.save_push_token, name='save_push_token'),
     
