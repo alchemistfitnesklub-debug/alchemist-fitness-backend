@@ -182,6 +182,7 @@ console.log("Firebase push notifikacije su privremeno isključene – lokalno ok
                 {% if user.userprofile.is_admin %}
 <!-- SAMO ADMIN -->
 <a href="{% url 'statistike' %}"><i class="fas fa-chart-bar"></i> Statistike</a>
+<a href="{% url 'push_panel' %}"><i class="fas fa-mobile-alt"></i> Push Panel</a>
                 {% endif %}
 <form action="{% url 'logout' %}" method="post">
                     {% csrf_token %}
