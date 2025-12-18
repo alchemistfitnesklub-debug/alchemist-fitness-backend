@@ -158,6 +158,11 @@
                     {% endif %}
                 </table>
             </div>
+
+                     
+            <!-- ======================================== -->
+            <!-- FITNESS LEVEL & METABOLIC AGE - NOVO -->
+            <!-- ======================================== -->
             
             <!-- FITNESS LEVEL -->
             {% if merenje.fizicki_status %}
@@ -257,6 +262,28 @@
                         </td>
                         <td style="padding: 12px; text-align: right;">
                             <span style="font-size: 1.5em; color: #2c3e50; font-weight: bold;">{{ merenje.metabolic_age }} god</span>
+                            <br>
+                            {% if clan.datum_rodjenja %}
+                                {% load tz %}
+                                {% now "Y" as current_year %}
+                                {% with clan.datum_rodjenja|date:"Y" as birth_year %}
+                                    {% with current_year|add:"0"|add:"-"|add:birth_year|add:"0" as real_age %}
+                                        {% if merenje.metabolic_age < real_age %}
+                                            <span style="background: #28a745; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; margin-top: 8px; display: inline-block;">
+                                                ✓ Mlađe od stvarne starosti ({{ real_age }} god)
+                                            </span>
+                                        {% elif merenje.metabolic_age == real_age %}
+                                            <span style="background: #ffc107; color: #000; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; margin-top: 8px; display: inline-block;">
+                                                = Odgovara stvarnoj starosti ({{ real_age }} god)
+                                            </span>
+                                        {% else %}
+                                            <span style="background: #dc3545; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; margin-top: 8px; display: inline-block;">
+                                                ⚠ Starije od stvarne starosti ({{ real_age }} god)
+                                            </span>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% endwith %}
+                            {% endif %}
                         </td>
                     </tr>
                 </table>
@@ -269,6 +296,10 @@
                 </div>
             </div>
             {% endif %}
+            
+            <!-- ======================================== -->
+
+                                
             
             <!-- REFERENTNE VREDNOSTI -->
             <div style="margin-bottom: 30px; background: #f0f8ff; padding: 25px; border-radius: 12px; border-left: 4px solid #2ecc71;">
