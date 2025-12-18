@@ -1726,37 +1726,55 @@ def management_cash_flow(request):
     }
     return render(request, 'management_cash_flow.html', context)
 
-
 @admin_only
 def management_retention_rate(request):
     """Retention Rate - stopa zadržavanja klijenata"""
     today = timezone.now().date()
     
-    # Članarine koje su istekle u poslednjih 60 dana
-    sixty_days_ago = today - timedelta(days=60)
-    expired_memberships = Uplata.objects.filter(
-        do_datum__gte=sixty_days_ago,
-        do_datum__lt=today
-    ).select_related('clan')
+    # Članarine koje su istekle u poslednjih 30 dana
+    thirty_days_ago = today - timedelta(days=30)
     
-    total_expired = expired_memberships.count()
+    # Pronađi sve klijente čija je članarina istekla u zadnjih 30 dana
+    expired_memberships = Uplata.objects.filter(
+        do_datum__gte=thirty_days_ago,
+        do_datum__lt=today
+    ).select_related('clan').order_by('do_datum')
+    
+    total_expired = 0
     renewed_count = 0
     not_renewed = []
     
+    # Grupiši po klijentu (jer jedan klijent može imati više uplata)
+    processed_clients = set()
+    
     for uplata in expired_memberships:
-        # Proveri da li ima noviju članarinu
-        has_renewal = Uplata.objects.filter(
+        # Preskoči ako smo već obradili ovog klijenta
+        if uplata.clan.id in processed_clients:
+            continue
+        
+        processed_clients.add(uplata.clan.id)
+        total_expired += 1
+        
+        # Proveri da li klijent TRENUTNO ima aktivnu članarinu
+        has_active_membership = Uplata.objects.filter(
             clan=uplata.clan,
-            od_datum__gte=uplata.do_datum
+            od_datum__lte=today,
+            do_datum__gte=today
         ).exists()
         
-        if has_renewal:
+        if has_active_membership:
             renewed_count += 1
         else:
+            # Pronađi poslednju uplatu za prikaz iznosa
+            poslednja_uplata = Uplata.objects.filter(
+                clan=uplata.clan
+            ).order_by('-datum').first()
+            
             not_renewed.append({
                 'clan': uplata.clan,
                 'expired': uplata.do_datum,
-                'amount': uplata.iznos,
+                'amount': poslednja_uplata.iznos if poslednja_uplata else Decimal('0.00'),
+                'last_payment': poslednja_uplata.datum if poslednja_uplata else None,
             })
     
     retention_rate = (renewed_count / total_expired * 100) if total_expired > 0 else 0
@@ -1766,7 +1784,7 @@ def management_retention_rate(request):
         'renewed_count': renewed_count,
         'not_renewed_count': len(not_renewed),
         'retention_rate': round(retention_rate, 1),
-        'not_renewed': not_renewed[:20],  # Prvih 20
+        'not_renewed': sorted(not_renewed, key=lambda x: x['expired'], reverse=True)[:20],
     }
     return render(request, 'management_retention_rate.html', context)
 
