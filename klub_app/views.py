@@ -797,128 +797,38 @@ def profil(request, clan_id):
             messages.success(request, 'Poruka poslata!')
 
         elif action == 'send_login':
-    if not clan.user:
-        base = clan.ime_prezime.lower()
-        translit = str.maketrans('đščćžĐŠČĆŽ', 'djscczDSCCZ')
-        base = base.translate(translit)
-        username = ''.join(c if c.isalnum() else '_' for c in base.strip())
-        original_username = username
-        counter = 1
-        while User.objects.filter(username=username).exists():
-            username = f"{original_username}_{counter}"
-            counter += 1
+            if not clan.user:
+                base = clan.ime_prezime.lower()
+                translit = str.maketrans('đščćžĐŠČĆŽ', 'djscczDSCCZ')
+                base = base.translate(translit)
+                username = ''.join(c if c.isalnum() else '_' for c in base.strip())
+                original_username = username
+                counter = 1
+                while User.objects.filter(username=username).exists():
+                    username = f"{original_username}_{counter}"
+                    counter += 1
 
-        password = "default123"
-        user = User.objects.create_user(username=username, password=password, email=clan.email)
-        UserProfile.objects.get_or_create(user=user, defaults={'is_klijent': True})
-        clan.user = user
-        clan.save()
-    else:
-        username = clan.user.username
+                password = "default123"
+                user = User.objects.create_user(username=username, password=password, email=clan.email)
+                UserProfile.objects.get_or_create(user=user, defaults={'is_klijent': True})
+                clan.user = user
+                clan.save()
+            else:
+                username = clan.user.username
 
-    # ========================================
-    # HTML EMAIL SA APP STORE DUGMETOM
-    # ========================================
-    if clan.email:
-        from django.core.mail import EmailMessage
-        
-        # iOS App Store Link (ZAMENI SA PRAVIM LINKOM!)
-        ios_link = "https://apps.apple.com/app/alchemist-health-club/idXXXXXXXXX"
-        
-        html_content = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-        </head>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f4; margin: 0; padding: 0;">
-            <div style="max-width: 600px; margin: 30px auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                
-                <!-- Header -->
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
-                    <h1 style="color: white; margin: 0; font-size: 28px;">🔐 Pristupni podaci</h1>
-                    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Alchemist Health Club</p>
-                </div>
-                
-                <!-- Body -->
-                <div style="padding: 40px 30px;">
-                    <p style="font-size: 16px; margin-bottom: 20px;">Pozdrav <strong>{clan.ime_prezime}</strong>! 👋</p>
-                    
-                    <p style="font-size: 15px; color: #555; margin-bottom: 25px;">
-                        Evo vaših pristupnih podataka za Alchemist Health Club aplikaciju:
-                    </p>
-                    
-                    <!-- Kredencijali Box -->
-                    <div style="background-color: #f8f9fa; padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #667eea;">
-                        <div style="margin-bottom: 15px;">
-                            <span style="color: #666; font-size: 13px; text-transform: uppercase; letter-spacing: 1px;">Korisničko ime</span>
-                            <div style="font-size: 18px; font-weight: bold; color: #333; margin-top: 5px;">{username}</div>
-                        </div>
-                        <div>
-                            <span style="color: #666; font-size: 13px; text-transform: uppercase; letter-spacing: 1px;">Privremena lozinka</span>
-                            <div style="font-size: 18px; font-weight: bold; color: #333; margin-top: 5px;">default123</div>
-                        </div>
-                    </div>
-                    
-                    <!-- App Store Button -->
-                    <div style="text-align: center; margin: 35px 0;">
-                        <p style="font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #333;">📲 Preuzmite aplikaciju:</p>
-                        <a href="{ios_link}" style="display: inline-block; text-decoration: none;">
-                            <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83" 
-                                 alt="Download on the App Store" 
-                                 style="width: 200px; height: auto; border: 0;">
-                        </a>
-                    </div>
-                    
-                    <!-- Instrukcije -->
-                    <div style="background-color: #fff3cd; padding: 20px; border-radius: 8px; border-left: 4px solid #ffc107; margin: 25px 0;">
-                        <p style="margin: 0 0 10px 0; font-weight: bold; color: #856404;">📱 Koraci za prijavljivanje:</p>
-                        <ol style="margin: 10px 0; padding-left: 20px; color: #856404;">
-                            <li>Preuzmite aplikaciju klikom na dugme iznad</li>
-                            <li>Otvorite aplikaciju</li>
-                            <li>Unesite korisničko ime i lozinku</li>
-                            <li>Nakon prvog prijavljivanja, promenite lozinku u postavkama</li>
-                        </ol>
-                    </div>
-                    
-                    <!-- Savet -->
-                    <div style="background-color: #d1ecf1; padding: 15px; border-radius: 8px; border-left: 4px solid #17a2b8; margin: 20px 0;">
-                        <p style="margin: 0; color: #0c5460;">
-                            💡 <strong>VAŽNO:</strong> Sačuvajte ovu poruku dok ne promenite lozinku!
-                        </p>
-                    </div>
-                    
-                    <p style="margin-top: 30px; color: #666;">
-                        Ako imate bilo kakvih problema, odgovorite na ovaj email! 😊
-                    </p>
-                </div>
-                
-                <!-- Footer -->
-                <div style="background-color: #f8f9fa; padding: 25px; text-align: center; border-top: 1px solid #dee2e6;">
-                    <p style="margin: 0 0 10px 0; font-weight: bold; color: #333;">Srećno sa novom aplikacijom! 💪</p>
-                    <p style="margin: 0; font-size: 13px; color: #666;">
-                        📧 alchemist.fitnesklub@gmail.com | 📱 011 4076290<br>
-                        Alchemist Ladies Fitness & Health Club | Beograd
-                    </p>
-                </div>
-                
-            </div>
-        </body>
-        </html>
-        """
-        
-        email = EmailMessage(
-            subject='🔐 Podaci za logovanje - Alchemist App',
-            body=html_content,
-            from_email=settings.EMAIL_HOST_USER,
-            to=[clan.email],
-        )
-        email.content_subtype = 'html'  # ← KLJUČNO: Označava da je HTML
-        email.send(fail_silently=True)
-        
-        messages.success(request, f'✅ Podaci za logovanje poslati na {clan.email}!')
-    else:
-        messages.error(request, '❌ Član nema email adresu!')
+            message = f"Vaši podaci za logovanje: Username: {username}, Password: default123"
+
+            if clan.email:
+                send_mail(
+                    'Podaci za logovanje',
+                    message,
+                    settings.EMAIL_HOST_USER,
+                    [clan.email],
+                    fail_silently=True
+                )
+                messages.success(request, 'Podaci za logovanje poslati na email!')
+            else:
+                messages.error(request, 'Član nema email adresu!')
 
         return redirect('profil', clan_id=clan_id)
 
