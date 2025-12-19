@@ -815,7 +815,6 @@ def profil(request, clan_id):
                 clan.save()
             else:
                 username = clan.user.username
-
             # ========================================
             # HTML EMAIL SA APP STORE DUGMETOM
             # ========================================
@@ -823,7 +822,7 @@ def profil(request, clan_id):
                 from django.core.mail import EmailMessage
                 
                 # App Store Links
-                ios_link = "https://apps.apple.com/us/app/alchemist-health-club/id6756538673"
+                ios_link = "https://apps.apple.com/rs/app/alchemist-health-club/id6739162464"
                 android_link = "OVDE_CE_BITI_GOOGLE_PLAY_LINK"  # ← Ovo ces kasnije zameniti!
                 
                 html_content = f"""
@@ -933,23 +932,7 @@ def profil(request, clan_id):
                 messages.error(request, '❌ Član nema email adresu!')
 
 
----
 
-## 📍 KAKO NAĆI GOOGLE PLAY LINK KADA OBJAVIŠ ANDROID APP?
-
-### **Kada Android aplikacija bude LIVE:**
-
-1. **Otvori Google Play Console** → https://play.google.com/console
-2. **Izaberi svoju aplikaciju** ("Alchemist Health Club")
-3. **Idi na:** **Dashboard** ili **Store presence** → **Main store listing**
-4. **Scroll dole** → naći ćeš **"View on Google Play"** link
-5. **Link izgleda ovako:**
-```
-   https://play.google.com/store/apps/details?id=com.yourpackage.name
-```
-   Primer:
-```
-   https://play.google.com/store/apps/details?id=rs.alchemist.healthclub
 
         return redirect('profil', clan_id=clan_id)
 
