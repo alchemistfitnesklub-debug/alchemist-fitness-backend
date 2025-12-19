@@ -822,8 +822,9 @@ def profil(request, clan_id):
             if clan.email:
                 from django.core.mail import EmailMessage
                 
-                # iOS App Store Link
-                ios_link = "https://apps.apple.com/rs/app/alchemist-health-club/id6739162464"
+                # App Store Links
+                ios_link = "https://apps.apple.com/us/app/alchemist-health-club/id6756538673"
+                android_link = "OVDE_CE_BITI_GOOGLE_PLAY_LINK"  # ← Ovo ces kasnije zameniti!
                 
                 html_content = f"""
                 <!DOCTYPE html>
@@ -860,13 +861,24 @@ def profil(request, clan_id):
                                 </div>
                             </div>
                             
-                            <!-- App Store Button -->
+                            <!-- App Store Buttons -->
                             <div style="text-align: center; margin: 35px 0;">
                                 <p style="font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #333;">📲 Preuzmite aplikaciju:</p>
-                                <a href="{ios_link}" style="display: inline-block; text-decoration: none;">
+                                
+                                <!-- iOS App Store -->
+                                <a href="{ios_link}" style="display: inline-block; text-decoration: none; margin: 10px;">
                                     <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83" 
                                          alt="Download on the App Store" 
                                          style="width: 200px; height: auto; border: 0;">
+                                </a>
+                                
+                                <br>
+                                
+                                <!-- Google Play Store -->
+                                <a href="{android_link}" style="display: inline-block; text-decoration: none; margin: 10px;">
+                                    <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" 
+                                         alt="Get it on Google Play" 
+                                         style="width: 230px; height: auto; border: 0;">
                                 </a>
                             </div>
                             
@@ -874,7 +886,7 @@ def profil(request, clan_id):
                             <div style="background-color: #fff3cd; padding: 20px; border-radius: 8px; border-left: 4px solid #ffc107; margin: 25px 0;">
                                 <p style="margin: 0 0 10px 0; font-weight: bold; color: #856404;">📱 Koraci za prijavljivanje:</p>
                                 <ol style="margin: 10px 0; padding-left: 20px; color: #856404;">
-                                    <li>Preuzmite aplikaciju klikom na dugme iznad</li>
+                                    <li>Preuzmite aplikaciju za vaš uređaj klikom na dugme iznad</li>
                                     <li>Otvorite aplikaciju</li>
                                     <li>Unesite korisničko ime i lozinku</li>
                                     <li>Nakon prvog prijavljivanja, promenite lozinku u postavkama</li>
@@ -919,6 +931,25 @@ def profil(request, clan_id):
                 messages.success(request, f'✅ Podaci za logovanje poslati na {clan.email}!')
             else:
                 messages.error(request, '❌ Član nema email adresu!')
+
+
+---
+
+## 📍 KAKO NAĆI GOOGLE PLAY LINK KADA OBJAVIŠ ANDROID APP?
+
+### **Kada Android aplikacija bude LIVE:**
+
+1. **Otvori Google Play Console** → https://play.google.com/console
+2. **Izaberi svoju aplikaciju** ("Alchemist Health Club")
+3. **Idi na:** **Dashboard** ili **Store presence** → **Main store listing**
+4. **Scroll dole** → naći ćeš **"View on Google Play"** link
+5. **Link izgleda ovako:**
+```
+   https://play.google.com/store/apps/details?id=com.yourpackage.name
+```
+   Primer:
+```
+   https://play.google.com/store/apps/details?id=rs.alchemist.healthclub
 
         return redirect('profil', clan_id=clan_id)
 
