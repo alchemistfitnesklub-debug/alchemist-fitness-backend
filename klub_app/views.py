@@ -795,7 +795,8 @@ def profil(request, clan_id):
                         status='failed'
                     )
             messages.success(request, 'Poruka poslata!')
-elif action == 'send_login':
+
+        elif action == 'send_login':
     if not clan.user:
         base = clan.ime_prezime.lower()
         translit = str.maketrans('đščćžĐŠČĆŽ', 'djscczDSCCZ')
@@ -822,7 +823,7 @@ elif action == 'send_login':
         from django.core.mail import EmailMessage
         
         # iOS App Store Link (ZAMENI SA PRAVIM LINKOM!)
-        ios_link = "https://apps.apple.com/us/app/alchemist-health-club/id6756538673"
+        ios_link = "https://apps.apple.com/app/alchemist-health-club/idXXXXXXXXX"
         
         html_content = f"""
         <!DOCTYPE html>
