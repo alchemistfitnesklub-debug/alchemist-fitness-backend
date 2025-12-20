@@ -22,9 +22,10 @@ if not firebase_admin._apps:
         firebase_admin.initialize_app(cred)
         print('✅ Firebase initialized from file')
 
+
 def send_push_notification(fcm_token, title, body, data=None):
     """
-    Šalje push notifikaciju na određeni FCM token
+    Šalje push notifikaciju na određeni FCM token (Android + iOS)
     
     Args:
         fcm_token: FCM registration token
@@ -36,6 +37,32 @@ def send_push_notification(fcm_token, title, body, data=None):
         Response string ili None ako greška
     """
     try:
+        # iOS APNs konfiguracija - OBAVEZNO za iOS!
+        apns_config = messaging.APNSConfig(
+            payload=messaging.APNSPayload(
+                aps=messaging.Aps(
+                    alert=messaging.ApsAlert(
+                        title=title,
+                        body=body,
+                    ),
+                    badge=1,
+                    sound='default',
+                    content_available=True,  # Omogućava background processing
+                )
+            )
+        )
+        
+        # Android konfiguracija
+        android_config = messaging.AndroidConfig(
+            priority='high',
+            notification=messaging.AndroidNotification(
+                title=title,
+                body=body,
+                sound='default',
+            )
+        )
+        
+        # Univerzalna poruka koja radi za iOS + Android
         message = messaging.Message(
             notification=messaging.Notification(
                 title=title,
@@ -43,6 +70,8 @@ def send_push_notification(fcm_token, title, body, data=None):
             ),
             data=data if data else {},
             token=fcm_token,
+            apns=apns_config,      # ← iOS specifično
+            android=android_config  # ← Android specifično
         )
         
         response = messaging.send(message)
@@ -51,11 +80,13 @@ def send_push_notification(fcm_token, title, body, data=None):
     
     except Exception as e:
         print(f'❌ Greška pri slanju notifikacije: {e}')
+        print(f'Token: {fcm_token[:50]}...')  # Debug - prvih 50 karaktera
         return None
+
 
 def send_push_notification_to_multiple(fcm_tokens, title, body, data=None):
     """
-    Šalje push notifikaciju na više FCM tokena odjednom
+    Šalje push notifikaciju na više FCM tokena odjednom (Android + iOS)
     
     Args:
         fcm_tokens: Lista FCM registration tokena
@@ -67,6 +98,32 @@ def send_push_notification_to_multiple(fcm_tokens, title, body, data=None):
         BatchResponse objekat
     """
     try:
+        # iOS APNs konfiguracija
+        apns_config = messaging.APNSConfig(
+            payload=messaging.APNSPayload(
+                aps=messaging.Aps(
+                    alert=messaging.ApsAlert(
+                        title=title,
+                        body=body,
+                    ),
+                    badge=1,
+                    sound='default',
+                    content_available=True,
+                )
+            )
+        )
+        
+        # Android konfiguracija
+        android_config = messaging.AndroidConfig(
+            priority='high',
+            notification=messaging.AndroidNotification(
+                title=title,
+                body=body,
+                sound='default',
+            )
+        )
+        
+        # Multicast poruka za batch slanje
         message = messaging.MulticastMessage(
             notification=messaging.Notification(
                 title=title,
@@ -74,12 +131,18 @@ def send_push_notification_to_multiple(fcm_tokens, title, body, data=None):
             ),
             data=data if data else {},
             tokens=fcm_tokens,
+            apns=apns_config,      # ← iOS specifično
+            android=android_config  # ← Android specifično
         )
         
         response = messaging.send_multicast(message)
         print(f'✅ Poslato na {response.success_count} uređaja!')
         if response.failure_count > 0:
             print(f'❌ Neuspešno: {response.failure_count}')
+            # Debug - prikaži greške
+            for idx, resp in enumerate(response.responses):
+                if not resp.success:
+                    print(f'  - Token {idx}: {resp.exception}')
         
         return response
     
