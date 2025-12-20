@@ -822,7 +822,7 @@ def profil(request, clan_id):
                 from django.core.mail import EmailMessage
                 
                 # App Store Links
-                ios_link = "https://apps.apple.com/rs/app/alchemist-health-club/id6739162464"
+                ios_link = "https://apps.apple.com/us/app/alchemist-health-club/id6756538673"
                 android_link = "OVDE_CE_BITI_GOOGLE_PLAY_LINK"  # ← Ovo ces kasnije zameniti!
                 
                 html_content = f"""
