@@ -2331,6 +2331,7 @@ def push_notification_panel(request):
 # PROGRESS DASHBOARD API ZA MOBILNU APP
 # DODATO 22.12.2024
 # ========================================
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def api_progress_merenja(request):
@@ -2383,6 +2384,7 @@ def api_progress_merenja(request):
             'success': False,
             'error': str(e)
         }, status=500)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -2498,7 +2500,8 @@ def api_progress_statistika(request):
             'error': str(e)
         }, status=500)
 
-        @api_view(['GET'])
+
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def api_progress_achievements(request):
     """
@@ -2703,4 +2706,3 @@ def api_progress_achievements(request):
             'success': False,
             'error': str(e)
         }, status=500)
-
