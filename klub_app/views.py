@@ -29,6 +29,9 @@ from django.core.files.storage import default_storage
 from .models import Clan, Uplata, Rezervacija, Stock, Sale, Obavestenje, UserProfile, Merenje, ZatvorenTermin
 from .forms import ClanForm, UplataForm, SaleForm, MerenjeForm
 from .services.firebase_service import send_push_notification
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 
 def init_firebase():
@@ -2328,8 +2331,8 @@ def push_notification_panel(request):
 # PROGRESS DASHBOARD API ZA MOBILNU APP
 # DODATO 22.12.2024
 # ========================================
-
-@login_required
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def api_progress_merenja(request):
     """
     API endpoint za progress dashboard u mobilnoj aplikaciji
@@ -2364,25 +2367,25 @@ def api_progress_merenja(request):
                 'kostana_masa': float(m.kostana_masa) if m.kostana_masa else None,
                 'bazalni_metabolizam': int(m.bazalni_metabolizam) if m.bazalni_metabolizam else None,
                 'fizicki_status': int(m.fizicki_status) if m.fizicki_status else None,
-                'napomena': m.napomena if m.napomena else ''  # ← ISPRAVLJENO!
+                'napomena': m.napomena if m.napomena else ''
             })
         
-        return JsonResponse(data)
+        return Response(data)
         
     except Clan.DoesNotExist:
-        return JsonResponse({
+        return Response({
             'success': False,
             'error': 'Korisnik nema povezan profil člana'
         }, status=404)
     
     except Exception as e:
-        return JsonResponse({
+        return Response({
             'success': False,
             'error': str(e)
         }, status=500)
 
-
-@login_required
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def api_progress_statistika(request):
     """
     API endpoint za statistiku treninga
@@ -2481,16 +2484,16 @@ def api_progress_statistika(request):
             } if sledeca_rezervacija else None
         }
         
-        return JsonResponse(data)
+        return Response(data)
         
     except Clan.DoesNotExist:
-        return JsonResponse({
+        return Response({
             'success': False,
             'error': 'Korisnik nema povezan profil člana'
         }, status=404)
     
     except Exception as e:
-        return JsonResponse({
+        return Response({
             'success': False,
             'error': str(e)
         }, status=500)
