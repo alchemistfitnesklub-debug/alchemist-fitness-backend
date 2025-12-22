@@ -95,6 +95,7 @@ urlpatterns = [
     # Progress Dashboard API - DODATO 22.12.2024
     path('api/progress/merenja/', views.api_progress_merenja, name='api_progress_merenja'),
     path('api/progress/statistika/', views.api_progress_statistika, name='api_progress_statistika'),
+    path('api/progress/achievements/', views.api_progress_achievements, name='api_progress_achievements'),
     
     # ========== API aliases za Flutter mobile app (stari endpoint-i) ==========
     path('api/profil/', api_views.moj_profil, name='api_profil_alias'),
