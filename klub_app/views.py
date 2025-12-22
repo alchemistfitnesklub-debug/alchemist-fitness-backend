@@ -2498,8 +2498,7 @@ def api_progress_statistika(request):
             'error': str(e)
         }, status=500)
 
-
-        @api_view(['GET'])
+ @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def api_progress_achievements(request):
     """
