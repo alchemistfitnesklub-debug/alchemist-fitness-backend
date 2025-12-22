@@ -2364,7 +2364,7 @@ def api_progress_merenja(request):
                 'kostana_masa': float(m.kostana_masa) if m.kostana_masa else None,
                 'bazalni_metabolizam': int(m.bazalni_metabolizam) if m.bazalni_metabolizam else None,
                 'fizicki_status': int(m.fizicki_status) if m.fizicki_status else None,
-                'napomena': m.napomena_trenera if m.napomena_trenera else ''
+                'napomena': m.napomena if m.napomena else ''  # ← ISPRAVLJENO!
             })
         
         return JsonResponse(data)
