@@ -2323,3 +2323,60 @@ def push_notification_panel(request):
         'total_devices': total_devices,
     }
     return render(request, 'push_panel.html', context)
+
+    # ========================================
+# PROGRESS DASHBOARD API ZA MOBILNU APP
+# DODATO 22.12.2024
+# ========================================
+
+@login_required
+def api_progress_merenja(request):
+    """
+    API endpoint za progress dashboard u mobilnoj aplikaciji
+    Vraća sva merenja korisnika sortirana po datumu
+    """
+    try:
+        # Pronađi člana povezanog sa user-om
+        clan = Clan.objects.get(user=request.user)
+        
+        # Uzmi sva merenja sortirana po datumu (najstarije prvo za grafikon)
+        merenja = Merenje.objects.filter(clan=clan).order_by('datum')
+        
+        # Pripremi podatke za Flutter app
+        data = {
+            'success': True,
+            'clan_id': clan.id,
+            'clan_ime': clan.ime_prezime,
+            'merenja': []
+        }
+        
+        for m in merenja:
+            data['merenja'].append({
+                'id': m.id,
+                'datum': m.datum.strftime('%Y-%m-%d'),
+                'datum_display': m.datum.strftime('%d.%m.%Y'),
+                'tezina': float(m.tezina) if m.tezina else None,
+                'bmi': float(m.bmi) if m.bmi else None,
+                'procenat_masti': float(m.procenat_masti) if m.procenat_masti else None,
+                'misicna_masa': float(m.misicna_masa) if m.misicna_masa else None,
+                'telesna_voda': float(m.telesna_voda) if m.telesna_voda else None,
+                'visceralna_mast': int(m.visceralna_mast) if m.visceralna_mast else None,
+                'kostana_masa': float(m.kostana_masa) if m.kostana_masa else None,
+                'bazalni_metabolizam': int(m.bazalni_metabolizam) if m.bazalni_metabolizam else None,
+                'fizicki_status': int(m.fizicki_status) if m.fizicki_status else None,
+                'napomena': m.napomena_trenera if m.napomena_trenera else ''
+            })
+        
+        return JsonResponse(data)
+        
+    except Clan.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Korisnik nema povezan profil člana'
+        }, status=404)
+    
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
