@@ -2497,3 +2497,210 @@ def api_progress_statistika(request):
             'success': False,
             'error': str(e)
         }, status=500)
+
+
+        @api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def api_progress_achievements(request):
+    """
+    API endpoint za achievements/badges
+    Vraća sve otkačene i zakačene badges
+    """
+    try:
+        clan = Clan.objects.get(user=request.user)
+        
+        # Ukupan broj treninga
+        ukupno_treninga = Rezervacija.objects.filter(clan=clan).count()
+        
+        # Trenutni streak
+        today = timezone.now().date()
+        streak = 0
+        poslednja_rezervacija = Rezervacija.objects.filter(clan=clan).order_by('-datum').first()
+        
+        if poslednja_rezervacija:
+            current_date = today
+            while True:
+                ima_rezervaciju = Rezervacija.objects.filter(
+                    clan=clan,
+                    datum=current_date
+                ).exists()
+                
+                if ima_rezervaciju:
+                    streak += 1
+                    current_date = current_date - timedelta(days=1)
+                else:
+                    if current_date == today:
+                        current_date = current_date - timedelta(days=1)
+                        continue
+                    else:
+                        break
+                
+                if streak >= 365:
+                    break
+        
+        # Maksimalni streak ikada (računamo kroz sve rezervacije)
+        max_streak = 0
+        if poslednja_rezervacija:
+            all_dates = list(Rezervacija.objects.filter(clan=clan).values_list('datum', flat=True).distinct().order_by('-datum'))
+            if all_dates:
+                current_streak = 1
+                for i in range(len(all_dates) - 1):
+                    diff = (all_dates[i] - all_dates[i + 1]).days
+                    if diff == 1:
+                        current_streak += 1
+                        max_streak = max(max_streak, current_streak)
+                    else:
+                        current_streak = 1
+                max_streak = max(max_streak, current_streak)
+        
+        # Weight loss - uporedi prvo i poslednje merenje
+        weight_loss = 0
+        merenja = Merenje.objects.filter(clan=clan).order_by('datum')
+        if merenja.count() >= 2:
+            prvo_merenje = merenja.first()
+            poslednje_merenje = merenja.last()
+            if prvo_merenje.tezina and poslednje_merenje.tezina:
+                weight_loss = float(prvo_merenje.tezina) - float(poslednje_merenje.tezina)
+        
+        # Definiši sve achievements
+        achievements = [
+            # BRONZE TIER
+            {
+                'id': 'bronze_10',
+                'title': 'Početnik 🥉',
+                'description': 'Završi 10 treninga',
+                'tier': 'bronze',
+                'progress': ukupno_treninga,
+                'target': 10,
+                'unlocked': ukupno_treninga >= 10,
+                'icon': '🥉'
+            },
+            {
+                'id': 'bronze_streak_3',
+                'title': 'Posvećen 🔥',
+                'description': '3 dana uzastopno',
+                'tier': 'bronze',
+                'progress': max_streak,
+                'target': 3,
+                'unlocked': max_streak >= 3,
+                'icon': '🔥'
+            },
+            
+            # SILVER TIER
+            {
+                'id': 'silver_30',
+                'title': 'Redovan 🥈',
+                'description': 'Završi 30 treninga',
+                'tier': 'silver',
+                'progress': ukupno_treninga,
+                'target': 30,
+                'unlocked': ukupno_treninga >= 30,
+                'icon': '🥈'
+            },
+            {
+                'id': 'silver_streak_7',
+                'title': 'Nedeljni Warrior 💪',
+                'description': '7 dana uzastopno',
+                'tier': 'silver',
+                'progress': max_streak,
+                'target': 7,
+                'unlocked': max_streak >= 7,
+                'icon': '💪'
+            },
+            {
+                'id': 'silver_weight_5',
+                'title': 'Transformer ⚡',
+                'description': 'Izgubi 5kg',
+                'tier': 'silver',
+                'progress': round(weight_loss, 1),
+                'target': 5,
+                'unlocked': weight_loss >= 5,
+                'icon': '⚡'
+            },
+            
+            # GOLD TIER
+            {
+                'id': 'gold_100',
+                'title': 'Veteran 🥇',
+                'description': 'Završi 100 treninga',
+                'tier': 'gold',
+                'progress': ukupno_treninga,
+                'target': 100,
+                'unlocked': ukupno_treninga >= 100,
+                'icon': '🥇'
+            },
+            {
+                'id': 'gold_streak_30',
+                'title': 'Mesečni Champion 🏆',
+                'description': '30 dana uzastopno',
+                'tier': 'gold',
+                'progress': max_streak,
+                'target': 30,
+                'unlocked': max_streak >= 30,
+                'icon': '🏆'
+            },
+            {
+                'id': 'gold_weight_10',
+                'title': 'Super Transformer 🌟',
+                'description': 'Izgubi 10kg',
+                'tier': 'gold',
+                'progress': round(weight_loss, 1),
+                'target': 10,
+                'unlocked': weight_loss >= 10,
+                'icon': '🌟'
+            },
+            
+            # PLATINUM TIER
+            {
+                'id': 'platinum_365',
+                'title': 'Godišnji Legend 💎',
+                'description': 'Završi 365 treninga',
+                'tier': 'platinum',
+                'progress': ukupno_treninga,
+                'target': 365,
+                'unlocked': ukupno_treninga >= 365,
+                'icon': '💎'
+            },
+            {
+                'id': 'platinum_streak_100',
+                'title': 'Unstoppable 🚀',
+                'description': '100 dana uzastopno',
+                'tier': 'platinum',
+                'progress': max_streak,
+                'target': 100,
+                'unlocked': max_streak >= 100,
+                'icon': '🚀'
+            },
+        ]
+        
+        # Podeli na unlocked i locked
+        unlocked = [a for a in achievements if a['unlocked']]
+        locked = [a for a in achievements if not a['unlocked']]
+        
+        data = {
+            'success': True,
+            'total_achievements': len(achievements),
+            'unlocked_count': len(unlocked),
+            'unlocked': unlocked,
+            'locked': locked,
+            'stats': {
+                'ukupno_treninga': ukupno_treninga,
+                'trenutni_streak': streak,
+                'max_streak': max_streak,
+                'weight_loss': round(weight_loss, 1) if weight_loss > 0 else 0
+            }
+        }
+        
+        return Response(data)
+        
+    except Clan.DoesNotExist:
+        return Response({
+            'success': False,
+            'error': 'Korisnik nema povezan profil člana'
+        }, status=404)
+    
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=500)
