@@ -92,6 +92,8 @@ urlpatterns = [
     path('api/promeni-username/', api_views.promeni_username, name='api_promeni_username'),
     path('api/kontaktiraj-klub/', api_views.kontaktiraj_klub, name='api_kontaktiraj_klub'),
     path('api/azuriraj-fcm-token/', api_views.azuriraj_fcm_token, name='api_azuriraj_fcm_token'),
+    # Progress Dashboard API - DODATO 22.12.2024
+    path('api/progress/merenja/', views.api_progress_merenja, name='api_progress_merenja'),
     
     # ========== API aliases za Flutter mobile app (stari endpoint-i) ==========
     path('api/profil/', api_views.moj_profil, name='api_profil_alias'),
