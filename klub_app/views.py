@@ -2380,3 +2380,117 @@ def api_progress_merenja(request):
             'success': False,
             'error': str(e)
         }, status=500)
+
+
+@login_required
+def api_progress_statistika(request):
+    """
+    API endpoint za statistiku treninga
+    Vraća broj treninga, streak, proseke
+    """
+    try:
+        clan = Clan.objects.get(user=request.user)
+        
+        today = timezone.now().date()
+        
+        # Ovaj mesec
+        first_day_this_month = today.replace(day=1)
+        rezervacije_ovaj_mesec = Rezervacija.objects.filter(
+            clan=clan,
+            datum__gte=first_day_this_month,
+            datum__lte=today
+        ).count()
+        
+        # Prošli mesec
+        if today.month == 1:
+            first_day_last_month = today.replace(year=today.year - 1, month=12, day=1)
+            last_day_last_month = today.replace(day=1) - timedelta(days=1)
+        else:
+            first_day_last_month = today.replace(month=today.month - 1, day=1)
+            last_day_last_month = today.replace(day=1) - timedelta(days=1)
+        
+        rezervacije_prosli_mesec = Rezervacija.objects.filter(
+            clan=clan,
+            datum__gte=first_day_last_month,
+            datum__lte=last_day_last_month
+        ).count()
+        
+        # Ukupno treninga (svih vremena)
+        ukupno_treninga = Rezervacija.objects.filter(clan=clan).count()
+        
+        # Poslednja rezervacija
+        poslednja_rezervacija = Rezervacija.objects.filter(clan=clan).order_by('-datum').first()
+        
+        # Streak - koliko uzastopnih dana
+        streak = 0
+        if poslednja_rezervacija:
+            current_date = today
+            while True:
+                # Proveri da li ima rezervaciju na current_date
+                ima_rezervaciju = Rezervacija.objects.filter(
+                    clan=clan,
+                    datum=current_date
+                ).exists()
+                
+                if ima_rezervaciju:
+                    streak += 1
+                    current_date = current_date - timedelta(days=1)
+                else:
+                    # Ako je current_date danas i nema rezervaciju, nastavi jedan dan unazad
+                    if current_date == today:
+                        current_date = current_date - timedelta(days=1)
+                        continue
+                    else:
+                        break
+                
+                # Sigurnosni break nakon 365 dana
+                if streak >= 365:
+                    break
+        
+        # Prosek nedeljno (zadnjih 30 dana)
+        thirty_days_ago = today - timedelta(days=30)
+        rezervacije_30_dana = Rezervacija.objects.filter(
+            clan=clan,
+            datum__gte=thirty_days_ago,
+            datum__lte=today
+        ).count()
+        prosek_nedeljno = round((rezervacije_30_dana / 30) * 7, 1)
+        
+        # Sledeća rezervacija
+        sledeca_rezervacija = Rezervacija.objects.filter(
+            clan=clan,
+            datum__gte=today
+        ).order_by('datum', 'sat').first()
+        
+        data = {
+            'success': True,
+            'treninga_ovaj_mesec': rezervacije_ovaj_mesec,
+            'treninga_prosli_mesec': rezervacije_prosli_mesec,
+            'ukupno_treninga': ukupno_treninga,
+            'streak_dana': streak,
+            'prosek_nedeljno': prosek_nedeljno,
+            'poslednja_rezervacija': {
+                'datum': poslednja_rezervacija.datum.strftime('%Y-%m-%d'),
+                'datum_display': poslednja_rezervacija.datum.strftime('%d.%m.%Y'),
+                'sat': poslednja_rezervacija.sat
+            } if poslednja_rezervacija else None,
+            'sledeca_rezervacija': {
+                'datum': sledeca_rezervacija.datum.strftime('%Y-%m-%d'),
+                'datum_display': sledeca_rezervacija.datum.strftime('%d.%m.%Y'),
+                'sat': sledeca_rezervacija.sat
+            } if sledeca_rezervacija else None
+        }
+        
+        return JsonResponse(data)
+        
+    except Clan.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Korisnik nema povezan profil člana'
+        }, status=404)
+    
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
