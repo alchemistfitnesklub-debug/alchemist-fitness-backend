@@ -2538,7 +2538,7 @@ def api_progress_achievements(request):
                 if streak >= 365:
                     break
         
-        # Maksimalni streak ikada (računamo kroz sve rezervacije)
+        # Maksimalni streak ikada
         max_streak = 0
         if poslednja_rezervacija:
             all_dates = list(Rezervacija.objects.filter(clan=clan).values_list('datum', flat=True).distinct().order_by('-datum'))
@@ -2553,7 +2553,7 @@ def api_progress_achievements(request):
                         current_streak = 1
                 max_streak = max(max_streak, current_streak)
         
-        # Weight loss - uporedi prvo i poslednje merenje
+        # Weight loss
         weight_loss = 0
         merenja = Merenje.objects.filter(clan=clan).order_by('datum')
         if merenja.count() >= 2:
