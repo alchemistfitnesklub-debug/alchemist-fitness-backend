@@ -2707,7 +2707,7 @@ def api_progress_achievements(request):
             'error': str(e)
         }, status=500)
 
-        def check_and_send_achievement_notifications(clan):
+       def check_and_send_achievement_notifications(clan):
     """
     Proveri nove achievements i pošalji push notifikacije
     """
