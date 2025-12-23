@@ -19,3 +19,9 @@ class FCMTokenAdmin(admin.ModelAdmin):
             return f"{obj.token[:30]}..."
         return "No token"
     token_preview.short_description = 'Token'
+
+@admin.register(AchievementNotification)
+class AchievementNotificationAdmin(admin.ModelAdmin):
+    list_display = ['clan', 'achievement_id', 'notified_at']
+    list_filter = ['notified_at']
+    search_fields = ['clan__ime_prezime', 'achievement_id']
