@@ -2663,7 +2663,7 @@ def api_progress_achievements(request):
             # PLATINUM TIER
             {
                 'id': 'platinum_365',
-                'title': 'Godišnji Legend 💎',
+                'title': 'LEGEND OF THE YEAR 💎',
                 'description': 'Završi 200 treninga',
                 'tier': 'platinum',
                 'progress': ukupno_treninga,
@@ -2759,7 +2759,7 @@ def check_and_send_achievement_notifications(clan):
         {'id': 'gold_100', 'title': 'Veteran 🥇', 'condition': ukupno_treninga >= 100, 'message': 'Fenomenalno! 100 treninga! 🥇'},
         {'id': 'gold_streak_30', 'title': 'Mesečni Champion 🏆', 'condition': max_streak >= 16, 'message': 'Legendarno! Mesec dana uzastopno! 🏆'},
         {'id': 'gold_weight_10', 'title': 'Super Transformer 🌟', 'condition': weight_loss >= 10, 'message': 'Neverovatno! Izgubili ste 10kg! 🌟'},
-        {'id': 'platinum_365', 'title': 'Legenda Godine 💎', 'condition': ukupno_treninga >= 200, 'message': 'Legenda! Preko 200 treninga! 💎'},
+        {'id': 'platinum_365', 'title': 'LEGEND OF THE YEAR 💎', 'condition': ukupno_treninga >= 200, 'message': 'Legenda! Preko 200 treninga! 💎'},
         {'id': 'platinum_streak_100', 'title': 'Unstoppable 🚀', 'condition': max_streak >= 100, 'message': 'Nezaustavljivi! 100 dana uzastopno! 🚀'},
     ]
     
