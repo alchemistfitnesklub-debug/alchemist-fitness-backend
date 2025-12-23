@@ -2610,11 +2610,11 @@ def api_progress_achievements(request):
             {
                 'id': 'silver_streak_7',
                 'title': 'Nedeljni Warrior 💪',
-                'description': '7 dana uzastopno',
+                'description': '5 dana uzastopno',  # ← IZMENJENO sa 7
                 'tier': 'silver',
                 'progress': max_streak,
-                'target': 7,
-                'unlocked': max_streak >= 7,
+                'target': 5,  # ← IZMENJENO sa 7
+                'unlocked': max_streak >= 5,  # ← IZMENJENO sa 7
                 'icon': '💪'
             },
             {
@@ -2642,11 +2642,11 @@ def api_progress_achievements(request):
             {
                 'id': 'gold_streak_30',
                 'title': 'Mesečni Champion 🏆',
-                'description': '30 dana uzastopno',
+                'description': '16 dana uzastopno',
                 'tier': 'gold',
                 'progress': max_streak,
-                'target': 30,
-                'unlocked': max_streak >= 30,
+                'target': 16,
+                'unlocked': max_streak >= 16,
                 'icon': '🏆'
             },
             {
@@ -2664,11 +2664,11 @@ def api_progress_achievements(request):
             {
                 'id': 'platinum_365',
                 'title': 'Godišnji Legend 💎',
-                'description': 'Završi 365 treninga',
+                'description': 'Završi 200 treninga',
                 'tier': 'platinum',
                 'progress': ukupno_treninga,
-                'target': 365,
-                'unlocked': ukupno_treninga >= 365,
+                'target': 200,
+                'unlocked': ukupno_treninga >= 200,
                 'icon': '💎'
             },
             {
@@ -2754,12 +2754,12 @@ def check_and_send_achievement_notifications(clan):
         {'id': 'bronze_10', 'title': 'Početnik 🥉', 'condition': ukupno_treninga >= 10, 'message': 'Čestitamo! Završili ste 10 treninga! 🥉'},
         {'id': 'bronze_streak_3', 'title': 'Posvećen 🔥', 'condition': max_streak >= 3, 'message': 'Neverovatno! 3 dana uzastopno! 🔥'},
         {'id': 'silver_30', 'title': 'Redovan 🥈', 'condition': ukupno_treninga >= 30, 'message': 'Sjajno! Završili ste 30 treninga! 🥈'},
-        {'id': 'silver_streak_7', 'title': 'Nedeljni Warrior 💪', 'condition': max_streak >= 7, 'message': 'Odlično! Cela nedelja uzastopno! 💪'},
+        {'id': 'silver_streak_7', 'title': 'Nedeljni Warrior 💪', 'condition': max_streak >= 5, 'message': 'Odlično! Cela nedelja uzastopno! 💪'},
         {'id': 'silver_weight_5', 'title': 'Transformer ⚡', 'condition': weight_loss >= 5, 'message': 'Bravo! Izgubili ste 5kg! ⚡'},
         {'id': 'gold_100', 'title': 'Veteran 🥇', 'condition': ukupno_treninga >= 100, 'message': 'Fenomenalno! 100 treninga! 🥇'},
-        {'id': 'gold_streak_30', 'title': 'Mesečni Champion 🏆', 'condition': max_streak >= 30, 'message': 'Legendarno! 30 dana uzastopno! 🏆'},
+        {'id': 'gold_streak_30', 'title': 'Mesečni Champion 🏆', 'condition': max_streak >= 16, 'message': 'Legendarno! Mesec dana uzastopno! 🏆'},
         {'id': 'gold_weight_10', 'title': 'Super Transformer 🌟', 'condition': weight_loss >= 10, 'message': 'Neverovatno! Izgubili ste 10kg! 🌟'},
-        {'id': 'platinum_365', 'title': 'Godišnji Legend 💎', 'condition': ukupno_treninga >= 365, 'message': 'Legenda! 365 treninga! 💎'},
+        {'id': 'platinum_365', 'title': 'Legenda Godine 💎', 'condition': ukupno_treninga >= 200, 'message': 'Legenda! Preko 200 treninga! 💎'},
         {'id': 'platinum_streak_100', 'title': 'Unstoppable 🚀', 'condition': max_streak >= 100, 'message': 'Nezaustavljivi! 100 dana uzastopno! 🚀'},
     ]
     
