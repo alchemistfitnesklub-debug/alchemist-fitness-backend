@@ -256,3 +256,18 @@ class ZatvorenTermin(models.Model):
     
     def __str__(self):
         return f"{self.datum} u {self.sat}:00 - {self.razlog or 'Zatvoren'}"
+
+class AchievementNotification(models.Model):
+    """
+    Model za praćenje koje achievements su već notifikovane korisniku
+    """
+    clan = models.ForeignKey(Clan, on_delete=models.CASCADE, related_name='achievement_notifications')
+    achievement_id = models.CharField(max_length=50)  # npr. 'bronze_10', 'silver_streak_7'
+    notified_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('clan', 'achievement_id')
+        ordering = ['-notified_at']
+    
+    def __str__(self):
+        return f"{self.clan.ime_prezime} - {self.achievement_id}"
