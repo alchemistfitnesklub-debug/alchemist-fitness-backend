@@ -2641,7 +2641,7 @@ def api_progress_achievements(request):
             },
             {
                 'id': 'gold_streak_30',
-                'title': 'Mesečni Champion 🏆',
+                'title': 'Champion Of The Month 🏆',
                 'description': '16 dana uzastopno',
                 'tier': 'gold',
                 'progress': max_streak,
