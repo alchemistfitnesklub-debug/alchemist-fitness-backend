@@ -634,7 +634,15 @@ def rezervacije(request):
                 count = Rezervacija.objects.filter(datum=datum, sat=sat).count()
                 if count >= 6:
                     return JsonResponse({'status': 'error', 'message': 'Slot je pun! Maksimalno 6 po satu.'})
-            Rezervacija.objects.create(clan=clan, datum=datum, sat=sat)
+            
+            rezervacija = Rezervacija.objects.create(clan=clan, datum=datum, sat=sat)
+            
+            # Proveri i pošalji achievement notifikacije
+            try:
+                check_and_send_achievement_notifications(clan)
+            except Exception as e:
+                print(f"Greška pri proveri achievements: {e}")
+            
             return JsonResponse({
                 'status': 'success',
                 'message': f'Rezervacija za {clan.ime_prezime} u {sat}:00 uspešno dodata!'
