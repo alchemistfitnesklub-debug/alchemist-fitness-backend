@@ -2712,13 +2712,11 @@ def check_and_send_achievement_notifications(clan):
     """
     Proveri nove achievements i pošalji push notifikacije
     """
-    from .models import AchievementNotification
-    from .services.firebase_service import send_push_notification  # ← ISPRAVNO!
+    from .models import AchievementNotification, FCMToken
+    from .services.firebase_service import send_push_notification
     
-    # Dobavi trenutne achievements
     ukupno_treninga = Rezervacija.objects.filter(clan=clan).count()
     
-    # Proveri streak
     today = timezone.now().date()
     max_streak = 0
     poslednja_rezervacija = Rezervacija.objects.filter(clan=clan).order_by('-datum').first()
@@ -2736,7 +2734,6 @@ def check_and_send_achievement_notifications(clan):
                     current_streak = 1
             max_streak = max(max_streak, current_streak)
     
-    # Proveri weight loss
     weight_loss = 0
     merenja = Merenje.objects.filter(clan=clan).order_by('datum')
     if merenja.count() >= 2:
@@ -2745,49 +2742,40 @@ def check_and_send_achievement_notifications(clan):
         if prvo_merenje.tezina and poslednje_merenje.tezina:
             weight_loss = float(prvo_merenje.tezina) - float(poslednje_merenje.tezina)
     
-    # Lista achievements za proveru
     achievements_to_check = [
-        # Bronze
         {'id': 'bronze_10', 'title': 'Početnik 🥉', 'condition': ukupno_treninga >= 10, 'message': 'Čestitamo! Završili ste 10 treninga! 🥉'},
         {'id': 'bronze_streak_3', 'title': 'Posvećen 🔥', 'condition': max_streak >= 3, 'message': 'Neverovatno! 3 dana uzastopno! 🔥'},
-        
-        # Silver
         {'id': 'silver_30', 'title': 'Redovan 🥈', 'condition': ukupno_treninga >= 30, 'message': 'Sjajno! Završili ste 30 treninga! 🥈'},
         {'id': 'silver_streak_7', 'title': 'Nedeljni Warrior 💪', 'condition': max_streak >= 7, 'message': 'Odlično! Cela nedelja uzastopno! 💪'},
         {'id': 'silver_weight_5', 'title': 'Transformer ⚡', 'condition': weight_loss >= 5, 'message': 'Bravo! Izgubili ste 5kg! ⚡'},
-        
-        # Gold
         {'id': 'gold_100', 'title': 'Veteran 🥇', 'condition': ukupno_treninga >= 100, 'message': 'Fenomenalno! 100 treninga! 🥇'},
         {'id': 'gold_streak_30', 'title': 'Mesečni Champion 🏆', 'condition': max_streak >= 30, 'message': 'Legendarno! 30 dana uzastopno! 🏆'},
         {'id': 'gold_weight_10', 'title': 'Super Transformer 🌟', 'condition': weight_loss >= 10, 'message': 'Neverovatno! Izgubili ste 10kg! 🌟'},
-        
-        # Platinum
         {'id': 'platinum_365', 'title': 'Godišnji Legend 💎', 'condition': ukupno_treninga >= 365, 'message': 'Legenda! 365 treninga! 💎'},
         {'id': 'platinum_streak_100', 'title': 'Unstoppable 🚀', 'condition': max_streak >= 100, 'message': 'Nezaustavljivi! 100 dana uzastopno! 🚀'},
     ]
     
-    # Proveri svaki achievement
     for achievement in achievements_to_check:
         if achievement['condition']:
-            # Proveri da li je već notifikovan
             already_notified = AchievementNotification.objects.filter(
                 clan=clan,
                 achievement_id=achievement['id']
             ).exists()
             
             if not already_notified:
-                # Novi achievement! Pošalji notifikaciju
                 try:
-                    send_push_to_user(
+                    # Pronađi FCM token
+                    token_obj = FCMToken.objects.filter(
                         user=clan.user,
-                        title=f"🏆 Novo postignuće!",
-                        body=achievement['message'],
-                        data={
-                            'type': 'achievement',
-                            'achievement_id': achievement['id'],
-                            'achievement_title': achievement['title']
-                        }
-                    )
+                        is_active=True
+                    ).first()
+                    
+                    if token_obj:
+                        send_push_notification(
+                            fcm_token=token_obj.token,
+                            title="🏆 Novo postignuće!",
+                            body=achievement['message']
+                        )
                     
                     # Sačuvaj da je notifikovan
                     AchievementNotification.objects.create(
@@ -2799,5 +2787,3 @@ def check_and_send_achievement_notifications(clan):
                     
                 except Exception as e:
                     print(f"❌ Greška pri slanju notifikacije: {e}")
-
-       
