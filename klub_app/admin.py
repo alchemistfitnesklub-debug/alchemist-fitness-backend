@@ -1,6 +1,5 @@
 from django.contrib import admin
-from .models import Clan, Uplata, Rezervacija
-from .models import FCMToken  # Dodaj u postojeće imports
+from .models import Clan, Uplata, Rezervacija, FCMToken, AchievementNotification
 
 admin.site.register(Clan)
 admin.site.register(Uplata)
