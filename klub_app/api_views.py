@@ -10,11 +10,12 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
 from datetime import datetime, timedelta
-from .models import Clan, Uplata, Rezervacija, Obavestenje, UserProfile, ZatvorenTermin
+from .models import Clan, Uplata, Rezervacija, Obavestenje, UserProfile, ZatvorenTermin, AchievementNotification, Merenje
 from .serializers import (
     ClanSerializer, UplataSerializer, 
     RezervacijaSerializer, ObavestenjeSerializer
 )
+from .views import check_and_send_achievement_notifications
 
 # LOGIN API - za mobilnu aplikaciju
 @api_view(['POST'])
@@ -236,6 +237,12 @@ Alchemist Fitness Club
         except Exception as e:
             print(f"Email error: {e}")
             # Nastavlja dalje čak i ako email ne uspe
+        
+        # Proveri i pošalji achievement notifikacije
+        try:
+            check_and_send_achievement_notifications(clan)
+        except Exception as e:
+            print(f"Greška pri proveri achievements: {e}")
         
         return Response(
             RezervacijaSerializer(rezervacija).data,
