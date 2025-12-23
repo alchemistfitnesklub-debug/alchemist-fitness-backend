@@ -2713,7 +2713,7 @@ def check_and_send_achievement_notifications(clan):
     Proveri nove achievements i pošalji push notifikacije
     """
     from .models import AchievementNotification
-    from .push_notifications import send_push_to_user
+    from .services.firebase_service import send_push_notification  # ← ISPRAVNO!
     
     # Dobavi trenutne achievements
     ukupno_treninga = Rezervacija.objects.filter(clan=clan).count()
