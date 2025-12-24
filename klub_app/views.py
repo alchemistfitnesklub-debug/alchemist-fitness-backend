@@ -2834,4 +2834,235 @@ def api_generate_share_image(request):
         print(f"Share image error: {e}")
         return Response({
             'error': str(e)
-        }, status=500)         
+        }, status=500)  
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def api_leaderboard(request):
+    """
+    Get leaderboard data - top 10 for each category
+    """
+    try:
+        from django.db.models import Count, Max
+        from datetime import datetime
+        from django.utils import timezone
+        
+        # Current month
+        now = timezone.now()
+        first_day_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        
+        # 1. TOP 10 - This Month (broj treninga ovaj mesec)
+        this_month_leaders = []
+        clanovi = Clan.objects.all()
+        
+        for clan in clanovi:
+            count = Rezervacija.objects.filter(
+                clan=clan,
+                datum__gte=first_day_of_month.date()
+            ).count()
+            
+            if count > 0:
+                this_month_leaders.append({
+                    'id': clan.id,
+                    'name': clan.ime_prezime,
+                    'image': clan.slika if clan.slika else None,
+                    'score': count,
+                    'rank': 0  # Will be set after sorting
+                })
+        
+        # Sort and assign ranks
+        this_month_leaders.sort(key=lambda x: x['score'], reverse=True)
+        for idx, leader in enumerate(this_month_leaders[:10]):
+            leader['rank'] = idx + 1
+        
+        # 2. TOP 10 - Longest Streak (best streak all-time)
+        streak_leaders = []
+        
+        for clan in clanovi:
+            all_dates = list(
+                Rezervacija.objects.filter(clan=clan)
+                .values_list('datum', flat=True)
+                .distinct()
+                .order_by('-datum')
+            )
+            
+            if not all_dates:
+                continue
+            
+            # Calculate max streak
+            max_streak = 0
+            current_streak = 1
+            
+            for i in range(len(all_dates) - 1):
+                diff = (all_dates[i] - all_dates[i + 1]).days
+                if diff == 1:
+                    current_streak += 1
+                    max_streak = max(max_streak, current_streak)
+                else:
+                    current_streak = 1
+            
+            max_streak = max(max_streak, current_streak)
+            
+            if max_streak > 0:
+                streak_leaders.append({
+                    'id': clan.id,
+                    'name': clan.ime_prezime,
+                    'image': clan.slika if clan.slika else None,
+                    'score': max_streak,
+                    'rank': 0
+                })
+        
+        # Sort and assign ranks
+        streak_leaders.sort(key=lambda x: x['score'], reverse=True)
+        for idx, leader in enumerate(streak_leaders[:10]):
+            leader['rank'] = idx + 1
+        
+        # 3. TOP 10 - Total Badges (broj otkačenih badges)
+        badge_leaders = []
+        
+        for clan in clanovi:
+            # Count achievements
+            badge_count = AchievementNotification.objects.filter(clan=clan).count()
+            
+            if badge_count > 0:
+                badge_leaders.append({
+                    'id': clan.id,
+                    'name': clan.ime_prezime,
+                    'image': clan.slika if clan.slika else None,
+                    'score': badge_count,
+                    'rank': 0
+                })
+        
+        # Sort and assign ranks
+        badge_leaders.sort(key=lambda x: x['score'], reverse=True)
+        for idx, leader in enumerate(badge_leaders[:10]):
+            leader['rank'] = idx + 1
+        
+        # Get current user's rank in each category
+        current_clan = Clan.objects.get(user=request.user)
+        
+        # User's rank - This Month
+        user_this_month_rank = None
+        user_this_month_score = Rezervacija.objects.filter(
+            clan=current_clan,
+            datum__gte=first_day_of_month.date()
+        ).count()
+        
+        all_this_month = []
+        for clan in clanovi:
+            count = Rezervacija.objects.filter(
+                clan=clan,
+                datum__gte=first_day_of_month.date()
+            ).count()
+            if count > 0:
+                all_this_month.append((clan.id, count))
+        
+        all_this_month.sort(key=lambda x: x[1], reverse=True)
+        for idx, (clan_id, score) in enumerate(all_this_month):
+            if clan_id == current_clan.id:
+                user_this_month_rank = idx + 1
+                break
+        
+        # User's rank - Streak
+        user_streak_rank = None
+        user_streak_score = 0
+        
+        all_dates = list(
+            Rezervacija.objects.filter(clan=current_clan)
+            .values_list('datum', flat=True)
+            .distinct()
+            .order_by('-datum')
+        )
+        
+        if all_dates:
+            max_streak = 0
+            current_streak = 1
+            for i in range(len(all_dates) - 1):
+                diff = (all_dates[i] - all_dates[i + 1]).days
+                if diff == 1:
+                    current_streak += 1
+                    max_streak = max(max_streak, current_streak)
+                else:
+                    current_streak = 1
+            user_streak_score = max(max_streak, current_streak)
+        
+        all_streaks = []
+        for clan in clanovi:
+            all_dates = list(
+                Rezervacija.objects.filter(clan=clan)
+                .values_list('datum', flat=True)
+                .distinct()
+                .order_by('-datum')
+            )
+            if not all_dates:
+                continue
+            max_streak = 0
+            current_streak = 1
+            for i in range(len(all_dates) - 1):
+                diff = (all_dates[i] - all_dates[i + 1]).days
+                if diff == 1:
+                    current_streak += 1
+                    max_streak = max(max_streak, current_streak)
+                else:
+                    current_streak = 1
+            max_streak = max(max_streak, current_streak)
+            if max_streak > 0:
+                all_streaks.append((clan.id, max_streak))
+        
+        all_streaks.sort(key=lambda x: x[1], reverse=True)
+        for idx, (clan_id, score) in enumerate(all_streaks):
+            if clan_id == current_clan.id:
+                user_streak_rank = idx + 1
+                break
+        
+        # User's rank - Badges
+        user_badges_rank = None
+        user_badges_score = AchievementNotification.objects.filter(clan=current_clan).count()
+        
+        all_badges = []
+        for clan in clanovi:
+            count = AchievementNotification.objects.filter(clan=clan).count()
+            if count > 0:
+                all_badges.append((clan.id, count))
+        
+        all_badges.sort(key=lambda x: x[1], reverse=True)
+        for idx, (clan_id, score) in enumerate(all_badges):
+            if clan_id == current_clan.id:
+                user_badges_rank = idx + 1
+                break
+        
+        return Response({
+            'success': True,
+            'leaderboards': {
+                'this_month': this_month_leaders[:10],
+                'longest_streak': streak_leaders[:10],
+                'total_badges': badge_leaders[:10]
+            },
+            'user_stats': {
+                'this_month': {
+                    'rank': user_this_month_rank,
+                    'score': user_this_month_score
+                },
+                'longest_streak': {
+                    'rank': user_streak_rank,
+                    'score': user_streak_score
+                },
+                'total_badges': {
+                    'rank': user_badges_rank,
+                    'score': user_badges_score
+                }
+            }
+        })
+        
+    except Clan.DoesNotExist:
+        return Response({
+            'success': False,
+            'error': 'Profil ne postoji'
+        }, status=404)
+    except Exception as e:
+        print(f"Leaderboard error: {e}")
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=500)        
