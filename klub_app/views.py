@@ -2783,7 +2783,7 @@ def check_and_send_achievement_notifications(clan):
                     if token_obj:
                         send_push_notification(
                             fcm_token=token_obj.token,
-                            title="🏆 Novo postignuće!",
+                            title="🏆 Novo dostignuće!",
                             body=achievement['message']
                         )
                     
