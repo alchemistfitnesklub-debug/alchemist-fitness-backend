@@ -109,4 +109,7 @@ urlpatterns = [
     # Izmena/Brisanje Uplata - Samo Admin
     path('uplata/delete/<int:uplata_id>/', views.delete_uplata, name='delete_uplata'),
     path('uplata/edit/<int:uplata_id>/', views.edit_uplata, name='edit_uplata'),
+
+    # ========== image ==========
+    path('api/share/generate-image/', views.api_generate_share_image, name='api_generate_share_image'),
 ]
