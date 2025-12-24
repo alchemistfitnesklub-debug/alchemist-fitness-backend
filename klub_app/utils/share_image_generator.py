@@ -80,8 +80,8 @@ def generate_achievement_share_image(achievement_data):
         text_font = ImageFont.load_default()
         small_font = ImageFont.load_default()
     
-    # Draw "NOVO DOSTIGNUCE!" at top
-    header_text = "NOVO POSTIGNUCE!"
+    # Draw "NOVO DOSTIGNUĆE!" at top
+    header_text = "NOVO DOSTIGNUCE!"
     header_bbox = draw.textbbox((0, 0), header_text, font=title_font)
     header_width = header_bbox[2] - header_bbox[0]
     draw.text(((width - header_width) / 2, 200), header_text, fill=(255, 255, 255), font=title_font)
@@ -90,20 +90,17 @@ def generate_achievement_share_image(achievement_data):
     trophy_emoji = get_emoji_image('🏆')
     if trophy_emoji:
         trophy_size = 100
-        trophy_emoji = trophy_emoji.resize((trophy_size, trophy_size), Image.Resampling.LANCZOS)
+        trophy_emoji = trophy_emoji.resize((trophy_size, trophy_size), Image.Resampling.LANCZOS).convert('RGBA')
         trophy_x = int((width - trophy_size) / 2)
         trophy_y = 80
-        if trophy_emoji.mode == 'RGBA':
-            img.paste(trophy_emoji, (trophy_x, trophy_y), trophy_emoji)
-        else:
-            img.paste(trophy_emoji, (trophy_x, trophy_y))
+        img.paste(trophy_emoji, (trophy_x, trophy_y), trophy_emoji)
     
     # Download and paste achievement badge emoji - LARGE
     icon = achievement_data.get('icon', '🏆')
     badge_emoji = get_emoji_image(icon)
     if badge_emoji:
         badge_size = 400  # Large emoji
-        badge_emoji = badge_emoji.resize((badge_size, badge_size), Image.Resampling.LANCZOS)
+        badge_emoji = badge_emoji.resize((badge_size, badge_size), Image.Resampling.LANCZOS).convert('RGBA')
         badge_x = int((width - badge_size) / 2)
         badge_y = 400
         
@@ -118,10 +115,7 @@ def generate_achievement_share_image(achievement_data):
         )
         
         # Paste emoji
-        if badge_emoji.mode == 'RGBA':
-            img.paste(badge_emoji, (badge_x, badge_y), badge_emoji)
-        else:
-            img.paste(badge_emoji, (badge_x, badge_y))
+        img.paste(badge_emoji, (badge_x, badge_y), badge_emoji)
     else:
         # Fallback: Draw tier text if emoji download fails
         tier_text = tier.upper()
@@ -189,13 +183,10 @@ def generate_achievement_share_image(achievement_data):
     muscle_emoji = get_emoji_image('💪')
     if muscle_emoji:
         muscle_size = 60
-        muscle_emoji = muscle_emoji.resize((muscle_size, muscle_size), Image.Resampling.LANCZOS)
+        muscle_emoji = muscle_emoji.resize((muscle_size, muscle_size), Image.Resampling.LANCZOS).convert('RGBA')
         muscle_x = int((width - brand_width) / 2 - muscle_size - 20)
         muscle_y = brand_y - 10
-        if muscle_emoji.mode == 'RGBA':
-            img.paste(muscle_emoji, (muscle_x, muscle_y), muscle_emoji)
-        else:
-            img.paste(muscle_emoji, (muscle_x, muscle_y))
+        img.paste(muscle_emoji, (muscle_x, muscle_y), muscle_emoji)
     
     draw.text(((width - brand_width) / 2, brand_y), brand_text, fill=(255, 255, 255), font=text_font)
     
