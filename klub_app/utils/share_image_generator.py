@@ -80,7 +80,7 @@ def generate_achievement_share_image(achievement_data):
         text_font = ImageFont.load_default()
         small_font = ImageFont.load_default()
     
-    # Draw "NOVO POSTIGNUĆE!" at top
+    # Draw "NOVO DOSTIGNUCE!" at top
     header_text = "NOVO POSTIGNUCE!"
     header_bbox = draw.textbbox((0, 0), header_text, font=title_font)
     header_width = header_bbox[2] - header_bbox[0]
