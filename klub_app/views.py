@@ -2866,9 +2866,9 @@ def api_leaderboard(request):
                 this_month_leaders.append({
                     'id': clan.id,
                     'name': clan.ime_prezime,
-                    'image': clan.slika if clan.slika else None,
+                    'image': clan.slika.url if clan.slika else None,
                     'score': count,
-                    'rank': 0  # Will be set after sorting
+                    'rank': 0
                 })
         
         # Sort and assign ranks
@@ -2876,7 +2876,7 @@ def api_leaderboard(request):
         for idx, leader in enumerate(this_month_leaders[:10]):
             leader['rank'] = idx + 1
         
-        # 2. TOP 10 - Longest Streak (best streak all-time)
+        # 2. TOP 10 - Longest Streak
         streak_leaders = []
         
         for clan in clanovi:
@@ -2890,7 +2890,6 @@ def api_leaderboard(request):
             if not all_dates:
                 continue
             
-            # Calculate max streak
             max_streak = 0
             current_streak = 1
             
@@ -2908,42 +2907,38 @@ def api_leaderboard(request):
                 streak_leaders.append({
                     'id': clan.id,
                     'name': clan.ime_prezime,
-                    'image': clan.slika if clan.slika else None,
+                    'image': clan.slika.url if clan.slika else None,
                     'score': max_streak,
                     'rank': 0
                 })
         
-        # Sort and assign ranks
         streak_leaders.sort(key=lambda x: x['score'], reverse=True)
         for idx, leader in enumerate(streak_leaders[:10]):
             leader['rank'] = idx + 1
         
-        # 3. TOP 10 - Total Badges (broj otkačenih badges)
+        # 3. TOP 10 - Total Badges
         badge_leaders = []
         
         for clan in clanovi:
-            # Count achievements
             badge_count = AchievementNotification.objects.filter(clan=clan).count()
             
             if badge_count > 0:
                 badge_leaders.append({
                     'id': clan.id,
                     'name': clan.ime_prezime,
-                    'image': clan.slika if clan.slika else None,
+                    'image': clan.slika.url if clan.slika else None,
                     'score': badge_count,
                     'rank': 0
                 })
         
-        # Sort and assign ranks
         badge_leaders.sort(key=lambda x: x['score'], reverse=True)
         for idx, leader in enumerate(badge_leaders[:10]):
             leader['rank'] = idx + 1
         
-        # Get current user's rank in each category
+        # Current user stats
         current_clan = Clan.objects.get(user=request.user)
         
-        # User's rank - This Month
-        user_this_month_rank = None
+        # User this month
         user_this_month_score = Rezervacija.objects.filter(
             clan=current_clan,
             datum__gte=first_day_of_month.date()
@@ -2959,15 +2954,13 @@ def api_leaderboard(request):
                 all_this_month.append((clan.id, count))
         
         all_this_month.sort(key=lambda x: x[1], reverse=True)
+        user_this_month_rank = None
         for idx, (clan_id, score) in enumerate(all_this_month):
             if clan_id == current_clan.id:
                 user_this_month_rank = idx + 1
                 break
         
-        # User's rank - Streak
-        user_streak_rank = None
-        user_streak_score = 0
-        
+        # User streak
         all_dates = list(
             Rezervacija.objects.filter(clan=current_clan)
             .values_list('datum', flat=True)
@@ -2975,6 +2968,7 @@ def api_leaderboard(request):
             .order_by('-datum')
         )
         
+        user_streak_score = 0
         if all_dates:
             max_streak = 0
             current_streak = 1
@@ -3011,13 +3005,13 @@ def api_leaderboard(request):
                 all_streaks.append((clan.id, max_streak))
         
         all_streaks.sort(key=lambda x: x[1], reverse=True)
+        user_streak_rank = None
         for idx, (clan_id, score) in enumerate(all_streaks):
             if clan_id == current_clan.id:
                 user_streak_rank = idx + 1
                 break
         
-        # User's rank - Badges
-        user_badges_rank = None
+        # User badges
         user_badges_score = AchievementNotification.objects.filter(clan=current_clan).count()
         
         all_badges = []
@@ -3027,6 +3021,7 @@ def api_leaderboard(request):
                 all_badges.append((clan.id, count))
         
         all_badges.sort(key=lambda x: x[1], reverse=True)
+        user_badges_rank = None
         for idx, (clan_id, score) in enumerate(all_badges):
             if clan_id == current_clan.id:
                 user_badges_rank = idx + 1
@@ -3056,13 +3051,16 @@ def api_leaderboard(request):
         })
         
     except Clan.DoesNotExist:
+        print("❌ ERROR: Clan.DoesNotExist")
         return Response({
             'success': False,
             'error': 'Profil ne postoji'
         }, status=404)
     except Exception as e:
-        print(f"Leaderboard error: {e}")
+        print(f"❌ LEADERBOARD ERROR: {e}")
+        import traceback
+        traceback.print_exc()
         return Response({
             'success': False,
             'error': str(e)
-        }, status=500)        
+        }, status=500)
