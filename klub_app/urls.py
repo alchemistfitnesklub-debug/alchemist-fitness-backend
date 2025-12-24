@@ -112,4 +112,6 @@ urlpatterns = [
 
     # ========== image ==========
     path('api/share/generate-image/', views.api_generate_share_image, name='api_generate_share_image'),
+    # ========== leaderboard ==========
+    path('api/leaderboard/', views.api_leaderboard, name='api_leaderboard'),
 ]
