@@ -7,6 +7,8 @@ from django.db.models import Sum, Count
 from django.utils import timezone
 from datetime import timedelta, datetime, date
 from decimal import Decimal
+from django.http import HttpResponse
+from .utils.share_image_generator import generate_achievement_share_image
 import time
 import urllib.parse
 import base64
@@ -2795,3 +2797,41 @@ def check_and_send_achievement_notifications(clan):
                     
                 except Exception as e:
                     print(f"❌ Greška pri slanju notifikacije: {e}")
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def api_generate_share_image(request):
+    """
+    Generate share image for achievement
+    """
+    try:
+        clan = Clan.objects.get(user=request.user)
+        
+        achievement_data = {
+            'title': request.data.get('title', ''),
+            'description': request.data.get('description', ''),
+            'icon': request.data.get('icon', '🏆'),
+            'tier': request.data.get('tier', 'bronze'),
+            'user_name': clan.ime_prezime,
+            'progress': int(request.data.get('progress', 0)),
+            'target': int(request.data.get('target', 100))
+        }
+        
+        # Generate image
+        img_io = generate_achievement_share_image(achievement_data)
+        
+        # Return as image response
+        response = HttpResponse(img_io.getvalue(), content_type='image/png')
+        response['Content-Disposition'] = f'inline; filename="achievement_{request.data.get("achievement_id", "share")}.png"'
+        
+        return response
+        
+    except Clan.DoesNotExist:
+        return Response({
+            'error': 'Profil ne postoji'
+        }, status=404)
+    except Exception as e:
+        print(f"Share image error: {e}")
+        return Response({
+            'error': str(e)
+        }, status=500)         
