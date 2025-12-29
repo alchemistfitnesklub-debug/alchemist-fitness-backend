@@ -1738,7 +1738,6 @@ def management_monthly_chart(request):
     }
     return render(request, 'management_monthly_chart.html', context)
 
-
 @admin_only
 def management_staff_attendance(request):
     """Broj radnih dana zaposlenih - tracking prisustva"""
@@ -1779,7 +1778,7 @@ def management_staff_attendance(request):
         staff_data.append({
             'user': profile.user,
             'radni_dani': radni_dani,
-            'prisustva': prisustva[:10],  # Poslednje 10 za prikaz
+            'prisustva': prisustva,  # ← IZMENJENO! Sada prikazuje SVA prisustva
         })
     
     context = {
