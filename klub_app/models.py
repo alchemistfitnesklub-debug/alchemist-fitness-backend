@@ -249,26 +249,7 @@ class ZatvorenTermin(models.Model):
     zatvorio = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     kreiran = models.DateTimeField(auto_now_add=True)
 
-    # ========================================
-    # CHECK-IN SISTEM - DODATO 30.12.2024
-    # ========================================
 
-class CheckIn(models.Model):
-    clan = models.ForeignKey(Clan, on_delete=models.CASCADE, related_name='checkins')
-    datum = models.DateField(auto_now_add=True, verbose_name="Datum")
-    vreme = models.TimeField(auto_now_add=True, verbose_name="Vreme")
-    lokacija = models.CharField(max_length=100, default="Alchemist Ladies Fitness Club", verbose_name="Lokacija")
-    
-    class Meta:
-        verbose_name = "Check-in"
-        verbose_name_plural = "Check-in-ovi"
-        ordering = ['-datum', '-vreme']
-        unique_together = ['clan', 'datum']  # Jedan check-in dnevno
-    
-    def __str__(self):
-        return f"{self.clan.ime_prezime} - {self.datum} {self.vreme.strftime('%H:%M')}"
-
-    
     class Meta:
         unique_together = ['datum', 'sat']
         verbose_name = 'Zatvoren termin'
@@ -291,3 +272,24 @@ class AchievementNotification(models.Model):
     
     def __str__(self):
         return f"{self.clan.ime_prezime} - {self.achievement_id}"
+
+
+
+    # ========================================
+    # CHECK-IN SISTEM - DODATO 30.12.2024
+    # ========================================
+
+class CheckIn(models.Model):
+    clan = models.ForeignKey(Clan, on_delete=models.CASCADE, related_name='checkins')
+    datum = models.DateField(auto_now_add=True, verbose_name="Datum")
+    vreme = models.TimeField(auto_now_add=True, verbose_name="Vreme")
+    lokacija = models.CharField(max_length=100, default="Alchemist Ladies Fitness Club", verbose_name="Lokacija")
+    
+    class Meta:
+        verbose_name = "Check-in"
+        verbose_name_plural = "Check-in-ovi"
+        ordering = ['-datum', '-vreme']
+        unique_together = ['clan', 'datum']  # Jedan check-in dnevno
+    
+    def __str__(self):
+        return f"{self.clan.ime_prezime} - {self.datum} {self.vreme.strftime('%H:%M')}"
