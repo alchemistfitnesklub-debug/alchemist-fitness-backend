@@ -343,7 +343,7 @@ def klijenti(request):
                         email = str(row.get('E-mail', '') or row.get('email', '') or '').strip()
                         datum_rodjenja_str = row.get('Datum rodjenja', None)
                         datum_rodjenja = None
-                        if pd.notna(datum_rodjenja_str):
+                        if datum_rodjenja_str is not None and pd.notna(datum_rodjenja_str):
                             datum_rodjenja_str = str(datum_rodjenja_str).strip()
                             for fmt in ('%Y-%m-%d', '%d.%m.%Y', '%d/%m/%Y', '%m/%d/%Y', '%Y/%m/%d'):
                                 try:
