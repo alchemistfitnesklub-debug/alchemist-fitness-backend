@@ -28,8 +28,7 @@ from django.views.decorators.csrf import csrf_exempt
 import firebase_admin
 from firebase_admin import credentials, messaging
 from django.core.files.storage import default_storage
-from .models import Clan, Uplata, Rezervacija, Stock, Sale, Obavestenje, UserProfile, Merenje, ZatvorenTermin, AchievementNotification, FCMToken
-from .forms import ClanForm, UplataForm, SaleForm, MerenjeForm
+from .models import Clan, Uplata, Rezervacija, Stock, Sale, Obavestenje, UserProfile, Merenje, ZatvorenTermin, AchievementNotification, FCMToken, CheckIn
 from .services.firebase_service import send_push_notification
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
