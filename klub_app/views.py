@@ -3063,3 +3063,161 @@ def api_leaderboard(request):
             'success': False,
             'error': str(e)
         }, status=500)
+
+
+        # ========================================
+        # CHECK-IN API - DODATO 30.12.2024
+        # ========================================
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def checkin(request):
+    """
+    Klijent se check-in-uje kada dođe u teretanu
+    POST /api/checkin/
+    Body: {} (prazan, koristi authenticated user)
+    """
+    try:
+        # Pronađi klijenta za ovog user-a
+        clan = Clan.objects.get(user=request.user)
+        
+        # Proveri da li ima aktivnu članarinu
+        today = timezone.now().date()
+        active_membership = Uplata.objects.filter(
+            clan=clan,
+            od_datum__lte=today,
+            do_datum__gte=today
+        ).first()
+        
+        if not active_membership:
+            return Response({
+                'success': False,
+                'message': '⚠️ Članarina istekla! Molimo te produženje na recepciji.'
+            }, status=400)
+        
+        # Proveri da li je već check-in danas
+        existing = CheckIn.objects.filter(
+            clan=clan,
+            datum=today
+        ).first()
+        
+        if existing:
+            return Response({
+                'success': False,
+                'message': f'✅ Već ste check-in-ovani danas u {existing.vreme.strftime("%H:%M")}!',
+                'checkin': {
+                    'datum': existing.datum,
+                    'vreme': existing.vreme.strftime('%H:%M')
+                }
+            })
+        
+        # Kreiraj check-in
+        checkin = CheckIn.objects.create(clan=clan)
+        
+        # Broj poseta ovog meseca
+        start_of_month = today.replace(day=1)
+        monthly_visits = CheckIn.objects.filter(
+            clan=clan,
+            datum__gte=start_of_month
+        ).count()
+        
+        return Response({
+            'success': True,
+            'message': f'✅ Check-in uspešan! Dobrodošao/la, {clan.ime_prezime}! 💪',
+            'checkin': {
+                'datum': checkin.datum,
+                'vreme': checkin.vreme.strftime('%H:%M'),
+                'lokacija': checkin.lokacija
+            },
+            'stats': {
+                'monthly_visits': monthly_visits,
+                'message': f'🔥 Ovo je tvoja {monthly_visits}. poseta ovog meseca!'
+            }
+        })
+        
+    except Clan.DoesNotExist:
+        return Response({
+            'success': False,
+            'message': 'Klijent ne postoji za ovog korisnika'
+        }, status=404)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': f'Greška: {str(e)}'
+        }, status=500)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def checkin_history(request):
+    """
+    Historia check-in-ova za prijavljenog klijenta
+    GET /api/checkin/history/
+    """
+    try:
+        clan = Clan.objects.get(user=request.user)
+        
+        # Poslednjih 30 check-in-ova
+        checkins = CheckIn.objects.filter(clan=clan).order_by('-datum', '-vreme')[:30]
+        
+        data = [{
+            'datum': c.datum,
+            'vreme': c.vreme.strftime('%H:%M'),
+            'lokacija': c.lokacija
+        } for c in checkins]
+        
+        # Stats
+        today = timezone.now().date()
+        start_of_month = today.replace(day=1)
+        monthly_visits = CheckIn.objects.filter(
+            clan=clan,
+            datum__gte=start_of_month
+        ).count()
+        
+        return Response({
+            'success': True,
+            'checkins': data,
+            'stats': {
+                'monthly_visits': monthly_visits,
+                'total_visits': CheckIn.objects.filter(clan=clan).count()
+            }
+        })
+        
+    except Clan.DoesNotExist:
+        return Response({
+            'success': False,
+            'message': 'Klijent ne postoji'
+        }, status=404)
+
+
+@login_required
+@admin_only
+def prisustvo_danas(request):
+    """
+    Admin stranica - prisustvo danas
+    """
+    today = timezone.now().date()
+    
+    checkins = CheckIn.objects.filter(
+        datum=today
+    ).select_related('clan').order_by('-vreme')
+    
+    # Statistike
+    total_today = checkins.count()
+    
+    # Top klijenti ovog meseca
+    start_of_month = today.replace(day=1)
+    top_clients = CheckIn.objects.filter(
+        datum__gte=start_of_month
+    ).values('clan__ime_prezime').annotate(
+        visits=Count('id')
+    ).order_by('-visits')[:10]
+    
+    context = {
+        'checkins': checkins,
+        'total_today': total_today,
+        'top_clients': top_clients,
+        'today': today
+    }
+    
+    return render(request, 'prisustvo_danas.html', context)
