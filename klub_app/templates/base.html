@@ -179,6 +179,7 @@ console.log("Firebase push notifikacije su privremeno isključene – lokalno ok
 <a href="{% url 'klijenti' %}"><i class="fas fa-users"></i> Klijenti</a>
 <a href="{% url 'sank' %}"><i class="fas fa-coffee"></i> Šank</a>
 <a href="{% url 'obavestenja' %}"><i class="fas fa-bell"></i> Obaveštenja</a>
+<a href="{% url 'prisustvo_danas' %}"><i class="fas fa-check-circle"></i> Prisustvo Danas</a>
                 {% if user.userprofile.is_admin %}
 <!-- SAMO ADMIN -->
 <a href="{% url 'statistike' %}"><i class="fas fa-chart-bar"></i> Statistike</a>
