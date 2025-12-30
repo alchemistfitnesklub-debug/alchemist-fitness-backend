@@ -47,6 +47,9 @@ urlpatterns = [
     path('zatvori-termin/', views.zatvori_termin, name='zatvori_termin'),
     path('otvori-termin/', views.otvori_termin, name='otvori_termin'),
     
+    # ========== Prisustvo - Check-in sistem ==========
+    path('prisustvo-danas/', views.prisustvo_danas, name='prisustvo_danas'),
+    
     # ========== Trener i Klijent dashboards ==========
     path('trener-home/', views.trener_home, name='trener_home'),
     path('klijent-dashboard/', views.klijent_dashboard, name='klijent_dashboard'),
@@ -92,6 +95,11 @@ urlpatterns = [
     path('api/promeni-username/', api_views.promeni_username, name='api_promeni_username'),
     path('api/kontaktiraj-klub/', api_views.kontaktiraj_klub, name='api_kontaktiraj_klub'),
     path('api/azuriraj-fcm-token/', api_views.azuriraj_fcm_token, name='api_azuriraj_fcm_token'),
+    
+    # Check-in API - DODATO 30.12.2024
+    path('api/checkin/', views.checkin, name='api_checkin'),
+    path('api/checkin/history/', views.checkin_history, name='api_checkin_history'),
+    
     # Progress Dashboard API - DODATO 22.12.2024
     path('api/progress/merenja/', views.api_progress_merenja, name='api_progress_merenja'),
     path('api/progress/statistika/', views.api_progress_statistika, name='api_progress_statistika'),
