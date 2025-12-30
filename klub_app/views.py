@@ -33,6 +33,7 @@ from .services.firebase_service import send_push_notification
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from .forms import ClanForm, UplataForm, SaleForm, MerenjeForm
 
 
 def init_firebase():
@@ -343,7 +344,7 @@ def klijenti(request):
                         email = str(row.get('E-mail', '') or row.get('email', '') or '').strip()
                         datum_rodjenja_str = row.get('Datum rodjenja', None)
                         datum_rodjenja = None
-                        if datum_rodjenja_str is not None and pd.notna(datum_rodjenja_str):
+                        if datum_rodjenja_str is not None and not pd.isna(datum_rodjenja_str):
                             datum_rodjenja_str = str(datum_rodjenja_str).strip()
                             for fmt in ('%Y-%m-%d', '%d.%m.%Y', '%d/%m/%Y', '%m/%d/%Y', '%Y/%m/%d'):
                                 try:
@@ -388,7 +389,7 @@ def klijenti(request):
                         clan.krediti_voda = krediti
 
                         old_slika = clan.slika.name if clan.slika else None
-                        if 'Slika' in row and pd.notna(row['Slika']):
+                        if 'Slika' in row and not pd.isna(row['Slika']):
                             slika = str(row['Slika']).strip()
                             if slika:
                                 try:
