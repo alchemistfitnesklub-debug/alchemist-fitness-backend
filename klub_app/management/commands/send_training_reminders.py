@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from datetime import timedelta
+import pytz
 from klub_app.models import Rezervacija, FCMToken
 from klub_app.services.firebase_service import send_push_notification
 
@@ -10,10 +11,16 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.stdout.write('🏋️ Proveravam trening podsetnika...')
         
-        now = timezone.now()
+        # ✅ KORISTI SRPSKO VREME (Belgrade timezone)
+        belgrade_tz = pytz.timezone('Europe/Belgrade')
+        now = timezone.now().astimezone(belgrade_tz)
+        
         one_hour_later = now + timedelta(hours=1)
         target_date = one_hour_later.date()
         target_hour = one_hour_later.hour
+        
+        self.stdout.write(f'🕐 Trenutno vreme (Beograd): {now.strftime("%H:%M")}')
+        self.stdout.write(f'🎯 Tražim treninge za: {target_date} u {target_hour}:00')
         
         # Pronađi rezervacije za 1 sat
         rezervacije = Rezervacija.objects.filter(
@@ -22,7 +29,7 @@ class Command(BaseCommand):
         ).select_related('clan', 'clan__user')
         
         if not rezervacije.exists():
-            self.stdout.write('✓ Nema treninga za 1 sat')
+            self.stdout.write(f'✓ Nema treninga za {target_hour}:00')
             return
         
         sent_count = 0
@@ -38,10 +45,10 @@ class Command(BaseCommand):
                 ).first()
                 
                 if token_obj:
-                    message = f"Podsetnik: Za 1 sat imate zakazan trening u {rezervacija.sat}:00!"
+                    message = f"Podsetnik: Za 1 sat imate zakazan trening u {rezervacija.sat}:00! 💪"
                     response = send_push_notification(
                         fcm_token=token_obj.token,
-                        title="Trening za 1 sat",
+                        title="⏰ Trening za 1 sat",
                         body=message
                     )
                     if response:
