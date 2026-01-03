@@ -970,10 +970,23 @@ def klijenti_json_clanovi(request):
         return JsonResponse([], safe=False)
     if not profile or (not profile.is_trener and not profile.is_admin):
         return JsonResponse([], safe=False)
-    q = request.GET.get('q', '')
-    clanovi = Clan.objects.filter(ime_prezime__icontains=q).values(
+    
+    q = request.GET.get('q', '').strip()
+    
+    if not q:
+        return JsonResponse([], safe=False)
+    
+    # 📞 PRETRAGA PO IMENU, TELEFONU ILI EMAILU - NOVO!
+    from django.db.models import Q
+    
+    clanovi = Clan.objects.filter(
+        Q(ime_prezime__icontains=q) |  # Po imenu
+        Q(telefon__icontains=q) |       # Po telefonu
+        Q(email__icontains=q)           # Po emailu
+    ).values(
         'id', 'ime_prezime', 'telefon', 'email', 'krediti_voda'
-    )[:20]
+    ).order_by('ime_prezime')[:20]
+    
     return JsonResponse(list(clanovi), safe=False)
 
 
