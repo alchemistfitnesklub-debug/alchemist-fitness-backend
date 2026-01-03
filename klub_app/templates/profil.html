@@ -668,6 +668,66 @@ body.dark-theme .table-container tr:hover {
             </div>
         </div>
 
+       <!-- ADMIN KONTROLE - DODATO 03.01.2025 -->
+            {% if request.user.userprofile.is_admin and clan.user %}
+            <div class="section-card">
+                <div class="section-header">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Upravljanje pristupom (Admin Only)</h3>
+                </div>
+                
+                <div style="margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                    <strong>Username:</strong> {{ clan.user.username }}<br>
+                    <strong>Status:</strong> 
+                    {% if clan.user.is_active %}
+                        <span style="color: #43e97b;">✅ Aktivan</span>
+                    {% else %}
+                        <span style="color: #ff4444;">🚫 Blokiran</span>
+                    {% endif %}
+                </div>
+                
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <!-- Reset lozinke -->
+                    <form method="post" action="{% url 'reset_password' clan.id %}" 
+                          onsubmit="return confirm('Da li ste sigurni da želite da resetujete lozinku?');"
+                          style="flex: 1; min-width: 200px;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-info" style="margin: 0;">
+                            <i class="fas fa-key"></i> Resetuj lozinku
+                        </button>
+                    </form>
+                    
+                    <!-- Promena username-a -->
+                    <button onclick="promptChangeUsername()" class="btn-primary" style="flex: 1; min-width: 200px; margin: 0;">
+                        <i class="fas fa-user-edit"></i> Promeni username
+                    </button>
+                    
+                    <!-- Ban/Unban -->
+                    {% if clan.user.is_active %}
+                    <form method="post" action="{% url 'ban_user' clan.id %}" 
+                          onsubmit="return confirm('⚠️ PAŽNJA! Ovaj korisnik NEĆE MOĆI da se prijavi u aplikaciju!\n\nDa li ste sigurni?');"
+                          style="flex: 1; min-width: 200px;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-danger" style="margin: 0;">
+                            <i class="fas fa-ban"></i> Blokiraj pristup
+                        </button>
+                    </form>
+                    {% else %}
+                    <form method="post" action="{% url 'unban_user' clan.id %}" 
+                          onsubmit="return confirm('Da li želite da odblokirate ovog korisnika?');"
+                          style="flex: 1; min-width: 200px;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-success" style="margin: 0;">
+                            <i class="fas fa-check-circle"></i> Odblokiraj pristup
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            <!-- KRAJ ADMIN KONTROLE -->
+        </div>
+
         <!-- TAB 2: ČLANARINE -->
         <div id="clanarineTab" class="tab-content">
             <!-- DODAJ NOVU ČLANARINU -->
@@ -1238,6 +1298,31 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     {% endif %}
 });
+
+   // PROMPT ZA PROMENU USERNAME-A
+function promptChangeUsername() {
+    const newUsername = prompt('Unesite novi username:');
+    if (newUsername && newUsername.trim()) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{% url "change_username" clan.id %}';
+        
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden';
+        csrf.name = 'csrfmiddlewaretoken';
+        csrf.value = '{{ csrf_token }}';
+        
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'new_username';
+        input.value = newUsername.trim();
+        
+        form.appendChild(csrf);
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
 </script>
 
 {% endblock %}
