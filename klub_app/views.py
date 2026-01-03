@@ -962,6 +962,191 @@ def profil(request, clan_id):
     return render(request, 'profil.html', context)
 
 
+    # ========================================
+    # ADMIN KONTROLE - RESET, BAN, UNBAN
+    # DODATO 03.01.2025
+    # ========================================
+
+@admin_only
+def reset_password(request, clan_id):
+    """Reset lozinke za klijenta - samo admin"""
+    clan = get_object_or_404(Clan, id=clan_id)
+    
+    if not clan.user:
+        messages.error(request, '❌ Klijent nema korisničko ime!')
+        return redirect('profil', clan_id=clan_id)
+    
+    # Generiši novu random lozinku
+    import random
+    import string
+    new_password = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
+    
+    # Postavi novu lozinku
+    clan.user.set_password(new_password)
+    clan.user.save()
+    
+    # Pošalji email sa novim kredencijalima
+    if clan.email:
+        from django.core.mail import EmailMessage
+        
+        ios_link = "https://apps.apple.com/us/app/alchemist-health-club/id6756538673"
+        android_link = "GOOGLE_PLAY_LINK"
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="UTF-8"></head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f4; margin: 0; padding: 0;">
+            <div style="max-width: 600px; margin: 30px auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                
+                <div style="background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%); padding: 30px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 28px;">🔐 NOVA LOZINKA</h1>
+                    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Vaša lozinka je resetovana</p>
+                </div>
+                
+                <div style="padding: 40px 30px;">
+                    <p style="font-size: 16px; margin-bottom: 20px;">Pozdrav <strong>{clan.ime_prezime}</strong>! 👋</p>
+                    
+                    <p style="font-size: 15px; color: #555; margin-bottom: 25px;">
+                        Vaša lozinka je resetovana. Evo novih pristupnih podataka:
+                    </p>
+                    
+                    <div style="background-color: #fff3cd; padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #ff4444;">
+                        <div style="margin-bottom: 15px;">
+                            <span style="color: #666; font-size: 13px; text-transform: uppercase; letter-spacing: 1px;">Korisničko ime</span>
+                            <div style="font-size: 18px; font-weight: bold; color: #333; margin-top: 5px;">{clan.user.username}</div>
+                        </div>
+                        <div>
+                            <span style="color: #666; font-size: 13px; text-transform: uppercase; letter-spacing: 1px;">Nova lozinka</span>
+                            <div style="font-size: 18px; font-weight: bold; color: #ff4444; margin-top: 5px;">{new_password}</div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin: 35px 0;">
+                        <p style="font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #333;">📲 Preuzmite aplikaciju:</p>
+                        <a href="{ios_link}" style="display: inline-block; text-decoration: none; margin: 10px;">
+                            <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83" alt="App Store" style="width: 200px; height: auto; border: 0;">
+                        </a>
+                        <br>
+                        <a href="{android_link}" style="display: inline-block; text-decoration: none; margin: 10px;">
+                            <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Google Play" style="width: 230px; height: auto; border: 0;">
+                        </a>
+                    </div>
+                    
+                    <div style="background-color: #d1ecf1; padding: 15px; border-radius: 8px; border-left: 4px solid #17a2b8; margin: 20px 0;">
+                        <p style="margin: 0; color: #0c5460;">
+                            💡 <strong>VAŽNO:</strong> Promenite lozinku nakon prijavljivanja u postavkama aplikacije!
+                        </p>
+                    </div>
+                </div>
+                
+                <div style="background-color: #f8f9fa; padding: 25px; text-align: center; border-top: 1px solid #dee2e6;">
+                    <p style="margin: 0 0 10px 0; font-weight: bold; color: #333;">Srećno! 💪</p>
+                    <p style="margin: 0; font-size: 13px; color: #666;">
+                        📧 alchemist.fitnesklub@gmail.com | 📱 011 4076290<br>
+                        Alchemist Ladies Fitness & Health Club | Beograd
+                    </p>
+                </div>
+                
+            </div>
+        </body>
+        </html>
+        """
+        
+        email = EmailMessage(
+            subject='🔐 Nova lozinka - Alchemist App',
+            body=html_content,
+            from_email=settings.EMAIL_HOST_USER,
+            to=[clan.email],
+        )
+        email.content_subtype = 'html'
+        email.send(fail_silently=True)
+        
+        messages.success(request, f'✅ Nova lozinka poslata na {clan.email}! Lozinka: {new_password}')
+    else:
+        messages.warning(request, f'⚠️ Lozinka resetovana: {new_password} (nema email adresu)')
+    
+    return redirect('profil', clan_id=clan_id)
+
+
+@admin_only
+def change_username(request, clan_id):
+    """Promeni username - samo admin"""
+    clan = get_object_or_404(Clan, id=clan_id)
+    
+    if not clan.user:
+        messages.error(request, '❌ Klijent nema korisničko ime!')
+        return redirect('profil', clan_id=clan_id)
+    
+    if request.method == 'POST':
+        new_username = request.POST.get('new_username', '').strip()
+        
+        if not new_username:
+            messages.error(request, '❌ Username ne može biti prazan!')
+            return redirect('profil', clan_id=clan_id)
+        
+        # Proveri da li username već postoji
+        if User.objects.filter(username=new_username).exclude(id=clan.user.id).exists():
+            messages.error(request, f'❌ Username "{new_username}" je već zauzet!')
+            return redirect('profil', clan_id=clan_id)
+        
+        old_username = clan.user.username
+        clan.user.username = new_username
+        clan.user.save()
+        
+        messages.success(request, f'✅ Username promenjen: {old_username} → {new_username}')
+        
+        # Opciono: Pošalji email
+        if clan.email:
+            from django.core.mail import send_mail
+            message = f"Vaše korisničko ime je promenjeno sa '{old_username}' na '{new_username}'."
+            send_mail(
+                'Promena korisničkog imena',
+                message,
+                settings.EMAIL_HOST_USER,
+                [clan.email],
+                fail_silently=True
+            )
+        
+        return redirect('profil', clan_id=clan_id)
+    
+    return redirect('profil', clan_id=clan_id)
+
+
+@admin_only
+def ban_user(request, clan_id):
+    """Blokiraj pristup aplikaciji - samo admin"""
+    clan = get_object_or_404(Clan, id=clan_id)
+    
+    if not clan.user:
+        messages.error(request, '❌ Klijent nema korisničko ime!')
+        return redirect('profil', clan_id=clan_id)
+    
+    clan.user.is_active = False
+    clan.user.save()
+    
+    messages.success(request, f'🚫 {clan.ime_prezime} je blokiran! Ne može se prijaviti u aplikaciju.')
+    
+    return redirect('profil', clan_id=clan_id)
+
+
+@admin_only
+def unban_user(request, clan_id):
+    """Odblokiraj pristup aplikaciji - samo admin"""
+    clan = get_object_or_404(Clan, id=clan_id)
+    
+    if not clan.user:
+        messages.error(request, '❌ Klijent nema korisničko ime!')
+        return redirect('profil', clan_id=clan_id)
+    
+    clan.user.is_active = True
+    clan.user.save()
+    
+    messages.success(request, f'✅ {clan.ime_prezime} je odblokiran! Može ponovo da se prijavi.')
+    
+    return redirect('profil', clan_id=clan_id)
+
+
 @login_required
 def klijenti_json_clanovi(request):
     try:
