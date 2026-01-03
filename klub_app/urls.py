@@ -29,6 +29,11 @@ urlpatterns = [
     path('klijenti/json/', views.klijenti_json_clanovi, name='klijenti_json_clanovi'),
     path('profil/<int:clan_id>/', views.profil, name='profil'),
     path('brisi_clana/<int:clan_id>/', views.brisi_clana, name='brisi_clana'),
+    # Admin kontrole - DODATO 03.01.2025
+    path('reset-password/<int:clan_id>/', views.reset_password, name='reset_password'),
+    path('change-username/<int:clan_id>/', views.change_username, name='change_username'),
+    path('ban-user/<int:clan_id>/', views.ban_user, name='ban_user'),
+    path('unban-user/<int:clan_id>/', views.unban_user, name='unban_user'),
     
     # ========== Šank ==========
     path('sank/', views.sank, name='sank'),
